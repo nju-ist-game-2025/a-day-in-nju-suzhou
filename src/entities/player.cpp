@@ -6,6 +6,7 @@ Player::Player(const QPixmap& pic_player, double scale) {
     this->setPixmap(pic_player.scaled(scale, scale));
     xdir = 0;
     ydir = 0;
+    speed = 1.0;
     curr_xdir = 0;
     curr_ydir = 1;//默认向下
     this->setPos(400, 300);//初始位置,根据实际需要后续修改

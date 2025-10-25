@@ -4,6 +4,7 @@ Projectile::Projectile(QPointF pos, const QPixmap& pic_bullet, double scale) {
     setTransformationMode(Qt::SmoothTransformation);
     xdir = 0;
     ydir = 0;
+    speed = 1.0;
     this->setPixmap(pic_bullet.scaled(scale, scale));
     this->setPos(pos);
 
