@@ -1,7 +1,7 @@
 #include "entity.h"
 
 Entity::Entity(QGraphicsPixmapItem *parent)
-    : QGraphicsPixmapItem(parent)
+    : QGraphicsPixmapItem(parent), crash_r(20)
 {
     setTransformationMode(Qt::SmoothTransformation);
 }

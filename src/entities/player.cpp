@@ -1,7 +1,9 @@
 #include "player.h"
 #include "constants.h"
+#include "enemy.h"
 
-Player::Player(const QPixmap& pic_player, double scale) {
+Player::Player(const QPixmap& pic_player, double scale)
+    :redContainers(3), redHearts(3.0), blackHearts(0), soulHearts(0), invincible(false){
     setTransformationMode(Qt::SmoothTransformation);
     this->setPixmap(pic_player.scaled(scale, scale));
     xdir = 0;
@@ -11,6 +13,8 @@ Player::Player(const QPixmap& pic_player, double scale) {
     curr_ydir = 1;//默认向下
     this->setPos(400, 300);//初始位置,根据实际需要后续修改
 
+    hurt = 1;//后续可修改
+
     keysPressed[Qt::Key_Up] = false;
     keysPressed[Qt::Key_Down] = false;
     keysPressed[Qt::Key_Left] = false;
@@ -19,6 +23,10 @@ Player::Player(const QPixmap& pic_player, double scale) {
     keysTimer = new QTimer();
     connect(keysTimer, &QTimer::timeout, this, &Player::move);
     keysTimer->start(16);
+
+    crashTimer = new QTimer();
+    connect(crashTimer, &QTimer::timeout, this, &Player::crashEnemy);
+    crashTimer->start(50);
 }
 
 void Player::keyPressEvent(QKeyEvent *event) {
@@ -27,7 +35,7 @@ void Player::keyPressEvent(QKeyEvent *event) {
         keysPressed[event->key()] = true;
     }
     if(event->key() == Qt::Key_W || event->key() == Qt::Key_A || event->key() == Qt::Key_S || event->key() == Qt::Key_D) {
-        Projectile *bullet = new Projectile(this->pos(), pic_bullet);//还可添加图片比例的参数
+        Projectile *bullet = new Projectile(0, this->hurt, this->pos(), pic_bullet);//还可添加图片比例的参数
         switch (event->key()) {
             case Qt::Key_W: bullet->setDir(0, -1); break;
             case Qt::Key_S: bullet->setDir(0, 1); break;
@@ -69,4 +77,45 @@ void Player::move() {
     }
     QPointF dir(xdir, ydir);
     this->setPos(pos() + speed*dir);
+}
+
+void Player::takeDamage(int damage) {
+    if (invincible) return;
+    while(damage > 0 && soulHearts > 0){
+        soulHearts--;
+        damage -= 2;
+    }
+    while(damage > 0 && blackHearts > 0){
+        blackHearts--;
+        damage -= 2;
+    }
+    while(damage > 0 && redHearts > 0.0){
+        redHearts -= 0.5;
+        damage--;
+    }
+    if(redHearts <= 0.0) die();
+    else setInvincible();
+}
+
+//死亡效果，有待UI同学的具体实现
+void Player::die() {
+
+}
+
+//短暂无敌效果，有待UI同学的具体实现
+void Player::setInvincible() {
+    invincible = true;
+    QTimer::singleShot(1000, this, [this](){
+        invincible = false;
+    });
+}
+
+void Player::crashEnemy() {
+    foreach(QGraphicsItem *item, scene()->items()) {
+        if (auto it = dynamic_cast<Enemy*>(item)) {
+            if(abs(it->pos().x() - this->pos().x()) > it->crash_r + crash_r ||
+                abs(it->pos().y() - this->pos().y()) > it->crash_r + crash_r) continue;
+            else it->takeDamage(it->crash_hurt);
+        }
+    }
 }
