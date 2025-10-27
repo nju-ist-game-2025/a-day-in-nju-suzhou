@@ -1,15 +1,31 @@
 #include "projectile.h"
-#include "player.h"
 #include "enemy.h"
+#include "player.h"
 
 Projectile::Projectile(int _mode, int _hurt, QPointF pos, const QPixmap& pic_bullet, double scale)
-    :mode(_mode) {
+    : mode(_mode) {
     setTransformationMode(Qt::SmoothTransformation);
+
+    // 禁用缓存以避免留下轨迹
+    setCacheMode(QGraphicsItem::NoCache);
+
     xdir = 0;
     ydir = 0;
     speed = 1.0;
     hurt = _hurt;
-    this->setPixmap(pic_bullet.scaled(scale, scale));
+
+    // 修复：如果scale是1.0，直接使用原始pixmap，否则按比例缩放
+    if (scale == 1.0) {
+        this->setPixmap(pic_bullet);
+    } else {
+        // 按比例缩放（保持宽高比）
+        this->setPixmap(pic_bullet.scaled(
+            pic_bullet.width() * scale,
+            pic_bullet.height() * scale,
+            Qt::KeepAspectRatio,
+            Qt::SmoothTransformation));
+    }
+
     this->setPos(pos);
 
     moveTimer = new QTimer();
@@ -22,28 +38,51 @@ Projectile::Projectile(int _mode, int _hurt, QPointF pos, const QPixmap& pic_bul
 }
 
 void Projectile::move() {
-    if(pos().x() + xdir >= scene_bound_x || pos().y() + ydir >= scene_bound_y) {
-        scene()->removeItem(this);
-        //this->deleteLater();//理应删除但是危险，容易使游戏中断
+    // 检查是否超出边界
+    double newX = pos().x() + xdir;
+    double newY = pos().y() + ydir;
+
+    if (newX < 0 || newX > scene_bound_x || newY < 0 || newY > scene_bound_y) {
+        // 超出边界，停止定时器并删除子弹
+        if (moveTimer) {
+            moveTimer->stop();
+            moveTimer->deleteLater();
+        }
+        if (crashTimer) {
+            crashTimer->stop();
+            crashTimer->deleteLater();
+        }
+        if (scene()) {
+            scene()->removeItem(this);
+        }
+        deleteLater();
     } else {
         QPointF dir(xdir, ydir);
-        this->setPos(pos() + speed*dir);
+        this->setPos(pos() + speed * dir);
     }
 }
 
 void Projectile::checkCrash() {
-    foreach(QGraphicsItem *item, scene()->items()) {
-        if(mode){
+    // 确保scene存在
+    if (!scene())
+        return;
+
+    foreach (QGraphicsItem* item, scene()->items()) {
+        if (mode) {
             if (auto it = dynamic_cast<Player*>(item)) {
-                if(abs(it->pos().x() - this->pos().x()) > it->crash_r ||
-                    abs(it->pos().y() - this->pos().y()) > it->crash_r) continue;
-                else it->takeDamage(hurt);
+                if (abs(it->pos().x() - this->pos().x()) > it->crash_r ||
+                    abs(it->pos().y() - this->pos().y()) > it->crash_r)
+                    continue;
+                else
+                    it->takeDamage(hurt);
             }
         } else {
             if (auto it = dynamic_cast<Enemy*>(item)) {
-                if(abs(it->pos().x() - this->pos().x()) > it->crash_r ||
-                    abs(it->pos().y() - this->pos().y()) > it->crash_r) continue;
-                else it->takeDamage(hurt);
+                if (abs(it->pos().x() - this->pos().x()) > it->crash_r ||
+                    abs(it->pos().y() - this->pos().y()) > it->crash_r)
+                    continue;
+                else
+                    it->takeDamage(hurt);
             }
         }
     }

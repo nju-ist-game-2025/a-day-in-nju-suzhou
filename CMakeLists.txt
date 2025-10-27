@@ -9,6 +9,11 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Windows specific settings
+if(WIN32)
+    set(CMAKE_WIN32_EXECUTABLE ON)
+endif()
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Multimedia)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Multimedia)
 
@@ -26,6 +31,7 @@ set(CORE_SOURCES
     src/core/gamemanager.h
     src/core/audiomanager.cpp
     src/core/audiomanager.h
+    src/core/resourcefactory.h
 )
 
 set(ENTITY_SOURCES
@@ -66,6 +72,8 @@ set(UI_SOURCES
     src/ui/mainmenu.h
     src/ui/codex.cpp
     src/ui/codex.h
+    src/ui/gameview.cpp
+    src/ui/gameview.h
 )
 
 
@@ -104,7 +112,14 @@ else()
     endif()
 endif()
 
-target_link_libraries(game_final PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Multimedia)
+target_link_libraries(game_final PRIVATE 
+    Qt${QT_VERSION_MAJOR}::Widgets 
+    Qt${QT_VERSION_MAJOR}::Multimedia
+)
+
+if(MINGW)
+    target_link_options(game_final PRIVATE -Wl,--allow-multiple-definition)
+endif()
 
 # 包含头文件目录
 target_include_directories(game_final PRIVATE
