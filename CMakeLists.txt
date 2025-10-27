@@ -152,6 +152,14 @@ install(TARGETS game_final
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+# 复制资源文件到构建目录
+add_custom_command(TARGET game_final POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:game_final>/assets
+    COMMENT "Copying assets to build directory"
+)
+
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(game_final)
 endif()

@@ -72,7 +72,7 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
 
     // 加载主菜单背景图片
     try {
-        QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("resources/background_main.png", 800, 600);
+        QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("assets/background_main.png", 800, 600);
         QPalette palette;
         palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
         setAutoFillBackground(true);

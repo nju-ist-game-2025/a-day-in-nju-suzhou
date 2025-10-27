@@ -50,12 +50,12 @@ void GameView::initGame() {
         scene->clear();
 
         // 加载游戏背景图片
-        QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("resources/background_game.png", scene_bound_x, scene_bound_y);
+        QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("assets/background_game.png", scene_bound_x, scene_bound_y);
         scene->setBackgroundBrush(QBrush(backgroundPixmap));
 
         // 加载玩家图片
         int playerSize = 60;
-        QPixmap playerPixmap = ResourceFactory::createPlayerImage(playerSize, "resources/player.png");
+        QPixmap playerPixmap = ResourceFactory::createPlayerImage(playerSize, "assets/player.png");
 
         // 创建玩家
         player = new Player(playerPixmap, 1.0);
@@ -71,7 +71,7 @@ void GameView::initGame() {
         player->setShootCooldown(150);
 
         // 加载子弹图片
-        QPixmap bulletPixmap = ResourceFactory::createBulletImage(50, "resources/bullet.png");
+        QPixmap bulletPixmap = ResourceFactory::createBulletImage(50, "assets/bullet.png");
         player->setBulletPic(bulletPixmap);
     } catch (const QString& error) {
         QMessageBox::critical(this, "资源加载失败", error);
