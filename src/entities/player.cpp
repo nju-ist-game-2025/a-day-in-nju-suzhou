@@ -5,10 +5,11 @@
 #include "enemy.h"
 
 Player::Player(const QPixmap& pic_player, double scale)
-    : redContainers(3), redHearts(3.0), blackHearts(0), soulHearts(0), invincible(false), shootCooldown(150), lastShootTime(0) {  // 默认150毫秒射击冷却
+    : redContainers(3), redHearts(3.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0) {  // 默认150毫秒射击冷却
     setTransformationMode(Qt::SmoothTransformation);
 
     // 如果scale是1.0，直接使用原始pixmap，否则按比例缩放
+    invincible = false;
     if (scale == 1.0) {
         this->setPixmap(pic_player);
     } else {
@@ -26,12 +27,17 @@ Player::Player(const QPixmap& pic_player, double scale)
     xdir = 0;
     ydir = 0;
     speed = 5.0;
+    shootSpeed = 1.0;
+    shootType = 0;
+    damageScale = 1.0;
     curr_xdir = 0;
     curr_ydir = 1;           // 默认向下
     this->setPos(400, 300);  // 初始位置,根据实际需要后续修改
 
     hurt = 1;      // 后续可修改
     crash_r = 40;  // 增大碰撞半径以匹配新的角色大小
+
+    bombs = 0;
 
     // 初始化移动按键
     keysPressed[Qt::Key_Up] = false;
@@ -116,7 +122,9 @@ void Player::checkShoot() {
 void Player::shoot(int key) {
     // 计算子弹发射位置（从角色中心发射）
     QPointF bulletPos = this->pos() + QPointF(pixmap().width() / 2 - 7.5, pixmap().height() / 2 - 7.5);
+    //if(shootType == 0) //改变为发射激光模式，需要ui的图片实现
     Projectile* bullet = new Projectile(0, this->hurt, bulletPos, pic_bullet);
+    bullet->setSpeed(shootSpeed);
 
     // 将子弹添加到场景中
     if (scene()) {
@@ -197,6 +205,7 @@ void Player::move() {
 }
 
 void Player::takeDamage(int damage) {
+    damage *= damageScale;
     if (invincible)
         return;
     while (damage > 0 && soulHearts > 0) {

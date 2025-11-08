@@ -1,3 +1,7 @@
 #include "item.h"
 
-Item::Item() {}
+Item::Item(const QString& name, const QString& desc) {
+    this->name = name;
+    this->description = desc;
+}
+

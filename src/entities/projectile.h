@@ -12,7 +12,7 @@ class Projectile : public Entity
     QTimer *crashTimer;
     int mode;//Player发出：0, Enemy发出：1
 public:
-    Projectile(int _mode, int _hurt, QPointF pos, const QPixmap& pic_bullet, double scale = 1.0);
+    Projectile(int _mode, double _hurt, QPointF pos, const QPixmap& pic_bullet, double scale = 1.0);
     void setDir(int x, int y){xdir = x; ydir = y;};
     void move() override;
     void checkCrash();

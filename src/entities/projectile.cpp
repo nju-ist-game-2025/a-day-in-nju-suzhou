@@ -2,7 +2,7 @@
 #include "enemy.h"
 #include "player.h"
 
-Projectile::Projectile(int _mode, int _hurt, QPointF pos, const QPixmap& pic_bullet, double scale)
+Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap& pic_bullet, double scale)
     : mode(_mode) {
     setTransformationMode(Qt::SmoothTransformation);
 
