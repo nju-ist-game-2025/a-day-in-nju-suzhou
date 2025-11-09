@@ -44,6 +44,24 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
         "   background-color: #3d8b40;"
         "}");
 
+    // 创建图鉴按钮（新增）
+    codexButton = new QPushButton("怪物图鉴", this);
+    codexButton->setFixedSize(200, 60);
+    codexButton->setFont(buttonFont);
+    codexButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #2196F3;"
+        "   color: white;"
+        "   border: none;"
+        "   border-radius: 5px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #1976D2;"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: #0D47A1;"
+        "}");
+
     // 创建退出按钮
     exitButton = new QPushButton("退出游戏", this);
     exitButton->setFixedSize(200, 60);
@@ -67,6 +85,7 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
     mainLayout->addWidget(titleLabel);
     mainLayout->addSpacing(50);
     mainLayout->addWidget(startButton, 0, Qt::AlignCenter);
+    mainLayout->addWidget(codexButton, 0, Qt::AlignCenter);  // 新增按钮
     mainLayout->addWidget(exitButton, 0, Qt::AlignCenter);
     mainLayout->addStretch();
 
@@ -85,5 +104,6 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
 
     // 连接信号和槽
     connect(startButton, &QPushButton::clicked, this, &MainMenu::startGameClicked);
+    connect(codexButton, &QPushButton::clicked, this, &MainMenu::codexClicked);  // 新增连接
     connect(exitButton, &QPushButton::clicked, this, &MainMenu::exitGameClicked);
 }

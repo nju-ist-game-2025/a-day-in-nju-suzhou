@@ -1,0 +1,700 @@
+文件夹 PATH 列表
+卷序列号为 98EE-4DEF
+C:.
+│  .gitignore
+│  CMakeLists.txt
+│  CMakeLists.txt.user
+│  COLLABORATION.md
+│  FETCH_HEAD
+│  git
+│  project_structure.txt
+│  README.md
+│  RESOURCE_GUIDE.md
+│  
+├─assets
+│      background_game.png
+│      background_main.png
+│      bullet.png
+│      enemy.png
+│      player.png
+│      README.md
+│      
+├─build
+│  └─Desktop_Qt_6_8_3_MinGW_64_bit-Debug
+│      │  build.ninja
+│      │  CMakeCache.txt
+│      │  cmake_install.cmake
+│      │  qtcsettings.cmake
+│      │  
+│      ├─.cmake
+│      │  └─api
+│      │      └─v1
+│      │          ├─query
+│      │          │      cache-v2
+│      │          │      cmakeFiles-v1
+│      │          │      codemodel-v2
+│      │          │      
+│      │          ├─reply
+│      │          │      cache-v2-9ed58edf452832d28f8f.json
+│      │          │      cmakeFiles-v1-3f32fa00f1b7a1ae6d6e.json
+│      │          │      codemodel-v2-6393f3af83b585d9f2d3.json
+│      │          │      directory-.-Debug-b81f19a87078b3e8ec58.json
+│      │          │      index-2025-11-09T08-02-50-0546.json
+│      │          │      target-game_final-Debug-572ce34e1821b3ecaf9f.json
+│      │          │      target-game_final_autogen-Debug-7b34d65881c0317148da.json
+│      │          │      target-game_final_autogen_timestamp_deps-Debug-b6cb8aa452ac55569a9b.json
+│      │          │      
+│      │          └─reply.prev
+│      ├─.qt
+│      │      QtDeploySupport.cmake
+│      │      QtDeployTargets.cmake
+│      │      
+│      ├─.qtc
+│      │  └─package-manager
+│      │          auto-setup.cmake
+│      │          conan.cmake
+│      │          conan_provider.cmake
+│      │          LICENSE.conan
+│      │          maintenance_tool_provider.cmake
+│      │          maintenance_tool_provider.qs
+│      │          
+│      ├─.qtc_clangd
+│      │  │  compile_commands.json
+│      │  │  
+│      │  └─.cache
+│      │      └─clangd
+│      │          └─index
+│      │                  algorithm.4DEE9B9EACE6AF7C.idx
+│      │                  algorithmfwd.h.0B497762543C8985.idx
+│      │                  align.h.F1552BD3DD305725.idx
+│      │                  aligned_buffer.h.9BB7484036823CE5.idx
+│      │                  allocated_ptr.h.CDF8C532A1A9AC14.idx
+│      │                  allocator.h.F385DBC9005FF1C7.idx
+│      │                  alloc_traits.h.85867FE5A67E5A49.idx
+│      │                  alloc_traits.h.A11883B677330512.idx
+│      │                  array.26B74003B85546B3.idx
+│      │                  assert.h.68D6D6EF94A32832.idx
+│      │                  assertions.h.AFC18645B49C45E2.idx
+│      │                  atomic.F62AF69E231766FB.idx
+│      │                  atomicity.h.E6AF11B710FA6A56.idx
+│      │                  atomic_base.h.615439FAE55D4FCD.idx
+│      │                  atomic_lockfree_defines.h.DCC03259313824D9.idx
+│      │                  atomic_word.h.F7AB0AC4E119999A.idx
+│      │                  audiomanager.cpp.797E23DC525A3D43.idx
+│      │                  audiomanager.h.A04708233A715869.idx
+│      │                  auto_ptr.h.1474AAD0CD1A143C.idx
+│      │                  basic_ios.h.E56986FC75EBE157.idx
+│      │                  basic_ios.tcc.26616710529391B5.idx
+│      │                  basic_string.h.0E229E5FB8F36D82.idx
+│      │                  basic_string.tcc.891DDB6C6F398B45.idx
+│      │                  bessel_function.tcc.8E23C988593AF43C.idx
+│      │                  beta_function.tcc.F1D2B2C076C392D0.idx
+│      │                  binders.h.017DE93138A9F045.idx
+│      │                  bit.A9A2511053D8DC1A.idx
+│      │                  boss.cpp.8D3C45959326F0CF.idx
+│      │                  boss.h.3712C87CD46D98CA.idx
+│      │                  c++allocator.h.C5A7807D3317991A.idx
+│      │                  c++config.h.B1F6AB130BA307C5.idx
+│      │                  c++locale.h.1E3B5B90B274A032.idx
+│      │                  cassert.7B8041861C616F4C.idx
+│      │                  cctype.285B797895EC42BA.idx
+│      │                  cerrno.F8C92C2FE6F50D8B.idx
+│      │                  charconv.h.96C840BC9CAABE1E.idx
+│      │                  char_traits.h.FDD012BA98ADB0FD.idx
+│      │                  chest.cpp.831C543AF22BEACE.idx
+│      │                  chest.h.82F6C160DDC640FE.idx
+│      │                  chrono.0A3972BFDA2D439B.idx
+│      │                  chrono.h.F790C9FF8E5A00C9.idx
+│      │                  climits.DA2E22DDC75CCB83.idx
+│      │                  clocale.DF22B8538C54C3ED.idx
+│      │                  cmath.FC9CE6783A6CF08D.idx
+│      │                  codecvt.728A4414B23FD89D.idx
+│      │                  codecvt.h.F39BADC8D834365B.idx
+│      │                  codex.cpp.7F139B9ED4C25FE3.idx
+│      │                  codex.h.E211D704D281FBD0.idx
+│      │                  compare.5D2180EC539AD733.idx
+│      │                  concept_check.h.A92008FF98BE09E6.idx
+│      │                  concurrence.h.676E5B67AC761AF2.idx
+│      │                  constants.h.6E974B32A6E0253F.idx
+│      │                  corecrt.h.DC10C62DAD596B9E.idx
+│      │                  corecrt_startup.h.50C1230E329616FA.idx
+│      │                  corecrt_stdio_config.h.6DEF148248573F20.idx
+│      │                  corecrt_wstdlib.h.DFCCD196B0D54568.idx
+│      │                  cpp_type_traits.h.1255BF6B9C2E47A5.idx
+│      │                  cpu_defines.h.42E91D4A8C78655C.idx
+│      │                  crtdefs.h.B0DE51648AA94F6E.idx
+│      │                  cstddef.75A7818CC72C6640.idx
+│      │                  cstdint.782BC67A3703D126.idx
+│      │                  cstdio.89A20A9754FD651B.idx
+│      │                  cstdlib.9CE82F6989F6117C.idx
+│      │                  cstring.4AA026347F3CF771.idx
+│      │                  ctime.FCC46399592EB6AE.idx
+│      │                  ctype.h.01DF00AC0BC1A936.idx
+│      │                  ctype_base.h.B1347DAAC7ED6F13.idx
+│      │                  ctype_inline.h.2A5F38F50D6F98DE.idx
+│      │                  cwchar.776F2E3545319B50.idx
+│      │                  cwctype.961B500D582A9348.idx
+│      │                  cxxabi_forced.h.0A5039C6228D443D.idx
+│      │                  cxxabi_init_exception.h.4159A85F401934BF.idx
+│      │                  debug.h.798455F6FE2AC08E.idx
+│      │                  ell_integral.tcc.F4F027B20CBD127F.idx
+│      │                  enable_special_members.h.524955B07D619D69.idx
+│      │                  enemy.cpp.E79A208FB2C25ACE.idx
+│      │                  enemy.h.42FDCB6912931BF1.idx
+│      │                  entity.cpp.17576E5B129A032A.idx
+│      │                  entity.h.2B284F666745F5B7.idx
+│      │                  erase_if.h.B9E4AA64C84C63FC.idx
+│      │                  errno.h.43D3020B5D7292AB.idx
+│      │                  error_constants.h.195501146EFBF93D.idx
+│      │                  exception.F4110AAD38FE49A1.idx
+│      │                  exception.h.2A9651983302B3CD.idx
+│      │                  exception_defines.h.39F1D50679F8DFC4.idx
+│      │                  exception_ptr.h.D856965727F611E0.idx
+│      │                  execution_defs.h.90BBE444E34D4054.idx
+│      │                  exp_integral.tcc.F9DAD445B33C7502.idx
+│      │                  filesystem.3026D86F314E1C19.idx
+│      │                  fs_dir.h.E798AA0514F2B3A0.idx
+│      │                  fs_fwd.h.055B1B66B3F5654C.idx
+│      │                  fs_ops.h.3DFD500BCAF01E63.idx
+│      │                  fs_path.h.B445556847A20F00.idx
+│      │                  functexcept.h.12CCFABDF67F4460.idx
+│      │                  functional.37EA17A6A664873A.idx
+│      │                  functional_hash.h.4E719005803AD176.idx
+│      │                  gamecontroller.cpp.07080531155BA51D.idx
+│      │                  gamecontroller.h.190425739B8A46AE.idx
+│      │                  gamemanager.cpp.D2F91DFEBEB68C9C.idx
+│      │                  gamemanager.h.C36C36D8A9F02AE3.idx
+│      │                  gameview.cpp.F01372111264A820.idx
+│      │                  gameview.h.47F4044A7C42FDEE.idx
+│      │                  GameWindow.cpp.562C2AA28C9D2725.idx
+│      │                  gamewindow.h.76A4736F5815DA2D.idx
+│      │                  gamma.tcc.88A5555BE7ABDD24.idx
+│      │                  glue_algorithm_defs.h.71BB831B01670F96.idx
+│      │                  glue_memory_defs.h.F26B660F9A3F16E4.idx
+│      │                  glue_numeric_defs.h.F9174BDA4C8A3C7C.idx
+│      │                  gthr-default.h.ACB691495DBDFDB5.idx
+│      │                  gthr.h.4ECCE1C9BDB1427D.idx
+│      │                  hashtable.h.3AA895569B129D9A.idx
+│      │                  hashtable_policy.h.37E8F9255387718D.idx
+│      │                  hash_bytes.h.BBBB1142DC68BC57.idx
+│      │                  hud.cpp.425C48103FEE3769.idx
+│      │                  hud.h.5AE2DA33E4680515.idx
+│      │                  hypergeometric.tcc.961440F86360CCDD.idx
+│      │                  initializer_list.2BA437BE1531E285.idx
+│      │                  invoke.h.47EED4590895C57A.idx
+│      │                  iomanip.43D14F6B6CDA34A9.idx
+│      │                  ios.DF0F8FC125E9DA05.idx
+│      │                  iosfwd.9340073C5109DE02.idx
+│      │                  ios_base.h.BFD16D6E378B39E1.idx
+│      │                  istream.C85CEAF05ECC288D.idx
+│      │                  istream.tcc.D51E8569006BA9B7.idx
+│      │                  item.cpp.9BB3EA6CEE6C101E.idx
+│      │                  item.h.EDCD0EC169E027C9.idx
+│      │                  iterator.AF06A9A0E0671584.idx
+│      │                  legendre_function.tcc.31868A682204A4FA.idx
+│      │                  level.cpp.A95278FD3E8017F0.idx
+│      │                  level.h.24D2DFB58EBEF23C.idx
+│      │                  limits.D451CBEFD886976F.idx
+│      │                  limits.h.C41708D448ABFA1C.idx
+│      │                  limits.h.FB7B5B4CB2BDEDBB.idx
+│      │                  list.0CA27D43B3F57D34.idx
+│      │                  list.tcc.A2674ED28FEC1A09.idx
+│      │                  locale.E458612ADC7E5636.idx
+│      │                  locale.h.807566621B5B7E9B.idx
+│      │                  localefwd.h.11DAF501161E56C8.idx
+│      │                  locale_classes.h.592A51CE6E868713.idx
+│      │                  locale_classes.tcc.8C106B02C2B98181.idx
+│      │                  locale_conv.h.9080CBDBC4C6C641.idx
+│      │                  locale_facets.h.19BC8E5331B657DC.idx
+│      │                  locale_facets.tcc.21FD61C03DF7D230.idx
+│      │                  locale_facets_nonio.h.59468C1C7FBA1703.idx
+│      │                  locale_facets_nonio.tcc.63E79E9E243B3BD9.idx
+│      │                  main.cpp.1082EA9E23E9226C.idx
+│      │                  mainmenu.cpp.A610745081A1152C.idx
+│      │                  mainmenu.h.6C29AE9EEB7CAC6A.idx
+│      │                  malloc.h.329AFFA5039D8A83.idx
+│      │                  map.E1FD9F43D8016195.idx
+│      │                  math.h.09AE8666EAEE972E.idx
+│      │                  memory.B738C39CF3FE4D41.idx
+│      │                  memoryfwd.h.2F5F536B7E11442E.idx
+│      │                  memory_resource.h.2C7E595FE70BB7C6.idx
+│      │                  messages_members.h.0227E3D461BE1D57.idx
+│      │                  mm_malloc.h.FBC5DBF63BCA4E2E.idx
+│      │                  modified_bessel_func.tcc.83A9DA56B27CBC22.idx
+│      │                  move.h.716C08CA8C8EAE84.idx
+│      │                  nested_exception.h.40FF4B1E5FB719FB.idx
+│      │                  new.D5B2BD61B462EF50.idx
+│      │                  new_allocator.h.A06CC8464190FD96.idx
+│      │                  node_handle.h.C8866507F88AD379.idx
+│      │                  numeric.1F9C92E24736C13F.idx
+│      │                  numeric_traits.h.CD7E65BB2C8D4FB5.idx
+│      │                  optional.3433DAB3C31B89D5.idx
+│      │                  opt_random.h.6D6DD66030156FE2.idx
+│      │                  ostream.FAF3A469D77B9229.idx
+│      │                  ostream.tcc.A05F77452439D03B.idx
+│      │                  ostream_insert.h.C9683995656E76D3.idx
+│      │                  os_defines.h.16984C92EBE45BCE.idx
+│      │                  parse_numbers.h.3E385C2440884A98.idx
+│      │                  player.cpp.5C4B0ACC4F55CE6C.idx
+│      │                  player.h.9DEC76EBE2296F34.idx
+│      │                  poly_hermite.tcc.BF7204C7C637172F.idx
+│      │                  poly_laguerre.tcc.16A37177699E29BE.idx
+│      │                  postypes.h.77699A2E176B9615.idx
+│      │                  predefined_ops.h.2542983083F4B942.idx
+│      │                  process.h.98058895BE3521C1.idx
+│      │                  projectile.cpp.87735CB1A169104D.idx
+│      │                  projectile.h.F5A49A71E5700B58.idx
+│      │                  pstl_config.h.1B8AFF09EA6FA94F.idx
+│      │                  pthread.h.7321656405FBDE3D.idx
+│      │                  pthread_compat.h.1A0F527992D03D7E.idx
+│      │                  pthread_signal.h.170F5B0DCB137599.idx
+│      │                  pthread_time.h.15F66372A160793E.idx
+│      │                  pthread_unistd.h.836D238BBBE42D1B.idx
+│      │                  ptr_traits.h.2082866D50BCF120.idx
+│      │                  q20functional.h.E40286AA68BC8A87.idx
+│      │                  q20iterator.h.9B77816CC8BF4D97.idx
+│      │                  q20memory.h.B2911A036A215955.idx
+│      │                  q20type_traits.h.DD98C275307751B7.idx
+│      │                  q20utility.h.56BD4DE15860135F.idx
+│      │                  q23utility.h.E799D20282E0D01E.idx
+│      │                  qabstractbutton.h.32DABCB798941327.idx
+│      │                  qabstractscrollarea.h.59761A5A9E69BC3C.idx
+│      │                  qaction.h.5557FEC0CD636140.idx
+│      │                  qalgorithms.h.F5868E0E2E7BAFE5.idx
+│      │                  qanystringview.h.02A923DAE42AB389.idx
+│      │                  QApplication.8EBA22685B7BA43E.idx
+│      │                  qapplication.h.3A8CD113232C8128.idx
+│      │                  qarraydata.h.43F1E9149032034F.idx
+│      │                  qarraydataops.h.9EA09CBD978EF615.idx
+│      │                  qarraydatapointer.h.4A6B0EB2F2DE0E03.idx
+│      │                  qassert.h.F664498EE24B5B36.idx
+│      │                  qatomic.h.4E8AA9E79A85153A.idx
+│      │                  qatomic_cxx11.h.CB7336F26EF4319F.idx
+│      │                  qbasicatomic.h.11FFE0AE0BEFB429.idx
+│      │                  qbasictimer.h.FC9BF357E41EC802.idx
+│      │                  qbindingstorage.h.6E95A4E2304BCE4F.idx
+│      │                  qbitmap.h.6EA16BA4045C497F.idx
+│      │                  qboxlayout.h.406DEA0D6E830BC6.idx
+│      │                  qbrush.h.5406603DAA24C036.idx
+│      │                  qbytearray.h.7C40134D684B3B32.idx
+│      │                  qbytearrayalgorithms.h.19CF221F3E21CC79.idx
+│      │                  qbytearraylist.h.B49D1BF58CCE8157.idx
+│      │                  qbytearrayview.h.210AD346A3DCF063.idx
+│      │                  qcalendar.h.DF8B4A252EC7D518.idx
+│      │                  qchar.h.5FA7EAE2FB09D415.idx
+│      │                  QColor.3E79E6131C54C1A7.idx
+│      │                  qcolor.h.D0C44615F610403B.idx
+│      │                  qcompare.h.608A3356C47D0565.idx
+│      │                  qcomparehelpers.h.F82029272C4276C0.idx
+│      │                  qcompare_impl.h.1B574C7A714E98B5.idx
+│      │                  qcompilerdetection.h.FDDC18C45E60A3FB.idx
+│      │                  qconfig.h.7C6FCDFF1DEF66EE.idx
+│      │                  qconstructormacros.h.E20A746A809BA05C.idx
+│      │                  qcontainerfwd.h.30C055855CEB5AAC.idx
+│      │                  qcontainerinfo.h.68D7C8A2C0F79A81.idx
+│      │                  qcontainertools_impl.h.23AFC1C5D41B7245.idx
+│      │                  qcontiguouscache.h.D0BA947EC6C1465C.idx
+│      │                  qcoreapplication.h.113B53C1146BC9B1.idx
+│      │                  qcoreapplication_platform.h.894439157FD1A6AB.idx
+│      │                  qcoreevent.h.41AD1EEE2DC2E06E.idx
+│      │                  qcursor.h.224A99A15C766F9D.idx
+│      │                  qdarwinhelpers.h.58244DE9CBE88E51.idx
+│      │                  qdatastream.h.F9126E32F84437E7.idx
+│      │                  QDateTime.D0DD6FE1ABEBBDFE.idx
+│      │                  qdatetime.h.E120E98F61930A9D.idx
+│      │                  qdeadlinetimer.h.350259F6CE531644.idx
+│      │                  QDebug.65FF5A47F118807E.idx
+│      │                  qdebug.h.8BC176F92D1E223A.idx
+│      │                  qdialog.h.B48D48775B44EAAB.idx
+│      │                  qdialogbuttonbox.h.17547513F34A7A1A.idx
+│      │                  QElapsedTimer.09FB928C0DBB795F.idx
+│      │                  qelapsedtimer.h.473EB8E7F96C2E77.idx
+│      │                  qendian.h.394AC18DB49FE8B7.idx
+│      │                  qevent.h.2C0595B9C9E4AD1A.idx
+│      │                  qeventloop.h.5EBFEA1A7ABF57CD.idx
+│      │                  qeventpoint.h.18BF3365CA336E9A.idx
+│      │                  qexceptionhandling.h.E1E136D7A257D2CC.idx
+│      │                  QFile.2B7F8567282F313B.idx
+│      │                  qfile.h.E3E46A38E1A156BF.idx
+│      │                  qfiledevice.h.D9E4E28FEB3C2117.idx
+│      │                  qflags.h.7BF37A03AE142CC6.idx
+│      │                  qfloat16.h.A35342D9BBCF1826.idx
+│      │                  QFont.F14066219B90E765.idx
+│      │                  qfont.h.4D975BE02E64E466.idx
+│      │                  qfontinfo.h.08E2C808C17519C7.idx
+│      │                  qfontmetrics.h.C9A19A5F4F30A37E.idx
+│      │                  qforeach.h.8A04E3C189AEADFF.idx
+│      │                  qframe.h.6030C9C7AA368507.idx
+│      │                  qfunctionaltools_impl.h.A38A9A965EFD71C7.idx
+│      │                  qfunctionpointer.h.8D9D1358DB4693E0.idx
+│      │                  qgenericatomic.h.7EEAB6740B68F4B5.idx
+│      │                  qglobal.h.CCAADEE7817844BD.idx
+│      │                  qglobalstatic.h.24844B4567DE24F6.idx
+│      │                  qgraphicsitem.h.36FFEF936405F60D.idx
+│      │                  QGraphicsPixmapItem.F80594357DB21F2C.idx
+│      │                  QGraphicsScene.55998041F38CD66C.idx
+│      │                  qgraphicsscene.h.37CEE037874EF672.idx
+│      │                  QGraphicsView.0825EF5885881346.idx
+│      │                  qgraphicsview.h.83C6F784CB592102.idx
+│      │                  qgridlayout.h.7581415C01ED3B7F.idx
+│      │                  qguiapplication.h.6FE3B3F2F840A2A0.idx
+│      │                  qguiapplication_platform.h.C1CC9CE4024C2BA5.idx
+│      │                  qhash.h.0C743A5187EDC000.idx
+│      │                  qhashfunctions.h.45D9D8A090415B57.idx
+│      │                  qicon.h.11B6929E4E5F92EF.idx
+│      │                  qimage.h.85A213EAF07C9AAA.idx
+│      │                  qinputdevice.h.FDB1C0DBA78F1D80.idx
+│      │                  qinputmethod.h.62B01F7667248B03.idx
+│      │                  qiodevice.h.3C34E1F384F08699.idx
+│      │                  qiodevicebase.h.3EF8C207EC101D55.idx
+│      │                  qiterable.h.9159B9DE804542AB.idx
+│      │                  qiterator.h.E91E780B234F5C19.idx
+│      │                  QKeyEvent.2C53673429528FA6.idx
+│      │                  qkeysequence.h.2096ABEB821C7266.idx
+│      │                  QLabel.177F769F63026867.idx
+│      │                  qlabel.h.2CC806295AF3CB5D.idx
+│      │                  qlatin1stringview.h.6C4D4006ED5C03E8.idx
+│      │                  qlayout.h.487795DD65550350.idx
+│      │                  qlayoutitem.h.7BDFEE3FED62DC99.idx
+│      │                  qline.h.B6CC6DE9A784AD01.idx
+│      │                  QList.58BC7E83B3D9C9DA.idx
+│      │                  qlist.h.C1EA2FDBED31E489.idx
+│      │                  qlocale.h.282CFFB1B6944BA7.idx
+│      │                  qlogging.h.69586A78D93064B0.idx
+│      │                  QMainWindow.34F9D9A3B0D86B2B.idx
+│      │                  qmainwindow.h.1709286011E3A42C.idx
+│      │                  qmalloc.h.05AE9E13FB830BA9.idx
+│      │                  qmap.h.7D0334251EA316FF.idx
+│      │                  qmargins.h.F3E1A4358561706F.idx
+│      │                  qmath.h.90652F885D4A00C1.idx
+│      │                  QMessageBox.6E503D2F71832A79.idx
+│      │                  qmessagebox.h.DA5068A2A651AD3E.idx
+│      │                  qmetacontainer.h.B1A7A8FCFCDB8DB1.idx
+│      │                  qmetatype.h.8D185BF831A02EDC.idx
+│      │                  qminmax.h.D3C12C4E049B66AF.idx
+│      │                  qnamespace.h.69A4F7824FC94C30.idx
+│      │                  qnativeinterface.h.BA0AA67190CD4759.idx
+│      │                  qnumeric.h.FCBABC1AC8940750.idx
+│      │                  QObject.3D25FAE803FA9C18.idx
+│      │                  qobject.h.2987EB4E04A89E23.idx
+│      │                  qobjectdefs.h.4D0F33FA2D807C15.idx
+│      │                  qobjectdefs.h.D8599C372842B5A4.idx
+│      │                  qobjectdefs_impl.h.FCF5B7A3F7FF082D.idx
+│      │                  qobject_impl.h.ABD384451D829657.idx
+│      │                  qoverload.h.3F93C44B41090973.idx
+│      │                  qpaintdevice.h.53399E822675D6E7.idx
+│      │                  QPainter.F224A7A54C1CB87F.idx
+│      │                  qpainter.h.8A74376ECF7A9C01.idx
+│      │                  qpainterpath.h.33F9CAD293C5C1A6.idx
+│      │                  qpair.h.D4EA1031A0DD3840.idx
+│      │                  QPalette.6D83D18AC02DF404.idx
+│      │                  qpalette.h.1BC0DE904036A621.idx
+│      │                  qpen.h.CE6F53DF40F35588.idx
+│      │                  qpicture.h.25EBC1AE1578DEEB.idx
+│      │                  qpixelformat.h.8D8D17D27DEC3CCB.idx
+│      │                  QPixmap.8B34F4338F87E2C6.idx
+│      │                  qpixmap.h.10352529539003F8.idx
+│      │                  qpoint.h.B2932CF44A3A10CA.idx
+│      │                  QPointF.A569546A288336AC.idx
+│      │                  qpointingdevice.h.658EDA9638B26B38.idx
+│      │                  qpolygon.h.C96799B4C4E3F6EB.idx
+│      │                  qprocessordetection.h.D5E59E88090C222E.idx
+│      │                  QPushButton.D342A5E1292884B4.idx
+│      │                  qpushbutton.h.650DAFBA574F0863.idx
+│      │                  qrandom.h.B5DB390C20FA0B3C.idx
+│      │                  QRandomGenerator.8F738AC9D04ADA7E.idx
+│      │                  QRect.E967FB524D1193CB.idx
+│      │                  qrect.h.CDF1CB2D23611F18.idx
+│      │                  qrefcount.h.E9439CF8AA104B2F.idx
+│      │                  qregion.h.AAC9CC6EFFA2499D.idx
+│      │                  qrgb.h.95F83050E722258E.idx
+│      │                  qrgba64.h.C145E8206370417F.idx
+│      │                  qscopedpointer.h.DE4679219732EB67.idx
+│      │                  qscopeguard.h.2BB0D8FA1F390E26.idx
+│      │                  qscreen.h.FCC0CBA365CB16C1.idx
+│      │                  qscreen_platform.h.04738B1A1B78C71E.idx
+│      │                  qscrollarea.h.EF59645EBE5B0869.idx
+│      │                  qset.h.EA188981F0F17D7B.idx
+│      │                  qshareddata.h.65017077F7F6DE24.idx
+│      │                  qshareddata_impl.h.09B537D4DBBCFBEA.idx
+│      │                  qsharedpointer.h.1FE5C4826CAF1428.idx
+│      │                  qsharedpointer_impl.h.64E37A29174D0499.idx
+│      │                  QSize.FA7536CCA8AD6D1E.idx
+│      │                  qsize.h.B0E8557ED9F21EEF.idx
+│      │                  QSizeF.2788984C79F40861.idx
+│      │                  qsizepolicy.h.CF59D37C836DC42F.idx
+│      │                  qspan.h.C7885BE9A1E1A2C8.idx
+│      │                  QStackedWidget.5D8A8410E2C940AB.idx
+│      │                  qstackedwidget.h.4431B8EAB72FDA9F.idx
+│      │                  QString.605ED6E032A5F37F.idx
+│      │                  qstring.h.85C3DCE91860AA6B.idx
+│      │                  qstringalgorithms.h.EFD6690FFFDCE330.idx
+│      │                  qstringbuilder.h.CE6F882F565AD67C.idx
+│      │                  qstringconverter.h.B75F31BD6497B505.idx
+│      │                  qstringconverter_base.h.DDBB1EDC80D20A84.idx
+│      │                  qstringfwd.h.0720C973B62D1C01.idx
+│      │                  qstringlist.h.6C964B95DCCD2AE9.idx
+│      │                  qstringliteral.h.F7E1718424A96B6A.idx
+│      │                  qstringmatcher.h.AB8F2A63CE02FC34.idx
+│      │                  qstringtokenizer.h.34C58AF5AE6E1B94.idx
+│      │                  qstringview.h.403D610B636BE16E.idx
+│      │                  qswap.h.EB777D2CE41A4EAE.idx
+│      │                  qsysinfo.h.0D043AC3471FC2C9.idx
+│      │                  qsystemdetection.h.CA33B38F6D323303.idx
+│      │                  qtabwidget.h.A750052236ABDC78.idx
+│      │                  qtaggedpointer.h.E3F226528A59CCB0.idx
+│      │                  qtclasshelpermacros.h.885E3D175632C435.idx
+│      │                  qtconfiginclude.h.CF415AF2DFDA85F5.idx
+│      │                  qtconfigmacros.h.5EC3723AFAD45910.idx
+│      │                  qtcore-config.h.4A1F147D3E09FB71.idx
+│      │                  qtcoreexports.h.2D7509BFDFBCF473.idx
+│      │                  qtdeprecationdefinitions.h.C0FBF33E8198E508.idx
+│      │                  qtdeprecationmarkers.h.2665EACC859052F1.idx
+│      │                  qtenvironmentvariables.h.7AA6AD08FBF4708E.idx
+│      │                  qtextdocument.h.48C6AB415B470F60.idx
+│      │                  qtextoption.h.57C6C12B2CEFD0B3.idx
+│      │                  qtextstream.h.48861EA2B21B9DC0.idx
+│      │                  qtgui-config.h.E40ECFB2AE16199C.idx
+│      │                  qtguiexports.h.21EE322E6028D3C3.idx
+│      │                  qtguiglobal.h.7AEFC3232580E34E.idx
+│      │                  QTimer.9EA16BFEA79E4520.idx
+│      │                  qtimer.h.05D44E864B75D6B2.idx
+│      │                  qtmetamacros.h.CDEA9BCF9C0242D9.idx
+│      │                  qtnoop.h.14C2297DB7F95C92.idx
+│      │                  qtpreprocessorsupport.h.3B088B9D42404A79.idx
+│      │                  QTransform.681DE27612BA3704.idx
+│      │                  qtransform.h.0000E3C108CEB151.idx
+│      │                  qtresource.h.E77DF9746AF5537C.idx
+│      │                  qttranslation.h.71F8DD3BE78E7E5D.idx
+│      │                  qttypetraits.h.35D64A99CAA24068.idx
+│      │                  qtversion.h.CC854071579524C0.idx
+│      │                  qtversionchecks.h.2A209D14CEF083F9.idx
+│      │                  qtwidgets-config.h.AF24D35683E71ABD.idx
+│      │                  qtwidgetsexports.h.E21EE7749E2E96D9.idx
+│      │                  qtwidgetsglobal.h.FB3AF4CE4B0DA9C8.idx
+│      │                  qtypeinfo.h.D855AED13FF89F70.idx
+│      │                  qtypes.h.BB2F79D451FFD9B1.idx
+│      │                  quoted_string.h.0CF8E6187E67DECF.idx
+│      │                  qurl.h.A618383429FC4715.idx
+│      │                  qutf8stringview.h.9130D0BE1D19B975.idx
+│      │                  qvariant.h.8BE3C1BC75445898.idx
+│      │                  qvarlengtharray.h.04B3AD3E2710511F.idx
+│      │                  QVBoxLayout.449F0248BC5BAA1D.idx
+│      │                  QVector.23584B4D8014A27E.idx
+│      │                  qvector.h.1AD4F263080DB218.idx
+│      │                  qvector2d.h.1FA367108244537E.idx
+│      │                  qvectornd.h.1103F21288734956.idx
+│      │                  qversiontagging.h.E64A899477747A52.idx
+│      │                  QWidget.D5C5A9810409230D.idx
+│      │                  qwidget.h.68AEC9C094801738.idx
+│      │                  qwindowdefs.h.A54BC93B19BBBD51.idx
+│      │                  qwindowdefs_win.h.CA4AC87D9E24DB87.idx
+│      │                  qxptype_traits.h.468F79EB435A5B43.idx
+│      │                  qyieldcpu.h.AA9F00E7FC1A305E.idx
+│      │                  random.ADF8257B6D502783.idx
+│      │                  random.h.4328B4E3408D2BE5.idx
+│      │                  random.tcc.BF1427237EA6645D.idx
+│      │                  randomgenerator.cpp.7D748582A6CD8BE5.idx
+│      │                  randomgenerator.h.58EFE243DC056707.idx
+│      │                  range_access.h.E43B39B30A98150C.idx
+│      │                  ratio.E5A6EF43017FB912.idx
+│      │                  refwrap.h.37AB7E06935CFA2C.idx
+│      │                  requires_hosted.h.3B4BC5C7D813A41B.idx
+│      │                  resourcefactory.h.B826C41694304B79.idx
+│      │                  riemann_zeta.tcc.A1352DD294B30770.idx
+│      │                  room.cpp.2655C60AD6AD329D.idx
+│      │                  room.h.F283AB94C6F56434.idx
+│      │                  shared_ptr.h.DA67F7F8659F42BD.idx
+│      │                  shared_ptr_atomic.h.BA5EDB2E910A6B69.idx
+│      │                  shared_ptr_base.h.D10A3AE9585197F9.idx
+│      │                  signal.h.29BFE3FE5D93F48E.idx
+│      │                  specfun.h.F02557FA03D8DB49.idx
+│      │                  special_function_util.h.D99F0AF9419A5733.idx
+│      │                  sstream.48158D4B3AA9E76D.idx
+│      │                  sstream.tcc.B8DC57BC3E8CF329.idx
+│      │                  statuseffect.cpp.C5EF4696784856EE.idx
+│      │                  statuseffect.h.EB771C4523B82369.idx
+│      │                  stdarg.h.75F0AD247BD1CBF6.idx
+│      │                  stdbool.h.2EDEB0CBD16423DC.idx
+│      │                  stddef.h.E1BFA678BBEB1264.idx
+│      │                  stdexcept.4707C8A1F3C2DFD4.idx
+│      │                  stdint.h.14CB15B9F7CA95F3.idx
+│      │                  stdint.h.5344499FFB6B8BFD.idx
+│      │                  stdio.h.8A4F2ED9132D66B6.idx
+│      │                  stdio_s.h.6EE9F51D48AC4746.idx
+│      │                  stdlib.h.18862E50B727D4E1.idx
+│      │                  stdlib.h.3D3F0F92ED7C377B.idx
+│      │                  stdlib_s.h.EC3DED0E5CA82733.idx
+│      │                  std_abs.h.34577278CB89DFCA.idx
+│      │                  std_function.h.FD55234689A29346.idx
+│      │                  stl_algo.h.5F2E0710EEEA4817.idx
+│      │                  stl_algobase.h.627C83A1D850F6B2.idx
+│      │                  stl_bvector.h.57EA764E89F13177.idx
+│      │                  stl_construct.h.D740D9A1DE80244B.idx
+│      │                  stl_function.h.59A70F32F7A369CD.idx
+│      │                  stl_heap.h.D63C25B1DCE66C3C.idx
+│      │                  stl_iterator.h.F3CA840818D341DB.idx
+│      │                  stl_iterator_base_funcs.h.19559D9A5D66602E.idx
+│      │                  stl_iterator_base_types.h.BD152D5DBC75F61D.idx
+│      │                  stl_list.h.DA7AB9EFC8EF4001.idx
+│      │                  stl_map.h.B2F1089B00596A77.idx
+│      │                  stl_multimap.h.B4817D8DBD88C55B.idx
+│      │                  stl_numeric.h.527896DFCBCCD972.idx
+│      │                  stl_pair.h.729142C99E64AE44.idx
+│      │                  stl_raw_storage_iter.h.52F26DF523CC3C4C.idx
+│      │                  stl_relops.h.6163A32D00EC660C.idx
+│      │                  stl_tempbuf.h.C00FD7382303C1FE.idx
+│      │                  stl_tree.h.C65729A984CDDE51.idx
+│      │                  stl_uninitialized.h.C9F4C6EAF17E00BB.idx
+│      │                  stl_vector.h.BCBF33A27C647160.idx
+│      │                  streambuf.F6FDBC0EDB5AACAB.idx
+│      │                  streambuf.tcc.3FD889C2A4DC0AC2.idx
+│      │                  streambuf_iterator.h.263ADC499B5A1678.idx
+│      │                  stream_iterator.h.EC056366D89171EE.idx
+│      │                  string.CDC9B6559AB040FA.idx
+│      │                  string.h.33283A0BB363EEFA.idx
+│      │                  stringfwd.h.6E2FC55FFFF11199.idx
+│      │                  string_conversions.h.D1FE8BCD1538DFD1.idx
+│      │                  string_s.h.C56DFE9899B65DF7.idx
+│      │                  string_view.CE0E4EF1F788C0C7.idx
+│      │                  string_view.tcc.010FA1449D776409.idx
+│      │                  swprintf.inl.A9E72B120C2C1EF3.idx
+│      │                  system_error.533DA6FBAE7C44F5.idx
+│      │                  time.h.C6A2B38F69FCB763.idx
+│      │                  timeb.h.F58DA8A8888C0B72.idx
+│      │                  timeb_s.h.4E4AB86B5CF18D2B.idx
+│      │                  time_members.h.73668FD7A3785700.idx
+│      │                  tuple.12873A7F047C85EC.idx
+│      │                  typeinfo.17A4BDDCC47C1CAF.idx
+│      │                  types.h.165E8E3C11EC3876.idx
+│      │                  type_traits.09DF29005738E504.idx
+│      │                  type_traits.h.E19DB54F699E0A55.idx
+│      │                  uniform_int_dist.h.3A3AB8FE8B79466D.idx
+│      │                  unique_ptr.h.F31022128EAC3375.idx
+│      │                  unordered_map.80227D558A1CAFE2.idx
+│      │                  unordered_map.h.3DEC13E391959470.idx
+│      │                  uses_allocator.h.AA92A8CEE12F1158.idx
+│      │                  uses_allocator_args.h.8234DD8286E975E1.idx
+│      │                  utility.C0F697E817E71774.idx
+│      │                  utility.h.88284CA241F3BD79.idx
+│      │                  vadefs.h.34DFC0A8A2F63F58.idx
+│      │                  vadefs.h.C390784D283D2D8C.idx
+│      │                  variant.C65D078AA6FAE965.idx
+│      │                  vector.BCB7442F96BC0DA5.idx
+│      │                  vector.tcc.BF38D1B0CB557FE7.idx
+│      │                  version.61A10FF8EFAA7C21.idx
+│      │                  wchar.h.48515F487674F28D.idx
+│      │                  wchar_s.h.2838C470DBF7BBE1.idx
+│      │                  wctype.h.61FEC1B562FDE295.idx
+│      │                  _mingw.h.B0EE091DD885983E.idx
+│      │                  _mingw_ddk.h.442DC10EC03B1338.idx
+│      │                  _mingw_mac.h.304C145B79C161A6.idx
+│      │                  _mingw_off_t.h.FF2E38318D677908.idx
+│      │                  _mingw_secapi.h.A064B872FAB78740.idx
+│      │                  _mingw_stat64.h.E53C5780F411405D.idx
+│      │                  _timeval.h.7EEB48B1D7CCF292.idx
+│      │                  __stdarg_header_macro.h.566DC2A0E4AE2A16.idx
+│      │                  __stdarg_va_arg.h.A5C1EF6426778715.idx
+│      │                  __stdarg_va_copy.h.F595858412F97E60.idx
+│      │                  __stdarg_va_list.h.17460C8EA5A74CFB.idx
+│      │                  __stdarg___gnuc_va_list.h.A5F09F58CB84169B.idx
+│      │                  __stdarg___va_copy.h.4F9118051E2F48DC.idx
+│      │                  __stddef_header_macro.h.9C242A6979220871.idx
+│      │                  __stddef_max_align_t.h.265F57DE5DBC5ADD.idx
+│      │                  __stddef_null.h.6D0F732D54C87705.idx
+│      │                  __stddef_nullptr_t.h.D12196B0DBEE9C86.idx
+│      │                  __stddef_offsetof.h.3AE425C31326EC22.idx
+│      │                  __stddef_ptrdiff_t.h.D28822FA20F8911A.idx
+│      │                  __stddef_size_t.h.61759C14F6EFC28A.idx
+│      │                  __stddef_wchar_t.h.DEC8425792FEDDEB.idx
+│      │                  __stddef_wint_t.h.3B3AF2BB76F00EF4.idx
+│      │                  
+│      ├─CMakeFiles
+│      │  │  clean_additional.cmake
+│      │  │  cmake.check_cache
+│      │  │  CMakeConfigureLog.yaml
+│      │  │  rules.ninja
+│      │  │  TargetDirectories.txt
+│      │  │  
+│      │  ├─3.30.5
+│      │  │  │  CMakeCXXCompiler.cmake
+│      │  │  │  CMakeDetermineCompilerABI_CXX.bin
+│      │  │  │  CMakeRCCompiler.cmake
+│      │  │  │  CMakeSystem.cmake
+│      │  │  │  
+│      │  │  └─CompilerIdCXX
+│      │  │      │  a.exe
+│      │  │      │  CMakeCXXCompilerId.cpp
+│      │  │      │  
+│      │  │      └─tmp
+│      │  ├─CMakeScratch
+│      │  ├─game_final.dir
+│      │  │  ├─game_final_autogen
+│      │  │  └─src
+│      │  │      ├─core
+│      │  │      ├─entities
+│      │  │      ├─items
+│      │  │      ├─ui
+│      │  │      └─world
+│      │  ├─game_final_autogen.dir
+│      │  │      AutogenInfo.json
+│      │  │      
+│      │  └─pkgRedirects
+│      └─Testing
+│          └─Temporary
+│                  LastTest.log
+│                  
+└─src
+    │  constants.h
+    │  main.cpp
+    │  
+    ├─core
+    │      audiomanager.cpp
+    │      audiomanager.h
+    │      gamecontroller.cpp
+    │      gamecontroller.h
+    │      gamemanager.cpp
+    │      gamemanager.h
+    │      GameWindow.cpp
+    │      gamewindow.h
+    │      gamewindow.ui
+    │      resourcefactory.h
+    │      
+    ├─entities
+    │      boss.cpp
+    │      boss.h
+    │      enemy.cpp
+    │      enemy.h
+    │      entity.cpp
+    │      entity.h
+    │      player.cpp
+    │      player.h
+    │      projectile.cpp
+    │      projectile.h
+    │      
+    ├─items
+    │      chest.cpp
+    │      chest.h
+    │      item.cpp
+    │      item.h
+    │      statuseffect.cpp
+    │      statuseffect.h
+    │      
+    ├─ui
+    │      codex.cpp
+    │      codex.h
+    │      gameview.cpp
+    │      gameview.h
+    │      hud.cpp
+    │      hud.h
+    │      mainmenu.cpp
+    │      mainmenu.h
+    │      
+    └─world
+            level.cpp
+            level.h
+            randomgenerator.cpp
+            randomgenerator.h
+            room.cpp
+            room.h
+            

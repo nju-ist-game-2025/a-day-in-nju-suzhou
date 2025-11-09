@@ -11,6 +11,7 @@ class MainMenu : public QWidget {
 
    private:
     QPushButton* startButton;
+    QPushButton* codexButton;//新增图鉴功能
     QPushButton* exitButton;
     QLabel* titleLabel;
 
@@ -19,6 +20,7 @@ class MainMenu : public QWidget {
 
    signals:
     void startGameClicked();
+    void codexClicked(); // new
     void exitGameClicked();
 };
 
