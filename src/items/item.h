@@ -102,5 +102,16 @@ public:
     }
 };
 
+//钥匙
+class KeyItem : public Item {
+    int count;//数量
+public:
+    KeyItem(const QString& name, int count)
+        : Item(name, "获得钥匙"), count(count) {}
+    void onPickup(Player* player) override {
+        player->addKeys(count);
+    }
+};
+
 
 #endif // ITEM_H

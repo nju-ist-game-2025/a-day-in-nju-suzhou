@@ -10,6 +10,8 @@
 
 const int max_red_contain = 12;
 const int max_soul = 12;
+const int bomb_r = 60;
+const int bombHurt = 1;
 
 class Player : public Entity {
     int redContainers;
@@ -27,7 +29,10 @@ class Player : public Entity {
     qint64 lastShootTime;  // 上次射击的时间戳
     void shoot(int key);  // 射击方法
     void checkShoot();    // 检测并执行射击
+
+    //需要UI显式实现的
     int bombs;
+    int keys;
 
 public:
     friend class Item;
@@ -47,8 +52,10 @@ public:
     void crashEnemy();
     void die();
     void setInvincible();
-    void addBombs(int n){bombs += n;};
-    //void placeBomb();
+    void addBombs(int n) {bombs += n;};
+    void placeBomb();
+    void addKeys(int n) {keys += n;};
+    int getKeys() {return keys;};
 };
 
 #endif  // PLAYER_H

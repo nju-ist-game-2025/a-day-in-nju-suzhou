@@ -11,6 +11,7 @@ const int open_r = 40;//打开宝箱的半径，后期可调
 
 class Chest : public QObject, public QGraphicsPixmapItem
 {
+protected:
     bool locked;
     QVector<Item*> items;
     QTimer* checkOpen;
@@ -19,6 +20,11 @@ public:
     Chest(Player* pl, bool locked_, const QPixmap& pic_chest, double scale = 1.0);
     void addItem(Item* it) {items.push_back(it);};
     void open();
+};
+
+class lockedChest : public Chest {
+public:
+    lockedChest(Player* pl, const QPixmap& pic_chest, double scale = 1.0);
 };
 
 #endif // CHEST_H

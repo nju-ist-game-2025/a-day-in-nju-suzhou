@@ -39,17 +39,17 @@ Player::Player(const QPixmap& pic_player, double scale)
 
     bombs = 0;
 
-    // 初始化移动按键
-    keysPressed[Qt::Key_Up] = false;
-    keysPressed[Qt::Key_Down] = false;
-    keysPressed[Qt::Key_Left] = false;
-    keysPressed[Qt::Key_Right] = false;
-
     // 初始化射击按键
-    shootKeysPressed[Qt::Key_W] = false;
-    shootKeysPressed[Qt::Key_A] = false;
-    shootKeysPressed[Qt::Key_S] = false;
-    shootKeysPressed[Qt::Key_D] = false;
+    shootKeysPressed[Qt::Key_Up] = false;
+    shootKeysPressed[Qt::Key_Down] = false;
+    shootKeysPressed[Qt::Key_Left] = false;
+    shootKeysPressed[Qt::Key_Right] = false;
+
+    // 初始化移动按键
+    keysPressed[Qt::Key_W] = false;
+    keysPressed[Qt::Key_A] = false;
+    keysPressed[Qt::Key_S] = false;
+    keysPressed[Qt::Key_D] = false;
 
     keysTimer = new QTimer();
     connect(keysTimer, &QTimer::timeout, this, &Player::move);
@@ -100,14 +100,14 @@ void Player::checkShoot() {
     int shootKey = -1;
 
     // 按优先级检查射击键（后检查的优先级更高）
-    if (shootKeysPressed[Qt::Key_W])
-        shootKey = Qt::Key_W;
-    if (shootKeysPressed[Qt::Key_S])
-        shootKey = Qt::Key_S;
-    if (shootKeysPressed[Qt::Key_A])
-        shootKey = Qt::Key_A;
-    if (shootKeysPressed[Qt::Key_D])
-        shootKey = Qt::Key_D;
+    if (shootKeysPressed[Qt::Key_Up])
+        shootKey = Qt::Key_Up;
+    if (shootKeysPressed[Qt::Key_Down])
+        shootKey = Qt::Key_Down;
+    if (shootKeysPressed[Qt::Key_Left])
+        shootKey = Qt::Key_Left;
+    if (shootKeysPressed[Qt::Key_Right])
+        shootKey = Qt::Key_Right;
 
     // 如果有按键按下，检查冷却时间
     if (shootKey != -1) {
@@ -133,16 +133,16 @@ void Player::shoot(int key) {
 
     // 设置子弹方向和速度
     switch (key) {
-        case Qt::Key_W:
+        case Qt::Key_Up:
             bullet->setDir(0, -9);
             break;
-        case Qt::Key_S:
+        case Qt::Key_Down:
             bullet->setDir(0, 9);
             break;
-        case Qt::Key_A:
+        case Qt::Key_Left:
             bullet->setDir(-9, 0);
             break;
-        case Qt::Key_D:
+        case Qt::Key_Right:
             bullet->setDir(9, 0);
             break;
         default:
@@ -154,13 +154,13 @@ void Player::move() {
     xdir = 0;
     ydir = 0;
 
-    if (keysPressed[Qt::Key_Up] == true)
+    if (keysPressed[Qt::Key_W] == true)
         ydir--;
-    if (keysPressed[Qt::Key_Down] == true)
+    if (keysPressed[Qt::Key_S] == true)
         ydir++;
-    if (keysPressed[Qt::Key_Left] == true)
+    if (keysPressed[Qt::Key_A] == true)
         xdir--;
-    if (keysPressed[Qt::Key_Right] == true)
+    if (keysPressed[Qt::Key_D] == true)
         xdir++;
 
     // 边界检测
@@ -249,4 +249,20 @@ void Player::crashEnemy() {
                 it->takeDamage(it->crash_hurt);
         }
     }
+}
+
+void Player::placeBomb() {
+    if(bombs <= 0) return;
+    auto posi = this->pos();
+    QTimer::singleShot(2000, this, [this, posi]() {
+        foreach (QGraphicsItem* item, scene()->items()) {
+            if (auto it = dynamic_cast<Enemy*>(item)) {
+                if (abs(it->pos().x() - posi.x()) > bomb_r ||
+                    abs(it->pos().y() - posi.y()) > bomb_r)
+                    continue;
+                else
+                    it->takeDamage(bombHurt);
+            }
+        }
+    });
 }
