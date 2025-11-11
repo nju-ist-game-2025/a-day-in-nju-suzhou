@@ -1,6 +1,7 @@
 #include "chest.h"
 #include "player.h"
 #include <QRandomGenerator>
+#include <QApplication>
 
 Chest::Chest(Player* pl, bool locked_, const QPixmap& pic_chest, double scale) :locked(locked_), player(pl){
     if (scale == 1.0) {
@@ -37,17 +38,32 @@ Chest::Chest(Player* pl, bool locked_, const QPixmap& pic_chest, double scale) :
     checkOpen->start(16);
 }
 
+#include <QKeyEvent>
+
 void Chest::open() {
-    if(locked == true) {
-        if(player->getKeys() > 0) player->addKeys(-1);
-        else return;
-    }
-    foreach (QGraphicsItem* item, scene()->items()) {
-        if (auto it = dynamic_cast<Player*>(item)) {
-            if (abs(it->pos().x() - this->pos().x()) <= open_r &&
-                abs(it->pos().y() - this->pos().y()) <= open_r) {
-                int i = QRandomGenerator::global()->bounded(items.size());
-                items[i]->onPickup(it);
+    // 检查空格键是否被按下
+    if (QGuiApplication::keyboardModifiers() & Qt::Key_Space) {
+        foreach (QGraphicsItem* item, scene()->items()) {
+            if (auto player = dynamic_cast<Player*>(item)) {
+                if (abs(player->pos().x() - this->pos().x()) <= open_r &&
+                    abs(player->pos().y() - this->pos().y()) <= open_r) {
+
+                    if (locked) {
+                        if (player->getKeys() > 0) {
+                            player->addKeys(-1);
+                            locked = false;
+                        } else {
+                            return;
+                        }
+                    }
+
+                    int i = QRandomGenerator::global()->bounded(items.size());
+                    items[i]->onPickup(player);
+                    scene()->removeItem(this);
+                    checkOpen->stop();
+                    delete this;
+                    return;
+                }
             }
         }
     }
