@@ -88,8 +88,9 @@ void GameView::initGame() {
         // 连接玩家死亡信号
         connect(player, &Player::playerDied, this, &GameView::handlePlayerDeath);
 
-        // 生成敌人
-        spawnEnemies();
+        spawnEnemies(); // 生成敌人
+        spawnBoss(); // 生成boss
+        
 
     } catch (const QString& error) {
         QMessageBox::critical(this, "资源加载失败", error);
@@ -141,6 +142,57 @@ void GameView::spawnEnemies() {
         // 添加到列表
         enemies.append(enemy);
     }
+}
+
+void GameView::spawnBoss() {
+    // 1. 加载 BOSS 图片（复用 ResourceFactory，和普通敌人保持一致）
+    int bossPicSize = 120; // BOSS 图片基础尺寸
+    QPixmap bossPixmap = ResourceFactory::createEnemyImage(bossPicSize, "assets/boss.png");
+    if (bossPixmap.isNull()) {
+        throw QString("BOSS 图片加载失败：assets/boss.png"); // 抛出异常，统一被 initGame() 捕获
+    }
+
+    // 2. 计算 BOSS 初始位置（避开玩家初始位置，参考普通敌人的避玩家逻辑）
+    double bossX, bossY;
+    double playerInitX = scene_bound_x / 2; // 玩家初始 X 坐标（中央）
+    double playerInitY = scene_bound_y / 2; // 玩家初始 Y 坐标（中央）
+
+    // 固定 BOSS 在场景右侧边缘，同时确保距离玩家至少 150 像素（和普通敌人一致）
+    do {
+        // 右侧边缘位置：X = 场景宽度 - BOSS 实际宽度 - 50（避边）
+        // BOSS 实际宽度 = 图片尺寸 * 缩放比例（1.2）
+        bossX = scene_bound_x - (bossPicSize * 1.2) - 50;
+        // Y 坐标在场景垂直方向随机（但居中偏上/下，避免太靠近边界）
+        bossY = 50 + QRandomGenerator::global()->bounded(scene_bound_y - 100);
+
+        // 检查距离玩家初始位置是否足够远（≥150像素，避免开局贴脸）
+        double distToPlayer = qSqrt(
+            qPow(bossX - playerInitX, 2) + qPow(bossY - playerInitY, 2)
+            );
+        if (distToPlayer > 150) {
+            break;
+        }
+    } while (true);
+
+    // 3. 创建 BOSS 实例（适配你的 Boss 构造函数：仅传图片+缩放）
+    Boss* boss = new Boss(bossPixmap, 1.2);
+
+    // 4. 绑定玩家（让 BOSS 知道追击目标，和普通敌人逻辑一致）
+    boss->setPlayer(player);
+
+    // 5. 设置 BOSS 位置
+    boss->setPos(bossX, bossY);
+
+    // 6. 设置层级（低于玩家 100，高于普通敌人 50，统一层级管理）
+    boss->setZValue(90);
+
+    // 7. 添加到场景（显示 BOSS）
+    scene->addItem(boss);
+
+    // 8. 添加到 enemies 列表（统一管理，后续清理/遍历用）
+    enemies.append(boss);
+
+    // qDebug() << "BOSS 生成成功！位置：(" << bossX << "," << bossY << ")";
 }
 
 void GameView::keyPressEvent(QKeyEvent* event) {
