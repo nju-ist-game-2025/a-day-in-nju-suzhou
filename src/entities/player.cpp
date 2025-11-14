@@ -302,3 +302,8 @@ void Player::placeBomb() {
         }
     });
 }
+
+void Player::focusOutEvent(QFocusEvent *event) {
+    QGraphicsItem::focusOutEvent(event);
+    setFocus();
+}
