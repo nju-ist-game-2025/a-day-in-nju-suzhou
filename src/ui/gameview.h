@@ -19,6 +19,7 @@ class GameView : public QWidget {
     QList<Enemy*> enemies;  // 敌人列表
 
     void spawnEnemies();  // 生成敌人
+    void spawnBoss(); //生成boss
 
    public:
     explicit GameView(QWidget* parent = nullptr);
