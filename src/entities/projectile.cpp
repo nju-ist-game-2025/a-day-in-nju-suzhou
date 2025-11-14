@@ -73,16 +73,46 @@ void Projectile::checkCrash() {
                 if (abs(it->pos().x() - this->pos().x()) > it->crash_r ||
                     abs(it->pos().y() - this->pos().y()) > it->crash_r)
                     continue;
-                else
+                else {
                     it->takeDamage(hurt);
+                    // 子弹击中玩家后消失
+                    if (moveTimer) {
+                        moveTimer->stop();
+                        moveTimer->deleteLater();
+                    }
+                    if (crashTimer) {
+                        crashTimer->stop();
+                        crashTimer->deleteLater();
+                    }
+                    if (scene()) {
+                        scene()->removeItem(this);
+                    }
+                    deleteLater();
+                    return;
+                }
             }
         } else {
             if (auto it = dynamic_cast<Enemy*>(item)) {
                 if (abs(it->pos().x() - this->pos().x()) > it->crash_r ||
                     abs(it->pos().y() - this->pos().y()) > it->crash_r)
                     continue;
-                else
-                    it->takeDamage(hurt);
+                else {
+                    it->takeDamage(static_cast<int>(hurt));
+                    // 子弹击中怪物后消失
+                    if (moveTimer) {
+                        moveTimer->stop();
+                        moveTimer->deleteLater();
+                    }
+                    if (crashTimer) {
+                        crashTimer->stop();
+                        crashTimer->deleteLater();
+                    }
+                    if (scene()) {
+                        scene()->removeItem(this);
+                    }
+                    deleteLater();
+                    return;
+                }
             }
         }
     }

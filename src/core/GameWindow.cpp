@@ -1,10 +1,7 @@
 #include "GameWindow.h"
-#include "ui_gamewindow.h"
 
 GameWindow::GameWindow(QWidget* parent)
-    : QMainWindow(parent), ui(new Ui::GameWindow) {
-    ui->setupUi(this);
-
+    : QMainWindow(parent) {
     // 设置窗口属性
     setWindowTitle("智科er的一天");
     setFixedSize(800, 600);
@@ -27,7 +24,6 @@ GameWindow::GameWindow(QWidget* parent)
     codex = new Codex(this);
     connect(codex, &Codex::backToMenu, this, &GameWindow::showMainMenu);
 
-
     // 添加到堆叠窗口
     stackedWidget->addWidget(mainMenu);
     stackedWidget->addWidget(gameView);
@@ -38,7 +34,7 @@ GameWindow::GameWindow(QWidget* parent)
 }
 
 GameWindow::~GameWindow() {
-    delete ui;
+    // stackedWidget和其他组件会由Qt的父子关系自动清理
 }
 
 void GameWindow::showMainMenu() {

@@ -9,8 +9,11 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Option: build as Windows GUI (no console). Default OFF for maximum compatibility.
+option(BUILD_WIN32_EXECUTABLE "Build as Windows GUI executable (no console)" OFF)
+
 # Windows specific settings
-if(WIN32)
+if(WIN32 AND BUILD_WIN32_EXECUTABLE)
     set(CMAKE_WIN32_EXECUTABLE ON)
 endif()
 
@@ -121,6 +124,19 @@ if(MINGW)
     target_link_options(game_final PRIVATE -Wl,--allow-multiple-definition)
 endif()
 
+# If user requested a Win32 GUI executable, handle platform-specific requirements.
+if(BUILD_WIN32_EXECUTABLE)
+    if(MSVC)
+        # For MSVC, setting WIN32_EXECUTABLE is sufficient (handled above by CMAKE_WIN32_EXECUTABLE)
+    elseif(MINGW)
+        # MinGW may require extra mingw runtime libraries to satisfy Qt entry point symbols.
+        # Append common mingw runtime libraries after Qt libs to help the linker resolve symbols.
+        target_link_libraries(game_final PRIVATE -lmingwex -lmingwthrd)
+        # Also set WIN32_EXECUTABLE property on the target so linker uses GUI subsystem
+        set_target_properties(game_final PROPERTIES WIN32_EXECUTABLE TRUE)
+    endif()
+endif()
+
 # 包含头文件目录
 target_include_directories(game_final PRIVATE
     src
@@ -142,7 +158,6 @@ set_target_properties(game_final PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
 )
 
 include(GNUInstallDirs)

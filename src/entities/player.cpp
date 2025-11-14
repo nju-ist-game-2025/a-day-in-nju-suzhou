@@ -5,7 +5,7 @@
 #include "enemy.h"
 
 Player::Player(const QPixmap& pic_player, double scale)
-    : redContainers(3), redHearts(3.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0) {  // 默认150毫秒射击冷却
+    : redContainers(3), redHearts(3.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(1), isDead(false) {  // 默认150毫秒射击冷却，子弹伤害默认1
     setTransformationMode(Qt::SmoothTransformation);
 
     // 如果scale是1.0，直接使用原始pixmap，否则按比例缩放
@@ -66,7 +66,7 @@ Player::Player(const QPixmap& pic_player, double scale)
 }
 
 void Player::keyPressEvent(QKeyEvent* event) {
-    if (!event)
+    if (!event || isDead)  // 已死亡则不处理输入
         return;
 
     // 处理移动按键（方向键）
@@ -85,6 +85,9 @@ void Player::keyPressEvent(QKeyEvent* event) {
 }
 
 void Player::keyReleaseEvent(QKeyEvent* event) {
+    if (!event || isDead)  // 已死亡则不处理输入
+        return;
+
     // 释放移动键
     if (keysPressed.count(event->key())) {
         keysPressed[event->key()] = false;
@@ -96,6 +99,9 @@ void Player::keyReleaseEvent(QKeyEvent* event) {
 }
 
 void Player::checkShoot() {
+    if (isDead)  // 已死亡则不射击
+        return;
+
     // 检查是否有射击键被按下
     int shootKey = -1;
 
@@ -122,8 +128,8 @@ void Player::checkShoot() {
 void Player::shoot(int key) {
     // 计算子弹发射位置（从角色中心发射）
     QPointF bulletPos = this->pos() + QPointF(pixmap().width() / 2 - 7.5, pixmap().height() / 2 - 7.5);
-    //if(shootType == 0) //改变为发射激光模式，需要ui的图片实现
-    Projectile* bullet = new Projectile(0, this->hurt, bulletPos, pic_bullet);
+    // if(shootType == 0) //改变为发射激光模式，需要ui的图片实现
+    Projectile* bullet = new Projectile(0, bulletHurt, bulletPos, pic_bullet);  // 使用可配置的玩家子弹伤害
     bullet->setSpeed(shootSpeed);
 
     // 将子弹添加到场景中
@@ -151,6 +157,9 @@ void Player::shoot(int key) {
 }
 
 void Player::move() {
+    if (isDead)  // 已死亡则不移动
+        return;
+
     xdir = 0;
     ydir = 0;
 
@@ -205,9 +214,12 @@ void Player::move() {
 }
 
 void Player::takeDamage(int damage) {
-    damage *= damageScale;
-    if (invincible)
+    if (isDead || invincible)  // 已死亡或无敌则不受伤
         return;
+
+    flash();
+    damage *= damageScale;
+
     while (damage > 0 && soulHearts > 0) {
         soulHearts--;
         damage -= 2;
@@ -226,9 +238,29 @@ void Player::takeDamage(int damage) {
         setInvincible();
 }
 
-// 死亡效果，有待UI同学的具体实现
+// 死亡效果
 void Player::die() {
-    
+    if (isDead)  // 避免重复触发
+        return;
+
+    isDead = true;
+
+    // 停止所有定时器
+    if (keysTimer) {
+        keysTimer->stop();
+    }
+    if (crashTimer) {
+        crashTimer->stop();
+    }
+    if (shootTimer) {
+        shootTimer->stop();
+    }
+
+    // 不要从场景中移除，让 GameView::initGame() 统一清理
+    // 只需隐藏玩家即可
+    setVisible(false);
+
+    emit playerDied();  // 发出玩家死亡信号（只发一次）
 }
 
 // 短暂无敌效果，有待UI同学的具体实现
@@ -240,19 +272,23 @@ void Player::setInvincible() {
 }
 
 void Player::crashEnemy() {
+    if (isDead)  // 已死亡则不检测碰撞
+        return;
+
     foreach (QGraphicsItem* item, scene()->items()) {
         if (auto it = dynamic_cast<Enemy*>(item)) {
             if (abs(it->pos().x() - this->pos().x()) > it->crash_r + crash_r ||
                 abs(it->pos().y() - this->pos().y()) > it->crash_r + crash_r)
                 continue;
             else
-                it->takeDamage(it->crash_hurt);
+                this->takeDamage(it->getContactDamage());
         }
     }
 }
 
 void Player::placeBomb() {
-    if(bombs <= 0) return;
+    if (bombs <= 0)
+        return;
     auto posi = this->pos();
     QTimer::singleShot(2000, this, [this, posi]() {
         foreach (QGraphicsItem* item, scene()->items()) {
