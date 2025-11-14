@@ -76,6 +76,9 @@ class Player : public Entity {
 
    signals:
     void playerDied();  // 玩家死亡信号
+protected:
+    void focusOutEvent(QFocusEvent *event) override;
 };
 
 #endif  // PLAYER_H
+
