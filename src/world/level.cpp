@@ -118,7 +118,7 @@ void Level::spawnEnemiesInRoom(int roomIndex)
 
 void Level::spawnChestsInRoom(int roomIndex)
 {
-    QPixmap chestPix = ResourceFactory::loadChestImage(50, "assets/chest.png");
+    QPixmap chestPix = ResourceFactory::createChestImage(50, "assets/chest.png");
     bool isLocked = (roomIndex % 4 == 0) && (roomIndex != 0); // 每4个房间出现一个锁着的宝箱
 
     // 随机位置
@@ -171,3 +171,4 @@ bool Level::enterNextRoom()
     initCurrentRoom();
     return true;
 }
+
