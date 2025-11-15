@@ -93,6 +93,10 @@ class ResourceFactory {
         return loadImageScaled(imagePath, size, size);
     }
 
+    static QPixmap createChestImage(int size, const QString& imagePath) {
+        return loadImageScaled(imagePath, size, size);
+    }
+
     /**
      * @brief 加载敌人图像
      * @throws QString 加载失败时抛出错误信息
