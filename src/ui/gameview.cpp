@@ -9,6 +9,7 @@
 #include "../constants.h"
 #include "../core/resourcefactory.h"
 #include "../entities/enemy.h"
+#include "level.h"
 
 GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr) {
     // 设置窗口大小
@@ -49,6 +50,7 @@ void GameView::initGame() {
     try {
         // 清理现有内容
         // 先断开信号连接
+
         if (player) {
             disconnect(player, &Player::playerDied, this, &GameView::handlePlayerDeath);
         }
@@ -90,6 +92,10 @@ void GameView::initGame() {
 
         spawnEnemies(); // 生成敌人
         spawnBoss(); // 生成boss
+
+        // 创建关卡
+        Level* level = new Level(player, scene, this);
+        level->init(1);
         
 
     } catch (const QString& error) {
@@ -175,6 +181,7 @@ void GameView::spawnBoss() {
     } while (true);
 
     // 3. 创建 BOSS 实例（适配你的 Boss 构造函数：仅传图片+缩放）
+    /*
     Boss* boss = new Boss(bossPixmap, 1.2);
 
     // 4. 绑定玩家（让 BOSS 知道追击目标，和普通敌人逻辑一致）
@@ -193,6 +200,7 @@ void GameView::spawnBoss() {
     enemies.append(boss);
 
     // qDebug() << "BOSS 生成成功！位置：(" << bossX << "," << bossY << ")";
+*/
 }
 
 void GameView::keyPressEvent(QKeyEvent* event) {
