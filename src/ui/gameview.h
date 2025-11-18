@@ -18,8 +18,7 @@ class GameView : public QWidget {
     QGraphicsView* view;
     QGraphicsScene* scene;
     Player* player;
-    Level* level;           // 关卡管理器
-    QList<Enemy*> enemies;  // 敌人列表（用于玩家死亡时清理）
+    Level* level;  // 关卡管理器
 
    public:
     explicit GameView(QWidget* parent = nullptr);

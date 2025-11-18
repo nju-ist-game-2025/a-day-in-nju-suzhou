@@ -438,3 +438,23 @@ void Level::onEnemyDying(Enemy* enemy) {
         emit enemiesCleared(m_currentRoomIndex);
     }
 }
+
+void Level::onPlayerDied() {
+    qDebug() << "Level::onPlayerDied - 通知所有敌人移除玩家引用";
+
+    // 从当前敌人列表移除玩家引用
+    for (Enemy* e : m_currentEnemies) {
+        if (e)
+            e->setPlayer(nullptr);
+    }
+
+    // 也从每个房间的列表中移除玩家引用（防止尚未进入房间的敌人继续追击）
+    for (Room* r : m_rooms) {
+        if (!r)
+            continue;
+        for (Enemy* e : r->currentEnemies) {
+            if (e)
+                e->setPlayer(nullptr);
+        }
+    }
+}

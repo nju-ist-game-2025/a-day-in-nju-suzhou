@@ -61,7 +61,6 @@ void GameView::initGame() {
         }
 
         // 清理敌人列表（对象会被scene->clear()删除）
-        enemies.clear();
 
         // scene->clear()会自动删除所有图形项（包括player和enemies）
         scene->clear();
@@ -136,7 +135,6 @@ void GameView::keyPressEvent(QKeyEvent* event) {
     }
 
     QWidget::keyPressEvent(event);
-    QWidget::keyPressEvent(event);
 }
 
 void GameView::keyReleaseEvent(QKeyEvent* event) {
@@ -155,20 +153,19 @@ void GameView::keyReleaseEvent(QKeyEvent* event) {
     }
 
     QWidget::keyReleaseEvent(event);
-    QWidget::keyReleaseEvent(event);
 }
 
 void GameView::handlePlayerDeath() {
-    // 让所有敌人失去玩家引用，转为随机漫游
-    for (Enemy* enemy : enemies) {
-        if (enemy) {
-            enemy->setPlayer(nullptr);  // 移除玩家引用，敌人将进入WANDER状态
-        }
-    }
+    // 让 Level 处理敌人状态切换（Level::onPlayerDied 会被调用下方）
 
     // 断开信号连接，避免重复触发
     if (player) {
         disconnect(player, &Player::playerDied, this, &GameView::handlePlayerDeath);
+    }
+
+    // 通知 Level 玩家已死亡，以便 Level 能让所有敌人失去玩家引用
+    if (level) {
+        level->onPlayerDied();
     }
 
     // 使用 QTimer::singleShot 延迟显示对话框
@@ -213,10 +210,10 @@ void GameView::onEnemiesCleared(int roomIndex) {
     qDebug() << "GameView::onEnemiesCleared 被调用，房间:" << roomIndex;
 
     // 在场景中显示文字提示
-    QGraphicsTextItem* hint = new QGraphicsTextItem("所有敌人已被击败！门已打开，按相应方向键进入下一个房间");
-    hint->setDefaultTextColor(Qt::yellow);
+    QGraphicsTextItem* hint = new QGraphicsTextItem("所有敌人已被击败！下方的门已打开（目前还未实现开门动画，只实现逻辑开门）。");
+    hint->setDefaultTextColor(Qt::red);
     hint->setFont(QFont("Arial", 16, QFont::Bold));
-    hint->setPos(150, 250);
+    hint->setPos(20, 250);
     hint->setZValue(1000);  // 确保在最上层
     scene->addItem(hint);
 

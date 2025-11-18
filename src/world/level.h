@@ -35,6 +35,8 @@ class Level : public QObject {
     Room* currentRoom() const;
 
     void loadRoom(int roomIndex);
+    // 玩家死亡通知：让所有敌人失去玩家引用
+    void onPlayerDied();
    signals:
     // 关卡完成信号
     void levelCompleted(int levelNumber);
