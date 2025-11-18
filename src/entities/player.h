@@ -79,6 +79,7 @@ class Player : public Entity {
    signals:
     void playerDied();  // 玩家死亡信号
     void healthChanged(float current, float max);
+    void playerDamaged();
 protected:
     void focusOutEvent(QFocusEvent *event) override;
 };

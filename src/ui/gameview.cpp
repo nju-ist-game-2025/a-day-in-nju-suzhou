@@ -79,7 +79,7 @@ void GameView::initGame() {
         // 创建HUD
         hud = new HUD();
         scene->addItem(hud);
-        hud->setZValue(1000);
+        hud->setZValue(9999);
 
         // 加载玩家图片
         int playerSize = 60;
@@ -109,6 +109,9 @@ void GameView::initGame() {
 
         // 连接玩家血量变化信号
         connect(player, &Player::healthChanged, this, &GameView::updateHUD);
+
+        // 连接玩家受伤信号到HUD闪烁
+        connect(player, &Player::playerDamaged, hud, &HUD::triggerDamageFlash);
 
         // 初始更新HUD
         updateHUD();

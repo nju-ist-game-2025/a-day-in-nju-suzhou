@@ -15,10 +15,19 @@ public:
     
 public slots:
     void updateHealth(float current, float max);
+    void triggerDamageFlash();
+
+private slots:
+    void endDamageFlash();
 
 private:
     float currentHealth;
     float maxHealth;
+    bool isFlashing;
+    bool isScreenFlashing;
+    QTimer* flashTimer;
+    int flashCount;
+    QTimer* screenFlashTimer; 
 };
 
 #endif // HUD_H

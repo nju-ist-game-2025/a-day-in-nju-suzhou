@@ -262,6 +262,9 @@ void Player::takeDamage(int damage) {
     }
     if (redHearts != oldHealth) {
         emit healthChanged(redHearts, getMaxHealth());
+        if (redHearts < oldHealth) {
+            emit playerDamaged();
+        }
     }
     if (redHearts <= 0.0)
         die();
