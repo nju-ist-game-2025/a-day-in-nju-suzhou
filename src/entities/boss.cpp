@@ -1,6 +1,7 @@
 #include "boss.h"
 
 Boss::Boss(const QPixmap& pic, double scale)
+    //暂时这样设置 此后要为不同的Boss设计专门的属性和行为
     : Enemy(pic, scale) {
     setHealth(300); //更高血量
     setContactDamage(5); //更高伤害

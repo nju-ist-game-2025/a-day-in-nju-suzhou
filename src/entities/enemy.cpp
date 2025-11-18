@@ -10,8 +10,8 @@ Enemy::Enemy(const QPixmap& pic, double scale)
     : Entity(nullptr),
       currentState(WANDER),
       player(nullptr),
-      health(100),
-      maxHealth(100),
+      health(10),
+      maxHealth(10),
       contactDamage(1),
       visionRange(250.0),
       attackRange(40.0),
@@ -254,6 +254,8 @@ void Enemy::takeDamage(int damage) {
     int realDamage = qMax(1, damage);  // 每次至少1点伤害
     health -= realDamage;
     if (health <= 0) {
+        qDebug() << "Enemy::takeDamage - 敌人死亡，发出dying信号";
+        emit dying(this);  // 在删除之前发出信号
         if (scene()) {
             scene()->removeItem(this);
         }

@@ -35,6 +35,8 @@ set(CORE_SOURCES
     src/core/audiomanager.cpp
     src/core/audiomanager.h
     src/core/resourcefactory.h
+    src/core/configmanager.cpp
+    src/core/configmanager.h
 )
 
 set(ENTITY_SOURCES
@@ -57,6 +59,8 @@ set(WORLD_SOURCES
     src/world/room.h
     src/world/randomgenerator.cpp
     src/world/randomgenerator.h
+    src/world/levelconfig.cpp
+    src/world/levelconfig.h
 )
 
 set(ITEM_SOURCES

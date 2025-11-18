@@ -39,6 +39,9 @@ class Enemy : public Entity {
     int getContactDamage() const { return contactDamage; }
     void setHurt(double h) { Entity::setHurt(h); }
 
+   signals:
+    void dying(Enemy* enemy);  // 敌人即将死亡信号（在deleteLater之前发出）
+
    private slots:
     void updateAI();
     void tryAttack();

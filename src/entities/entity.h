@@ -16,6 +16,8 @@ class Entity : public QObject, public QGraphicsPixmapItem {
     double shootSpeed;
     double hurt;  // 既可以当作玩家敌人的攻击伤害，又可以作为射击的伤害
     bool invincible;
+    bool isFlashing;                // 是否正在闪烁
+    QPixmap originalPixmap;         // 原始图片，用于闪烁后恢复
     QPixmap down, up, left, right;  // 不同朝向的图像，可选
    public:
     int crash_r;

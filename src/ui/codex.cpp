@@ -36,14 +36,12 @@ void Codex::setupUI() {
     monsterList->setStyleSheet(
         "QListWidget { background-color: rgba(255,255,255,200); border: 1px solid #CCCCCC; }"
         "QListWidget::item { padding: 8px; border-bottom: 1px solid #EEEEEE; }"
-        "QListWidget::item:selected { background-color: #3498db; color: white; }"
-        );
+        "QListWidget::item:selected { background-color: #3498db; color: white; }");
 
     // 右侧：详细信息
     detailBrowser = new QTextBrowser();
     detailBrowser->setStyleSheet(
-        "QTextBrowser { background-color: rgba(255,255,255,200); border: 1px solid #CCCCCC; font-size: 14px; }"
-        );
+        "QTextBrowser { background-color: rgba(255,255,255,200); border: 1px solid #CCCCCC; font-size: 14px; }");
 
     contentLayout->addWidget(monsterList);
     contentLayout->addWidget(detailBrowser);
@@ -64,8 +62,7 @@ void Codex::setupUI() {
         "}"
         "QPushButton:pressed {"
         "   background-color: #ba4a00;"
-        "}"
-        );
+        "}");
 
     // 添加到主布局
     mainLayout->addWidget(titleLabel);
@@ -84,7 +81,7 @@ void Codex::setupUI() {
 
     // 设置背景
     try {
-        QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("assets/background_main.png", 800, 600);
+        QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("background_main", 800, 600);
         QPalette palette;
         palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
         setAutoFillBackground(true);

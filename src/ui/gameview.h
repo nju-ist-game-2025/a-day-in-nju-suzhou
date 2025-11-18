@@ -9,6 +9,8 @@
 #include "../entities/enemy.h"
 #include "../entities/player.h"
 
+class Level;
+
 class GameView : public QWidget {
     Q_OBJECT
 
@@ -16,10 +18,8 @@ class GameView : public QWidget {
     QGraphicsView* view;
     QGraphicsScene* scene;
     Player* player;
-    QList<Enemy*> enemies;  // 敌人列表
-
-    void spawnEnemies();  // 生成敌人
-    void spawnBoss(); //生成boss
+    Level* level;           // 关卡管理器
+    QList<Enemy*> enemies;  // 敌人列表（用于玩家死亡时清理）
 
    public:
     explicit GameView(QWidget* parent = nullptr);
@@ -32,9 +32,10 @@ class GameView : public QWidget {
     void keyReleaseEvent(QKeyEvent* event) override;
 
    private slots:
-    void handlePlayerDeath();  // 处理玩家死亡
-    void restartGame();        // 重新开始游戏（槽）
-    void quitGame();           // 退出游戏（槽）
+    void handlePlayerDeath();              // 处理玩家死亡
+    void restartGame();                    // 重新开始游戏（槽）
+    void quitGame();                       // 退出游戏（槽）
+    void onEnemiesCleared(int roomIndex);  // 房间敌人清空提示
 
    signals:
     void backToMenu();

@@ -1,0 +1,32 @@
+{
+    "name": "第一关 - 洗衣房",
+    "startRoom": 0,
+    "rooms": [
+        {
+            "background": "map1",
+            "enemyCount": 3,
+            "hasBoss": false,
+            "hasChest": true,
+            "isChestLocked": false,
+            "doors": {
+                "up": -1,
+                "down": 1,
+                "left": -1,
+                "right": -1
+            }
+        },
+        {
+            "background": "map2",
+            "enemyCount": 0,
+            "hasBoss": false,
+            "hasChest": false,
+            "isChestLocked": false,
+            "doors": {
+                "up": 0,
+                "down": -1,
+                "left": -1,
+                "right": -1
+            }
+        }
+    ]
+}

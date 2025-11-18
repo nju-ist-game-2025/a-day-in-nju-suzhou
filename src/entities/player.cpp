@@ -5,7 +5,7 @@
 #include "enemy.h"
 
 Player::Player(const QPixmap& pic_player, double scale)
-    : redContainers(3), redHearts(3.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(1), isDead(false) {  // 默认150毫秒射击冷却，子弹伤害默认1
+    : redContainers(3), redHearts(3.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(2), isDead(false) {  // 默认150毫秒射击冷却，子弹伤害默认2
     setTransformationMode(Qt::SmoothTransformation);
 
     // 如果scale是1.0，直接使用原始pixmap，否则按比例缩放
@@ -176,14 +176,41 @@ void Player::move() {
     double newX = pos().x() + xdir * speed;
     double newY = pos().y() + ydir * speed;
 
-    if (newX < 0)
-        newX = 0;
-    if (newX > room_bound_x - pixmap().width())
-        newX = room_bound_x - pixmap().width();
-    if (newY < 0)
-        newY = 0;
-    if (newY > room_bound_y - pixmap().height())
-        newY = room_bound_y - pixmap().height();
+    // 在门的区域允许玩家移动到更靠边的位置
+    double doorMargin = 20.0;  // 门附近允许的额外边距
+    double doorSize = 100.0;   // 门的宽度（用于判断是否在门附近）
+
+    // 上边界：在门附近允许到达 y = -doorMargin
+    if (newY < 0) {
+        if (qAbs(newX + pixmap().width() / 2 - 400) < doorSize)  // 在上门附近
+            newY = qMax(newY, -doorMargin);
+        else
+            newY = 0;
+    }
+
+    // 下边界：在门附近允许到达 y = room_bound_y - pixmap().height() + doorMargin
+    if (newY > room_bound_y - pixmap().height()) {
+        if (qAbs(newX + pixmap().width() / 2 - 400) < doorSize)  // 在下门附近
+            newY = qMin(newY, (double)(room_bound_y - pixmap().height()) + doorMargin);
+        else
+            newY = room_bound_y - pixmap().height();
+    }
+
+    // 左边界：在门附近允许到达 x = -doorMargin
+    if (newX < 0) {
+        if (qAbs(newY + pixmap().height() / 2 - 300) < doorSize)  // 在左门附近
+            newX = qMax(newX, -doorMargin);
+        else
+            newX = 0;
+    }
+
+    // 右边界：在门附近允许到达 x = room_bound_x - pixmap().width() + doorMargin
+    if (newX > room_bound_x - pixmap().width()) {
+        if (qAbs(newY + pixmap().height() / 2 - 300) < doorSize)  // 在右门附近
+            newX = qMin(newX, (double)(room_bound_x - pixmap().width()) + doorMargin);
+        else
+            newX = room_bound_x - pixmap().width();
+    }
 
     // 更新朝向图像
     if (xdir != 0 || ydir != 0) {
@@ -303,7 +330,7 @@ void Player::placeBomb() {
     });
 }
 
-void Player::focusOutEvent(QFocusEvent *event) {
+void Player::focusOutEvent(QFocusEvent* event) {
     QGraphicsItem::focusOutEvent(event);
     setFocus();
 }

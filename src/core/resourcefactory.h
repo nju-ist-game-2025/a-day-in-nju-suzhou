@@ -7,6 +7,7 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QString>
+#include "configmanager.h"
 
 /**
  * @brief 资源工厂类 - 封装各种图形资源的创建和加载
@@ -55,33 +56,11 @@ class ResourceFactory {
     }
 
     /**
-     * @brief 创建圆形图像（默认图形）
-     */
-    static QPixmap createCircle(int size, const QColor& fillColor, const QColor& borderColor = Qt::transparent, int borderWidth = 0) {
-        QPixmap pixmap(size, size);
-        pixmap.fill(Qt::transparent);
-
-        QPainter painter(&pixmap);
-        painter.setRenderHint(QPainter::Antialiasing);
-        painter.setBrush(fillColor);
-
-        if (borderWidth > 0 && borderColor != Qt::transparent) {
-            painter.setPen(QPen(borderColor, borderWidth));
-        } else {
-            painter.setPen(Qt::NoPen);
-        }
-
-        painter.drawEllipse(0, 0, size - 1, size - 1);
-        painter.end();
-
-        return pixmap;
-    }
-
-    /**
      * @brief 加载玩家图像
      * @throws QString 加载失败时抛出错误信息
      */
-    static QPixmap createPlayerImage(int size, const QString& imagePath) {
+    static QPixmap createPlayerImage(int size) {
+        QString imagePath = ConfigManager::instance().getAssetPath("player");
         return loadImageScaled(imagePath, size, size);
     }
 
@@ -89,11 +68,13 @@ class ResourceFactory {
      * @brief 加载子弹图像
      * @throws QString 加载失败时抛出错误信息
      */
-    static QPixmap createBulletImage(int size, const QString& imagePath) {
+    static QPixmap createBulletImage(int size) {
+        QString imagePath = ConfigManager::instance().getAssetPath("bullet");
         return loadImageScaled(imagePath, size, size);
     }
 
-    static QPixmap createChestImage(int size, const QString& imagePath) {
+    static QPixmap createChestImage(int size) {
+        QString imagePath = ConfigManager::instance().getAssetPath("chest");
         return loadImageScaled(imagePath, size, size);
     }
 
@@ -101,15 +82,29 @@ class ResourceFactory {
      * @brief 加载敌人图像
      * @throws QString 加载失败时抛出错误信息
      */
-    static QPixmap createEnemyImage(int size, const QString& imagePath) {
+    static QPixmap createEnemyImage(int size) {
+        QString imagePath = ConfigManager::instance().getAssetPath("enemy");
+        return loadImageScaled(imagePath, size, size);
+    }
+
+    /**
+     * @brief 加载Boss图像
+     * @throws QString 加载失败时抛出错误信息
+     */
+    static QPixmap createBossImage(int size) {
+        QString imagePath = ConfigManager::instance().getAssetPath("boss");
         return loadImageScaled(imagePath, size, size);
     }
 
     /**
      * @brief 加载背景图片
+     * @param backgroundType 背景类型
+     * @param width 目标宽度
+     * @param height 目标高度
      * @throws QString 加载失败时抛出错误信息
      */
-    static QPixmap loadBackgroundImage(const QString& imagePath, int width = 800, int height = 600) {
+    static QPixmap loadBackgroundImage(const QString& backgroundType, int width = 800, int height = 600) {
+        QString imagePath = ConfigManager::instance().getAssetPath(backgroundType);
         QPixmap pixmap = loadImage(imagePath);
         return pixmap.scaled(width, height, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     }
