@@ -4,6 +4,7 @@
 #include <QPainter>
 #include <QRandomGenerator>
 #include <QtMath>
+#include <QDebug>
 #include "player.h"
 
 Enemy::Enemy(const QPixmap& pic, double scale)

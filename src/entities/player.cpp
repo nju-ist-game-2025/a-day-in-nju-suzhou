@@ -245,6 +245,7 @@ void Player::takeDamage(int damage) {
         return;
 
     flash();
+    float oldHealth = redHearts;
     damage *= damageScale;
 
     while (damage > 0 && soulHearts > 0) {
@@ -258,6 +259,9 @@ void Player::takeDamage(int damage) {
     while (damage > 0 && redHearts > 0.0) {
         redHearts -= 0.5;
         damage--;
+    }
+    if (redHearts != oldHealth) {
+        emit healthChanged(redHearts, getMaxHealth());
     }
     if (redHearts <= 0.0)
         die();

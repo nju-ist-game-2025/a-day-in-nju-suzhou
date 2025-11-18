@@ -48,6 +48,8 @@ class Player : public Entity {
     void setShootCooldown(int milliseconds) { shootCooldown = milliseconds; }  // 设置射击冷却时间
     int getShootCooldown() { return shootCooldown; };
     void takeDamage(int damage) override;  // 减血
+    float getCurrentHealth() const { return redHearts; }
+    float getMaxHealth() const { return redContainers; }
     void addRedContainers(int n) {
         if (redContainers + n <= max_red_contain)
             redContainers += n;
@@ -76,6 +78,7 @@ class Player : public Entity {
 
    signals:
     void playerDied();  // 玩家死亡信号
+    void healthChanged(float current, float max);
 protected:
     void focusOutEvent(QFocusEvent *event) override;
 };

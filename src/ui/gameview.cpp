@@ -60,6 +60,13 @@ void GameView::initGame() {
             disconnect(player, &Player::playerDied, this, &GameView::handlePlayerDeath);
         }
 
+        // 清理HUD
+        if (hud) {
+            scene->removeItem(hud);
+            delete hud;
+            hud = nullptr;
+        }
+
         // 清理敌人列表（对象会被scene->clear()删除）
 
         // scene->clear()会自动删除所有图形项（包括player和enemies）
@@ -69,6 +76,11 @@ void GameView::initGame() {
         // 背景图片现在由 Level 类负责加载和管理
         // 不再在这里设置背景，避免与 Level 冲突
 
+        // 创建HUD
+        hud = new HUD();
+        scene->addItem(hud);
+        hud->setZValue(1000);
+
         // 加载玩家图片
         int playerSize = 60;
         QPixmap playerPixmap = ResourceFactory::createPlayerImage(playerSize);
@@ -76,6 +88,8 @@ void GameView::initGame() {
         // 创建玩家
         player = new Player(playerPixmap, 1.0);
         scene->addItem(player);
+
+        connect(player, &Player::healthChanged, this, &GameView::updateHUD);
 
         // 设置玩家初始位置（屏幕中央）
         player->setPos(scene_bound_x / 2 - playerSize / 2, scene_bound_y / 2 - playerSize / 2);
@@ -92,6 +106,12 @@ void GameView::initGame() {
 
         // 连接玩家死亡信号
         connect(player, &Player::playerDied, this, &GameView::handlePlayerDeath);
+
+        // 连接玩家血量变化信号
+        connect(player, &Player::healthChanged, this, &GameView::updateHUD);
+
+        // 初始更新HUD
+        updateHUD();
 
         // 删除旧的关卡对象
         if (level) {
@@ -155,12 +175,28 @@ void GameView::keyReleaseEvent(QKeyEvent* event) {
     QWidget::keyReleaseEvent(event);
 }
 
+void GameView::updateHUD() {
+    if (!player || !hud) return;
+    
+    // 获取玩家当前血量
+    float currentHealth = player->getCurrentHealth();
+    float maxHealth = player->getMaxHealth();
+    
+    // 更新HUD显示
+    hud->updateHealth(currentHealth, maxHealth);
+}
+
 void GameView::handlePlayerDeath() {
     // 让 Level 处理敌人状态切换（Level::onPlayerDied 会被调用下方）
 
     // 断开信号连接，避免重复触发
     if (player) {
         disconnect(player, &Player::playerDied, this, &GameView::handlePlayerDeath);
+    }
+
+    // 强制更新HUD显示血量为0
+    if (hud && player) {
+        hud->updateHealth(0, player->getMaxHealth());
     }
 
     // 通知 Level 玩家已死亡，以便 Level 能让所有敌人失去玩家引用

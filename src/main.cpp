@@ -1,6 +1,7 @@
 #include <QApplication>
+#include <QDebug>
 #include "core/configmanager.h"
-#include "gamewindow.h"
+#include "core/gamewindow.h"
 
 int main(int argc, char* argv[]) {
     QApplication a(argc, argv);

@@ -1,3 +1,4 @@
+#include <QDebug>
 #include "room.h"
 
 Room::Room() {}
