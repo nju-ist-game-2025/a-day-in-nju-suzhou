@@ -91,11 +91,13 @@ void GameView::initGame() {
         connect(player, &Player::playerDied, this, &GameView::handlePlayerDeath);
 
         spawnEnemies(); // 生成敌人
-        spawnBoss(); // 生成boss
 
         // 创建关卡
         Level* level = new Level(player, scene, this);
         level->init(1);
+
+        spawnBoss(); // 生成boss
+
         
 
     } catch (const QString& error) {
