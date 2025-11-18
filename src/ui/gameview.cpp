@@ -1,5 +1,6 @@
 #include "gameview.h"
 #include <QApplication>
+#include <QCoreApplication>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPixmap>
@@ -127,14 +128,14 @@ void GameView::keyPressEvent(QKeyEvent* event) {
     if (player) {
         player->keyPressEvent(event);
     }
-
     // 同时传递给当前房间（用于触发切换检测）
     if (level) {
         Room* r = level->currentRoom();
         if (r)
-            r->keyPressEvent(event);
+            QCoreApplication::sendEvent(r, event);
     }
 
+    QWidget::keyPressEvent(event);
     QWidget::keyPressEvent(event);
 }
 
@@ -146,14 +147,14 @@ void GameView::keyReleaseEvent(QKeyEvent* event) {
     if (player) {
         player->keyReleaseEvent(event);
     }
-
     // 同时传递给当前房间，更新按键释放状态
     if (level) {
         Room* r = level->currentRoom();
         if (r)
-            r->keyReleaseEvent(event);
+            QCoreApplication::sendEvent(r, event);
     }
 
+    QWidget::keyReleaseEvent(event);
     QWidget::keyReleaseEvent(event);
 }
 
