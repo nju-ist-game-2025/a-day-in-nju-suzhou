@@ -80,3 +80,15 @@ CMakeLists.txt.user*
 .rcc/
 .uic/
 /build*/
+
+# VS Code settings (local)
+.vscode/
+
+# Local environment setup
+set_qt_env.bat
+
+# CMake build directory
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
