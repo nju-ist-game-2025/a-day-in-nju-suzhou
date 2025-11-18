@@ -64,6 +64,7 @@ private:
     QVector<bool> visited;
     QTimer *checkChange;
     int visited_count;
+    void judgeEntryofMapMode1(int x, int y);
 };
 
 #endif // LEVEL_H

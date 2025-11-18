@@ -19,7 +19,6 @@ class Player : public Entity {
     double redHearts;
     int soulHearts;
     int blackHearts;                   // 是否短暂无敌，防止持续攻击
-    QMap<int, bool> keysPressed;       // 移动按键状态
     QMap<int, bool> shootKeysPressed;  // 射击按键状态
     QTimer* keysTimer;
     QTimer* crashTimer;
@@ -40,6 +39,7 @@ class Player : public Entity {
 
    public:
     friend class Item;
+    QMap<int, bool> keysPressed;
     Player(const QPixmap& pic_player, double scale = 1.0);
     void keyPressEvent(QKeyEvent* event) override;  // 控制移动
     void keyReleaseEvent(QKeyEvent* event) override;

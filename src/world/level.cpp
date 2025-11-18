@@ -43,7 +43,7 @@ void Level::init(int levelNumber)
     }
 
     // 清理现有数据
-    m_scene->clear();
+    //m_scene->clear();
     qDeleteAll(m_rooms);
     m_rooms.clear();
     m_currentEnemies.clear();
@@ -78,7 +78,7 @@ void Level::init(int levelNumber)
 void Level::generateRooms()
 {
     // 根据关卡号生成不同数量的房间
-    int roomCount = 5 + (m_levelNumber - 1) * 3;
+    int roomCount = 5 + (m_levelNumber - 1) * 4;
     if (roomCount > 14) roomCount = 14;
 
     visited.resize(roomCount);
@@ -102,6 +102,7 @@ void Level::initCurrentRoom(Room* room)
 {
     if (m_currentRoomIndex >= m_rooms.size()) return;
 
+    room->visiting = true;
     // 清理当前房间实体
     clearCurrentRoomEntities();
 
@@ -199,50 +200,18 @@ void Level::clearCurrentRoomEntities()
 
 bool Level::enterNextRoom()
 {
-    if (m_currentRoomIndex + 1 >= m_rooms.size()) {
+    if (visited_count + 1 >= m_rooms.size()) {
         //emit levelCompleted(m_levelNumber);
         //return false;
     }
 
-    qDebug() << "尝试进入下一个房间，当前房间:" << m_currentRoomIndex;
-
-    //地图模式一
     Room* r = m_rooms[m_currentRoomIndex];
     int x = r->getChangeX(), y = r->getChangeY();
     if(!x && !y) return false;
-    int sz = m_rooms.size(), mode = m_currentRoomIndex % 4;
-    if(x == -1) {
-        if(!m_currentRoomIndex) m_currentRoomIndex = 1;
-        else {
-            if(mode == 1) m_currentRoomIndex += (m_currentRoomIndex + 4 < sz ? 4 : 0);
-            else if(mode == 3) m_currentRoomIndex -= 4;
-        }
-        m_player->setPos(760, m_player->pos().y());
-    }
-    if(x == 1) {
-        if(!m_currentRoomIndex) m_currentRoomIndex = 3;
-        else {
-            if(mode == 3) m_currentRoomIndex += (m_currentRoomIndex + 4 < sz ? 4 : 0);
-            else if(mode == 1) m_currentRoomIndex -= 4;
-        }
-        m_player->setPos(40, m_player->pos().y());
-    }
-    if(y == -1) {
-        if(!m_currentRoomIndex) m_currentRoomIndex = 2;
-        else {
-            if(mode == 2) m_currentRoomIndex += (m_currentRoomIndex + 4 < sz ? 4 : 0);
-            else if(mode == 4) m_currentRoomIndex -= 4;
-        }
-        m_player->setPos(m_player->pos().x(), 560);
-    }
-    if(y == 1) {
-        if(!m_currentRoomIndex) m_currentRoomIndex = 4;
-        else {
-            if(mode == 4) m_currentRoomIndex += (m_currentRoomIndex + 4 < sz ? 4 : 0);
-            else if(mode == 2) m_currentRoomIndex -= 4;
-        }
-        m_player->setPos(m_player->pos().x(), 40);
-    }
+    r->visiting = false;
+
+    judgeEntryofMapMode1(x, y);
+
     if(!visited[m_currentRoomIndex]) {
         visited[m_currentRoomIndex] = true;
         visited_count++;
@@ -272,6 +241,7 @@ void Level::loadRoom(int roomIndex)
 
     m_currentRoomIndex = roomIndex;
     Room* targetRoom = m_rooms[roomIndex];
+    targetRoom->visiting = true;
 
     // 重新加载背景
     /*try {
@@ -283,33 +253,17 @@ void Level::loadRoom(int roomIndex)
         setBackgroundBrush(QBrush(Qt::darkGray));
     }*/
 
-    for (Enemy* enemy : targetRoom->currentEnemies) {
-            m_scene->addItem(enemy);
-            m_currentEnemies.append(enemy);
-            qDebug() << "恢复敌人，位置:" << enemy->pos();
+    /*for (Enemy* enemy : targetRoom->currentEnemies) {
+        m_scene->addItem(enemy);
+        m_currentEnemies.append(enemy);
+        qDebug() << "恢复敌人，位置:" << enemy->pos();
     }
 
     for (Chest* chest : targetRoom->currentChests) {
-            m_scene->addItem(chest);
-            m_currentChests.append(chest);
-            qDebug() << "恢复宝箱，位置:" << chest->pos();
-    }
-
-
-    if (m_player) {
-        // 根据进入方向设置玩家位置
-        Room* previousRoom = (m_currentRoomIndex > 0) ? m_rooms[m_currentRoomIndex - 1] : nullptr;
-        if (previousRoom) {
-            int prevChangeX = previousRoom->getChangeX();
-            int prevChangeY = previousRoom->getChangeY();
-
-            if (prevChangeX == -1) m_player->setPos(760, m_player->pos().y());
-            else if (prevChangeX == 1) m_player->setPos(40, m_player->pos().y());
-            else if (prevChangeY == -1) m_player->setPos(m_player->pos().x(), 560);
-            else if (prevChangeY == 1) m_player->setPos(m_player->pos().x(), 40);
-        }
-        m_player->setZValue(100);
-    }
+        m_scene->addItem(chest);
+        m_currentChests.append(chest);
+        qDebug() << "恢复宝箱，位置:" << chest->pos();
+    }*/
 
     emit roomEntered(roomIndex);
 }
@@ -320,4 +274,72 @@ Room* Level::currentRoom() const
         return m_rooms[m_currentRoomIndex];
     }
     return nullptr;
+}
+
+void Level::judgeEntryofMapMode1(int x, int y) {
+    //地图模式一
+
+    qDebug() << "尝试进入下一个房间，当前房间:" << m_currentRoomIndex;
+    int sz = m_rooms.size(), mode = m_currentRoomIndex % 4;
+    qDebug() << sz;
+    if(x == -1) {
+        if(!m_currentRoomIndex) {
+            m_currentRoomIndex = 1;
+            m_player->setPos(700, m_player->pos().y());
+        } else {
+            if(mode == 1 && m_currentRoomIndex + 4 < sz) {
+                m_currentRoomIndex += 4;
+                m_player->setPos(700, m_player->pos().y());
+            } else if(mode == 3) {
+                if(m_currentRoomIndex - 4 >= 0) m_currentRoomIndex -= 4;
+                else m_currentRoomIndex = 0;
+                m_player->setPos(700, m_player->pos().y());
+            }
+        }
+    }
+    if(x == 1) {
+        if(!m_currentRoomIndex) {
+            m_currentRoomIndex = 3;
+            m_player->setPos(40, m_player->pos().y());
+        } else {
+            if(mode == 3 && m_currentRoomIndex + 4 < sz) {
+                m_currentRoomIndex += 4;
+                m_player->setPos(40, m_player->pos().y());
+            } else if(mode == 1) {
+                if(m_currentRoomIndex - 4 >= 0) m_currentRoomIndex -= 4;
+                else m_currentRoomIndex = 0;
+                m_player->setPos(40, m_player->pos().y());
+            }
+        }
+    }
+    if(y == -1) {
+        if(!m_currentRoomIndex) {
+            m_currentRoomIndex = 2;
+            m_player->setPos(m_player->pos().x(), 500);
+        } else {
+            if(mode == 2 && m_currentRoomIndex + 4 < sz) {
+                m_currentRoomIndex += 4;
+                m_player->setPos(m_player->pos().x(), 500);
+            } else if(mode == 4) {
+                if(m_currentRoomIndex - 4 >= 0) m_currentRoomIndex -= 4;
+                else m_currentRoomIndex = 0;
+                m_player->setPos(m_player->pos().x(), 500);
+            }
+        }
+    }
+    if(y == 1) {
+        if(!m_currentRoomIndex) {
+            m_currentRoomIndex = 4;
+            m_player->setPos(m_player->pos().x(), 40);
+        } else {
+            if(mode == 4 && m_currentRoomIndex + 4 < sz) {
+                m_currentRoomIndex += 4;
+                m_player->setPos(m_player->pos().x(), 40);
+            } else if(mode == 2) {
+                if(m_currentRoomIndex - 4 >= 0) m_currentRoomIndex -= 4;
+                else m_currentRoomIndex = 0;
+                m_player->setPos(m_player->pos().x(), 40);
+            }
+        }
+    }
 }

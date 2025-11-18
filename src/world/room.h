@@ -14,9 +14,10 @@ class Room : public QGraphicsScene
     int change_y;
     QTimer *changeTimer;
     Player *player;
-    QMap<int, bool> keysPressed;       // 移动按键状态
     bool up, down, left, right;//各个方向上是否有门存在
 public:
+    bool visiting;
+    friend class Player;
     Room();
     Room(Player* p, bool u, bool d, bool l, bool r);
     QVector<Enemy*> currentEnemies;     // 当前房间敌人
@@ -25,8 +26,6 @@ public:
     int getChangeY() {return change_y;};
     void resetChangeDir() {change_x = 0; change_y = 0;};
     void testChange();
-    void keyPressEvent(QKeyEvent* event) override;
-    void keyReleaseEvent(QKeyEvent* event) override;
 };
 
 #endif // ROOM_H
