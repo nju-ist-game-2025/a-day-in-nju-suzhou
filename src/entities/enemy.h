@@ -52,7 +52,6 @@ class Enemy : public Entity {
     Player* player;
     QTimer* aiTimer;
     QTimer* attackTimer;
-    QTimer* wanderTimer;
 
     // 属性
     int health;

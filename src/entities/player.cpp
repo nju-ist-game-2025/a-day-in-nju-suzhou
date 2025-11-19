@@ -51,18 +51,26 @@ Player::Player(const QPixmap& pic_player, double scale)
     keysPressed[Qt::Key_S] = false;
     keysPressed[Qt::Key_D] = false;
 
-    keysTimer = new QTimer();
+    keysTimer = new QTimer(this);
     connect(keysTimer, &QTimer::timeout, this, &Player::move);
     keysTimer->start(16);
 
-    crashTimer = new QTimer();
+    crashTimer = new QTimer(this);
     connect(crashTimer, &QTimer::timeout, this, &Player::crashEnemy);
     crashTimer->start(50);
 
     // 射击检测定时器（持续检测射击按键状态）
-    shootTimer = new QTimer();
+    shootTimer = new QTimer(this);
     connect(shootTimer, &QTimer::timeout, this, &Player::checkShoot);
     shootTimer->start(16);  // 每16ms检测一次
+
+    // 初始无敌时间，防止刚进入游戏时被判定碰撞闪烁
+    invincible = true;
+    // 确保 isFlashing 初始为 false
+    isFlashing = false;
+    QTimer::singleShot(1000, this, [this]() {
+        invincible = false;
+    });
 }
 
 void Player::keyPressEvent(QKeyEvent* event) {

@@ -51,17 +51,20 @@ void Codex::setupUI() {
     backButton->setFixedSize(150, 40);
     backButton->setStyleSheet(
         "QPushButton {"
-        "   background-color: #e67e22;"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #e67e22, stop:1 #d35400);"
         "   color: white;"
-        "   border: none;"
-        "   border-radius: 5px;"
+        "   border: 2px solid #a04000;"
+        "   border-radius: 10px;"
         "   font-size: 14px;"
+        "   font-weight: bold;"
         "}"
         "QPushButton:hover {"
-        "   background-color: #d35400;"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f39c12, stop:1 #e67e22);"
         "}"
         "QPushButton:pressed {"
-        "   background-color: #ba4a00;"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d35400, stop:1 #a04000);"
+        "   padding-top: 2px;"
+        "   padding-left: 2px;"
         "}");
 
     // 添加到主布局

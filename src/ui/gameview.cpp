@@ -179,12 +179,13 @@ void GameView::keyReleaseEvent(QKeyEvent* event) {
 }
 
 void GameView::updateHUD() {
-    if (!player || !hud) return;
-    
+    if (!player || !hud)
+        return;
+
     // 获取玩家当前血量
     float currentHealth = player->getCurrentHealth();
     float maxHealth = player->getMaxHealth();
-    
+
     // 更新HUD显示
     hud->updateHealth(currentHealth, maxHealth);
 }
@@ -249,10 +250,10 @@ void GameView::onEnemiesCleared(int roomIndex) {
     qDebug() << "GameView::onEnemiesCleared 被调用，房间:" << roomIndex;
 
     // 在场景中显示文字提示
-    QGraphicsTextItem* hint = new QGraphicsTextItem("所有敌人已被击败！下方的门已打开（目前还未实现开门动画，只实现逻辑开门）。");
+    QGraphicsTextItem* hint = new QGraphicsTextItem("所有敌人已被击败！前往下一个房间的门已打开。");
     hint->setDefaultTextColor(Qt::red);
     hint->setFont(QFont("Arial", 16, QFont::Bold));
-    hint->setPos(20, 250);
+    hint->setPos(150, 250);
     hint->setZValue(1000);  // 确保在最上层
     scene->addItem(hint);
 
