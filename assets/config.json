@@ -5,7 +5,7 @@
         "map2": "assets/background/map2.png",
         "player": "assets/player/player.png",
         "bullet": "assets/items/bullet.png",
-        "enemy": "assets/boss/WashMachine/WashMachineAngrily.png",
+        "enemy": "assets/enemy/enemy.png",
         "boss": "assets/boss/WashMachine/WashMachineAngrily.png",
         "chest": "assets/chest/chest.png"
     },
