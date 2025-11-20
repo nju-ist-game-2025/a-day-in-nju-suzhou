@@ -18,6 +18,7 @@ public:
     void expire();//过期或移除
     virtual void onApplyEffect(Entity* target) = 0;
     virtual void onRemoveEffect(Entity* target) = 0;
+    void showFloatText(QGraphicsScene* scene, const QString& text, const QPointF& position, const QColor& color = Qt::black);
 signals:
 };
 
@@ -30,6 +31,8 @@ public:
         : StatusEffect(duration), multiplier(mul) {}
     void onApplyEffect(Entity* target) override {
         target->setSpeed(target->getSpeed() * multiplier);
+        if(multiplier > 1) showFloatText(target->scene(), QString("⚡短暂速度提升↑"), target->pos(), Qt::blue);
+        else if(multiplier < 1) showFloatText(target->scene(), QString("⚡短暂速度下降↓"), target->pos(), Qt::blue);
     }
     void onRemoveEffect(Entity* target) override {
         target->setSpeed(target->getSpeed() / multiplier);
@@ -44,6 +47,8 @@ public:
         : StatusEffect(duration), multiplier(mul) {}
     void onApplyEffect(Entity* target) override {
         target->setshootSpeed(target->getshootSpeed() * multiplier);
+        if(multiplier > 1) showFloatText(target->scene(), QString("短暂子弹速度提升↑"), target->pos());
+        else if(multiplier < 1) showFloatText(target->scene(), QString("短暂子弹速度下降↓"), target->pos());
     }
     void onRemoveEffect(Entity* target) override {
         target->setshootSpeed(target->getshootSpeed() / multiplier);
@@ -61,6 +66,8 @@ public:
         if(auto p = dynamic_cast<Player*>(target)){
             temp = p->getShootCooldown();
             p->setShootCooldown((int)(temp / multiplier));
+            if(multiplier > 1) showFloatText(target->scene(), QString("🔫短暂射速提升↑"), target->pos());
+            else if(multiplier < 1) showFloatText(target->scene(), QString("🔫短暂射速下降↓"), target->pos());
         }
     }
     void onRemoveEffect(Entity* target) override {
@@ -77,6 +84,8 @@ public:
         : StatusEffect(duration), multiplier(mul) {};
     void onApplyEffect(Entity* target) override {
         target->setHurt(target->getHurt() * multiplier);
+        if(multiplier > 1) showFloatText(target->scene(), QString("⚔️短暂伤害提升↑"), target->pos(), Qt::red);
+        else if(multiplier < 1) showFloatText(target->scene(), QString("⚔️短暂伤害下降↓"), target->pos(), Qt::red);
     }
     void onRemoveEffect(Entity* target) override {
         target->setHurt(target->getHurt() / multiplier);
@@ -84,13 +93,19 @@ public:
 };
 
 //提升血量（护盾）
-class soulHeartEffect{
+class soulHeartEffect : public StatusEffect {
 public:
-    soulHeartEffect(Player* pl, int n) {pl->addSoulHearts(n);};
+    soulHeartEffect(Player* pl, int n) : StatusEffect(1){
+        pl->addSoulHearts(n);
+        showFloatText(pl->scene(), QString("♥ ++魂心"), pl->pos(), Qt::green);
+    };
 };
-class blackHeartEffect{
+class blackHeartEffect : public StatusEffect {
 public:
-    blackHeartEffect(Player* pl, int n) {pl->addBlackHearts(n);};
+    blackHeartEffect(Player* pl, int n) : StatusEffect(1){
+        pl->addBlackHearts(n);
+        showFloatText(pl->scene(), QString("♥ ++黑心"), pl->pos(), Qt::darkGray);
+    };
 };
 
 //伤害减免
@@ -101,6 +116,7 @@ public:
         : StatusEffect(duration), scale(s) {};
     void onApplyEffect(Entity* target) override {
         target->damageScale = scale;
+        showFloatText(target->scene(), QString("🛡️短暂伤害减免"), target->pos(), Qt::green);
     }
     void onRemoveEffect(Entity* target) override {
         target->damageScale = 1.0;
@@ -117,6 +133,7 @@ public:
     void emitApplyEffect(){this->onApplyEffect(target);};
     void onApplyEffect(Entity* target) override {
         target->takeDamage(damage);
+        showFloatText(target->scene(), QString("中毒"), target->pos(), Qt::darkGreen);
     }
     void onRemoveEffect(Entity* target) override {
         if(!poisonTimer) return;
@@ -130,6 +147,7 @@ public:
     InvincibleEffect(double duration) : StatusEffect(duration) {};
     void onApplyEffect(Entity* target) override {
         target->setInvincible(true);
+        showFloatText(target->scene(), QString("🛡️短暂无敌"), target->pos(), Qt::darkYellow);
     }
     void onRemoveEffect(Entity* target) override {
         target->setInvincible(false);
