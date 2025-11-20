@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QPointF>
 #include <QTimer>
+#include <QVector>
 #include "constants.h"
 
 class Entity : public QObject, public QGraphicsPixmapItem {

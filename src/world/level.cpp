@@ -381,6 +381,7 @@ void Level::onEnemyDying(Enemy *enemy) {
     m_currentEnemies.removeAll(target);
 
     qDebug() << "已从全局敌人列表移除，剩余:" << m_currentEnemies.size();
+    bonusEffects();
 
     for (Room *r: m_rooms) {
         if (!r) continue;
@@ -449,6 +450,36 @@ void Level::onPlayerDied() {
         for (Enemy *e : roomRaw) {
             if (e)
                 e->setPlayer(nullptr);
+        }
+    }
+}
+
+void Level::bonusEffects() {
+    QVector<StatusEffect*> effectstoPlayer;
+
+    SpeedEffect *sp = new SpeedEffect(5, 1.5);
+    effectstoPlayer.push_back(sp);
+    DamageEffect *dam = new DamageEffect(5, 1.5);
+    effectstoPlayer.push_back(dam);
+    shootSpeedEffect *shootsp = new shootSpeedEffect(5, 1.5);
+    effectstoPlayer.push_back(shootsp);
+    soulHeartEffect *soul1 = new soulHeartEffect(m_player, 1);
+    soulHeartEffect *soul2 = new soulHeartEffect(m_player, 1);
+    effectstoPlayer.push_back(soul1);
+    effectstoPlayer.push_back(soul2);
+    decDamage *dec = new decDamage(5, 0.5);
+    effectstoPlayer.push_back(dec);
+    InvincibleEffect *inv = new InvincibleEffect(5);
+    effectstoPlayer.push_back(inv);
+
+
+    int i = QRandomGenerator::global()->bounded(effectstoPlayer.size());
+    if(i >= 0 && i < effectstoPlayer.size() && effectstoPlayer[i]) {
+        effectstoPlayer[i]->applyTo(m_player);
+        for (StatusEffect* effect : effectstoPlayer) {
+            if (effect != effectstoPlayer[i]) { // 只删除未使用的
+                effect->deleteLater();
+            }
         }
     }
 }

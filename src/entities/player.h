@@ -4,12 +4,13 @@
 #include <QKeyEvent>
 #include <QPointF>
 #include <QTimer>
+#include <QVector>
 #include "constants.h"
 #include "entity.h"
 #include "projectile.h"
 
-const int max_red_contain = 12;
-const int max_soul = 12;
+const int max_red_contain = 9;
+const int max_soul = 6;
 const int bomb_r = 60;
 const int bombHurt = 1;
 

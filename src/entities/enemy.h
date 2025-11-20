@@ -4,7 +4,9 @@
 #include <QGraphicsScene>
 #include <QTimer>
 #include <QtMath>
+#include <QVector>
 #include "entity.h"
+#include "statuseffect.h"
 
 class Player;
 
@@ -48,6 +50,10 @@ public:
 
     void setHurt(double h) { Entity::setHurt(h); }
 
+    void getEffects();
+
+    int getHealth() {return health;};
+
 signals:
 
     void dying(Enemy *enemy);  // 敌人即将死亡信号（在deleteLater之前发出）
@@ -73,6 +79,7 @@ private:
     double attackRange;     // 攻击范围
     int attackCooldown;     // 攻击冷却
     qint64 lastAttackTime;  // 上次攻击时间
+    bool firstBonus;
 
     // 漫游相关
     QPointF wanderTarget;  // 漫游目标点

@@ -5,6 +5,7 @@
 #include <QGraphicsScene>
 #include <QPixmap>
 #include <QPointF>
+#include <QVector>
 
 class Projectile : public Entity {
     QTimer *moveTimer;

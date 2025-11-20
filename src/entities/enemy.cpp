@@ -4,6 +4,7 @@
 #include <QRandomGenerator>
 #include <QtMath>
 #include <QDebug>
+#include <QRandomGenerator>
 #include "player.h"
 
 Enemy::Enemy(const QPixmap &pic, double scale)
@@ -33,6 +34,8 @@ Enemy::Enemy(const QPixmap &pic, double scale)
     ydir = 0;
     curr_xdir = 0;
     curr_ydir = 1;
+
+    firstBonus = true;
 
     // 禁用缓存以避免拖影
     setCacheMode(QGraphicsItem::NoCache);
@@ -64,6 +67,33 @@ Enemy::~Enemy() {
     if (attackTimer) {
         attackTimer->stop();
         delete attackTimer;
+    }
+}
+
+void Enemy::getEffects() {
+    if(!player) return;
+    if(player->getCurrentHealth() < 1) return;
+    QVector<StatusEffect*> effectstoPlayer;
+    //防止中毒效果在delete后施加
+    int min_ = (3 > player->getCurrentHealth()*2 ? (int)player->getCurrentHealth() :3);
+    PoisonEffect *poi = new PoisonEffect(player, min_, 1);
+    effectstoPlayer.push_back(poi);
+    SpeedEffect *sp = new SpeedEffect(5, 0.5);
+    effectstoPlayer.push_back(sp);
+    DamageEffect *dam = new DamageEffect(5, 0.5);
+    effectstoPlayer.push_back(dam);
+    shootSpeedEffect *shootsp = new shootSpeedEffect(5, 0.5);
+    effectstoPlayer.push_back(shootsp);
+
+    //依1/2的概率获得效果
+    int i = QRandomGenerator::global()->bounded(effectstoPlayer.size()*2);
+    if(i >= 0 && i < effectstoPlayer.size() && effectstoPlayer[i]) {
+        effectstoPlayer[i]->applyTo(player);
+        for (StatusEffect* effect : effectstoPlayer) {
+            if (effect != effectstoPlayer[i]) { // 只删除未使用的
+                effect->deleteLater();
+            }
+        }
     }
 }
 
@@ -222,6 +252,7 @@ void Enemy::attackPlayer() {
         Player *p = dynamic_cast<Player *>(item);
         if (p) {
             p->takeDamage(contactDamage);
+            getEffects();
             break;
         }
     }

@@ -1,6 +1,8 @@
 #include "projectile.h"
 #include "enemy.h"
 #include "player.h"
+#include "statuseffect.h"
+#include <QRandomGenerator>
 
 Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap &pic_bullet, double scale)
         : mode(_mode) {
@@ -55,6 +57,32 @@ void Projectile::move() {
     }
 }
 
+void geteffects(Enemy *enemy) {
+    if (!enemy) return;
+    if(enemy->getHealth() < 2) return;
+    QVector<StatusEffect*> localEffects;
+
+    SpeedEffect *sp = new SpeedEffect(5, 0.5);
+    localEffects.push_back(sp);
+    DamageEffect *dam = new DamageEffect(5, 0.5);
+    localEffects.push_back(dam);
+    shootSpeedEffect *shootsp = new shootSpeedEffect(5, 0.5);
+    localEffects.push_back(shootsp);
+
+    // 依1/3的概率获得效果
+    int i = QRandomGenerator::global()->bounded(localEffects.size() * 3);
+    if (i >= 0 && i < localEffects.size() && localEffects[i]) {
+        localEffects[i]->applyTo(enemy);
+
+        // 清理未使用的效果
+        for (StatusEffect* effect : localEffects) {
+            if (effect != localEffects[i]) { // 只删除未使用的
+                effect->deleteLater();
+            }
+        }
+    }
+}
+
 void Projectile::checkCrash() {
     // 确保scene存在
     if (!scene())
@@ -88,6 +116,7 @@ void Projectile::checkCrash() {
                             scene()->removeItem(this);
                         }
                         deleteLater();
+                        if(it) geteffects(it);
                         return;
                     }
                 }

@@ -22,9 +22,11 @@ void StatusEffect::expire() {
 
 PoisonEffect::PoisonEffect(Entity *target_, double duration, int damage_)
         : StatusEffect(duration), damage(damage_), target(target_) {
-    poisonTimer = new QTimer(this);
-    connect(poisonTimer, &QTimer::timeout, this, &PoisonEffect::emitApplyEffect);
-    poisonTimer->start(1000);
+    if(target_) {
+        poisonTimer = new QTimer(this);
+        connect(poisonTimer, &QTimer::timeout, this, &PoisonEffect::emitApplyEffect);
+    }
+    //poisonTimer->start(1000);
 }
 
 void StatusEffect::showFloatText(QGraphicsScene* scene, const QString& text, const QPointF& position, const QColor& color) {

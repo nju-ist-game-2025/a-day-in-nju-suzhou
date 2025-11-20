@@ -13,7 +13,6 @@ public:
     QRectF boundingRect() const override;
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
-
 public slots:
 
     void updateHealth(float current, float max);

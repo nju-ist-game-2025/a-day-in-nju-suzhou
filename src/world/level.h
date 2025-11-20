@@ -24,6 +24,7 @@ public:
     Room *currentRoom() const;
     void loadRoom(int roomIndex);
     void onPlayerDied();
+    void bonusEffects();
 
 signals:
     void levelCompleted(int levelNumber);

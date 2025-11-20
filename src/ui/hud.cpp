@@ -23,6 +23,7 @@ QRectF HUD::boundingRect() const {
     return QRectF(0, 0, 230, 60);
 }
 
+
 void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
     Q_UNUSED(option);
     Q_UNUSED(widget);
