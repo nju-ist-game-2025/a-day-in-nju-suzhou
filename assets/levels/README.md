@@ -1,6 +1,7 @@
 # 关卡配置系统说明
 
 ## 概述
+
 `LevelConfig` 类提供了一个通用的关卡配置系统，允许通过 JSON 文件定义关卡的房间布局、连接关系和内容。
 
 ## JSON 配置文件格式
@@ -8,6 +9,7 @@
 关卡配置文件位于 `assets/levels/level{N}.json`，其中 `{N}` 是关卡号。
 
 ### 示例配置 (level1.json)
+
 ```json
 {
     "name": "第一关 - 洗衣房",
@@ -33,25 +35,28 @@
 ### 配置字段说明
 
 #### 顶层字段
+
 - `name` (string): 关卡名称
 - `startRoom` (int): 玩家出生的房间索引（从 0 开始）
 - `rooms` (array): 房间配置列表
 
 #### 房间配置字段
+
 - `background` (string): 背景图片的配置 key（在 `config.json` 的 `assets` 中定义）
 - `enemyCount` (int): 房间内普通敌人的数量
 - `hasBoss` (bool): 是否有 Boss
 - `hasChest` (bool): 是否有宝箱
 - `isChestLocked` (bool): 宝箱是否锁定（需要钥匙）
 - `doors` (object): 门的连接关系
-  - `up` (int): 上门连接到的房间索引，-1 表示无门
-  - `down` (int): 下门连接到的房间索引
-  - `left` (int): 左门连接到的房间索引
-  - `right` (int): 右门连接到的房间索引
+    - `up` (int): 上门连接到的房间索引，-1 表示无门
+    - `down` (int): 下门连接到的房间索引
+    - `left` (int): 左门连接到的房间索引
+    - `right` (int): 右门连接到的房间索引
 
 ## 使用方法
 
 ### 在 Level 类中使用
+
 ```cpp
 LevelConfig levelConfig;
 if (levelConfig.loadFromFile(levelNumber)) {

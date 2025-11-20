@@ -1,8 +1,7 @@
 #ifndef RANDOMGENERATOR_H
 #define RANDOMGENERATOR_H
 
-class RandomGenerator
-{
+class RandomGenerator {
 public:
     RandomGenerator();
 };

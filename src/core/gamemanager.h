@@ -1,8 +1,7 @@
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
 
-class GameManager
-{
+class GameManager {
 public:
     GameManager();
 };

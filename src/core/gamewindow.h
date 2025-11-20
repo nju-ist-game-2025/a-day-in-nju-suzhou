@@ -8,22 +8,27 @@
 #include "../ui/mainmenu.h"
 
 class GameWindow : public QMainWindow {
-    Q_OBJECT
+Q_OBJECT
 
-   public:
-    GameWindow(QWidget* parent = nullptr);
+public:
+    GameWindow(QWidget *parent = nullptr);
+
     ~GameWindow();
 
-   private slots:
+private slots:
+
     void showMainMenu();
+
     void startGame();
+
     void showCodex();  // 新增：显示图鉴
     void exitGame();
 
-   private:
-    QStackedWidget* stackedWidget;
-    MainMenu* mainMenu;
-    GameView* gameView;
-    Codex* codex;
+private:
+    QStackedWidget *stackedWidget;
+    MainMenu *mainMenu;
+    GameView *gameView;
+    Codex *codex;
 };
+
 #endif  // GAMEWINDOW_H

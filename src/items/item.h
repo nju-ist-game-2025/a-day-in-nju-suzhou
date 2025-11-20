@@ -15,11 +15,10 @@ public:
     virtual void onPickup(Player* player) {};//拾取时触发效果
     QString getName() { return name; }
     QString getDescription() { return description; }
+    void showFloatText(QGraphicsScene* scene, const QString& text, const QPointF& position, const QColor& color = Qt::black);
 signals:
     void itemPickedUp(Item* item);
 };
-
-
 
 //伤害提升
 class DamageUpItem : public Item {
@@ -29,6 +28,7 @@ public:
         : Item(name, "伤害提升"), multiplier(mul) {}
     void onPickup(Player* player) override {
         player->setHurt(player->getHurt() * multiplier);
+        showFloatText(player->scene(), QString("⚔️") + this->getDescription(), player->pos(), Qt::red);
     }
 };
 
@@ -40,6 +40,7 @@ public:
         : Item(name, "速度提升"), multiplier(mul) {}
     void onPickup(Player* player) override {
         player->setSpeed(player->getSpeed() * multiplier);
+        showFloatText(player->scene(), QString("⚡") + this->getDescription(), player->pos(), Qt::blue);
     }
 };
 
@@ -52,6 +53,7 @@ public:
     void onPickup(Player* player) override {
         int currentCD = player->getShootCooldown();
         player->setShootCooldown((int)(currentCD / multiplier));
+        showFloatText(player->scene(), QString("🔫") + this->getDescription(), player->pos());
     }
 };
 
@@ -63,6 +65,7 @@ public:
         : Item(name, "子弹速度提升"), multiplier(mul) {}
     void onPickup(Player* player) override {
         player->setshootSpeed(player->getshootSpeed() * multiplier);
+        showFloatText(player->scene(), this->getDescription(), player->pos());
     }
 };
 
@@ -75,6 +78,7 @@ public:
     void onPickup(Player* player) override {
         player->addRedContainers(heartCount);
         player->addRedHearts(heartCount);
+        showFloatText(player->scene(), QString("❤️") + this->getDescription(), player->pos(), Qt::green);
     }
 };
 
@@ -87,6 +91,7 @@ public:
         player->setShootType(1); // 0=普通, 1=激光
         player->setShootCooldown(20); // 降低射速平衡强度
         player->damageScale *= 1.5;
+        showFloatText(player->scene(), this->getDescription(), player->pos(), Qt::gray);
     }
 };
 
@@ -99,6 +104,7 @@ public:
         : Item(name, "获得炸弹"), count(count) {}
     void onPickup(Player* player) override {
         player->addBombs(count);
+        showFloatText(player->scene(), QString("💣") + this->getDescription(), player->pos());
     }
 };
 
@@ -110,6 +116,7 @@ public:
         : Item(name, "获得钥匙"), count(count) {}
     void onPickup(Player* player) override {
         player->addKeys(count);
+        showFloatText(player->scene(), QString("🔑") + this->getDescription(), player->pos(), Qt::yellow);
     }
 };
 

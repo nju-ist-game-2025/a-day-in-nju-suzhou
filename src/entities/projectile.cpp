@@ -2,8 +2,8 @@
 #include "enemy.h"
 #include "player.h"
 
-Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap& pic_bullet, double scale)
-    : mode(_mode) {
+Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap &pic_bullet, double scale)
+        : mode(_mode) {
     setTransformationMode(Qt::SmoothTransformation);
 
     // 禁用缓存以避免留下轨迹
@@ -20,19 +20,19 @@ Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap& pic_
     } else {
         // 按比例缩放（保持宽高比）
         this->setPixmap(pic_bullet.scaled(
-            pic_bullet.width() * scale,
-            pic_bullet.height() * scale,
-            Qt::KeepAspectRatio,
-            Qt::SmoothTransformation));
+                pic_bullet.width() * scale,
+                pic_bullet.height() * scale,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation));
     }
 
     this->setPos(pos);
 
-    moveTimer = new QTimer();
+    moveTimer = new QTimer(this);
     connect(moveTimer, &QTimer::timeout, this, &Projectile::move);
     moveTimer->start(16);
 
-    crashTimer = new QTimer();
+    crashTimer = new QTimer(this);
     connect(crashTimer, &QTimer::timeout, this, &Projectile::checkCrash);
     crashTimer->start(50);
 }
@@ -43,15 +43,8 @@ void Projectile::move() {
     double newY = pos().y() + ydir;
 
     if (newX < 0 || newX > scene_bound_x || newY < 0 || newY > scene_bound_y) {
-        // 超出边界，停止定时器并删除子弹
-        if (moveTimer) {
-            moveTimer->stop();
-            moveTimer->deleteLater();
-        }
-        if (crashTimer) {
-            crashTimer->stop();
-            crashTimer->deleteLater();
-        }
+        // 超出边界，删除子弹
+        // 定时器由父对象自动管理，无需手动删除
         if (scene()) {
             scene()->removeItem(this);
         }
@@ -67,53 +60,37 @@ void Projectile::checkCrash() {
     if (!scene())
         return;
 
-    foreach (QGraphicsItem* item, scene()->items()) {
-        if (mode) {
-            if (auto it = dynamic_cast<Player*>(item)) {
-                if (abs(it->pos().x() - this->pos().x()) > it->crash_r ||
-                    abs(it->pos().y() - this->pos().y()) > it->crash_r)
-                    continue;
-                else {
-                    it->takeDamage(hurt);
-                    // 子弹击中玩家后消失
-                    if (moveTimer) {
-                        moveTimer->stop();
-                        moveTimer->deleteLater();
+            foreach (QGraphicsItem *item, scene()->items()) {
+            if (mode) {
+                if (auto it = dynamic_cast<Player *>(item)) {
+                    if (abs(it->pos().x() - this->pos().x()) > it->crash_r ||
+                        abs(it->pos().y() - this->pos().y()) > it->crash_r)
+                        continue;
+                    else {
+                        it->takeDamage(hurt);
+                        // 子弹击中玩家后消失
+                        if (scene()) {
+                            scene()->removeItem(this);
+                        }
+                        deleteLater();
+                        return;
                     }
-                    if (crashTimer) {
-                        crashTimer->stop();
-                        crashTimer->deleteLater();
-                    }
-                    if (scene()) {
-                        scene()->removeItem(this);
-                    }
-                    deleteLater();
-                    return;
                 }
-            }
-        } else {
-            if (auto it = dynamic_cast<Enemy*>(item)) {
-                if (abs(it->pos().x() - this->pos().x()) > it->crash_r ||
-                    abs(it->pos().y() - this->pos().y()) > it->crash_r)
-                    continue;
-                else {
-                    it->takeDamage(static_cast<int>(hurt));
-                    // 子弹击中怪物后消失
-                    if (moveTimer) {
-                        moveTimer->stop();
-                        moveTimer->deleteLater();
+            } else {
+                if (auto it = dynamic_cast<Enemy *>(item)) {
+                    if (abs(it->pos().x() - this->pos().x()) > it->crash_r ||
+                        abs(it->pos().y() - this->pos().y()) > it->crash_r)
+                        continue;
+                    else {
+                        it->takeDamage(static_cast<int>(hurt));
+                        // 子弹击中怪物后消失
+                        if (scene()) {
+                            scene()->removeItem(this);
+                        }
+                        deleteLater();
+                        return;
                     }
-                    if (crashTimer) {
-                        crashTimer->stop();
-                        crashTimer->deleteLater();
-                    }
-                    if (scene()) {
-                        scene()->removeItem(this);
-                    }
-                    deleteLater();
-                    return;
                 }
             }
         }
-    }
 }

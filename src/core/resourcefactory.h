@@ -15,14 +15,14 @@
  * 支持从文件加载PNG图片或使用默认图形
  */
 class ResourceFactory {
-   public:
+public:
     /**
      * @brief 从文件加载图片，如果失败则抛出错误
      * @param filePath 图片文件路径（相对于exe或绝对路径）
      * @return 加载的QPixmap
      * @throws QString 加载失败时抛出错误信息
      */
-    static QPixmap loadImage(const QString& filePath) {
+    static QPixmap loadImage(const QString &filePath) {
         if (!QFile::exists(filePath)) {
             QString errorMsg = QString("资源文件不存在: %1").arg(filePath);
             qCritical() << errorMsg;
@@ -47,7 +47,7 @@ class ResourceFactory {
      * @return 缩放后的QPixmap
      * @throws QString 加载失败时抛出错误信息
      */
-    static QPixmap loadImageScaled(const QString& filePath, int width, int height) {
+    static QPixmap loadImageScaled(const QString &filePath, int width, int height) {
         QPixmap pixmap = loadImage(filePath);
         if (pixmap.width() != width || pixmap.height() != height) {
             return pixmap.scaled(width, height, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -103,7 +103,7 @@ class ResourceFactory {
      * @param height 目标高度
      * @throws QString 加载失败时抛出错误信息
      */
-    static QPixmap loadBackgroundImage(const QString& backgroundType, int width = 800, int height = 600) {
+    static QPixmap loadBackgroundImage(const QString &backgroundType, int width = 800, int height = 600) {
         QString imagePath = ConfigManager::instance().getAssetPath(backgroundType);
         QPixmap pixmap = loadImage(imagePath);
         return pixmap.scaled(width, height, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);

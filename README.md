@@ -77,13 +77,13 @@ our_game/
 
 ### 必需的资源文件：
 
-| 文件名                | 尺寸    | 说明         |
-| --------------------- | ------- | ------------ |
-| `background_main.png` | 800×600 | 主菜单背景   |
+| 文件名                   | 尺寸      | 说明     |
+|-----------------------|---------|--------|
+| `background_main.png` | 800×600 | 主菜单背景  |
 | `background_game.png` | 800×600 | 游戏场景背景 |
-| `player.png`          | 60×60   | 玩家角色     |
-| `bullet.png`          | 15×15   | 子弹         |
-| `enemy.png`           | 40×40   | 敌人         |
+| `player.png`          | 60×60   | 玩家角色   |
+| `bullet.png`          | 15×15   | 子弹     |
+| `enemy.png`           | 40×40   | 敌人     |
 
 **详细指南**：查看 [RESOURCE_GUIDE.md](RESOURCE_GUIDE.md)
 
@@ -91,10 +91,10 @@ our_game/
 
 - **方向键** ↑↓←→ - 移动玩家
 - **WASD** - 四方向射击
-  - W - 向上射击
-  - S - 向下射击
-  - A - 向左射击
-  - D - 向右射击
+    - W - 向上射击
+    - S - 向下射击
+    - A - 向左射击
+    - D - 向右射击
 - **ESC** - 返回主菜单
 
 ## 🛠️ 开发说明
@@ -120,6 +120,7 @@ cmake --build .
 ### 修改资源路径
 
 如需更改资源文件名，修改以下文件：
+
 - `src/ui/gameview.cpp` - 游戏场景资源
 - `src/ui/mainmenu.cpp` - 主菜单资源
 
@@ -162,15 +163,19 @@ cmake --build .
 ## ⚠️ 常见问题
 
 ### Q: 编译失败提示找不到Qt？
+
 A: 确保Qt已安装并设置环境变量 `CMAKE_PREFIX_PATH`
+
 ```bash
 cmake -DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/mingw_64" ..
 ```
 
 ### Q: 游戏启动提示资源加载失败？
+
 A: 检查 `assets/` 文件夹中是否包含所有必需的PNG文件
 
 ### Q: 修改了资源但游戏中没变化？
+
 A: 重新编译项目：`cmake --build .`
 
 ## 📄 许可证

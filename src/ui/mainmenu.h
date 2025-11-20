@@ -7,19 +7,21 @@
 #include <QWidget>
 
 class MainMenu : public QWidget {
-    Q_OBJECT
+Q_OBJECT
 
-   private:
-    QPushButton* startButton;
-    QPushButton* codexButton;//新增图鉴功能
-    QPushButton* exitButton;
-    QLabel* titleLabel;
+private:
+    QPushButton *startButton;
+    QPushButton *codexButton;//新增图鉴功能
+    QPushButton *exitButton;
+    QLabel *titleLabel;
 
-   public:
-    explicit MainMenu(QWidget* parent = nullptr);
+public:
+    explicit MainMenu(QWidget *parent = nullptr);
 
-   signals:
+signals:
+
     void startGameClicked();
+
     void codexClicked(); // new
     void exitGameClicked();
 };

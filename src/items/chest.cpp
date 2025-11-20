@@ -24,8 +24,8 @@ Chest::Chest(Player* pl, bool locked_, const QPixmap& pic_chest, double scale) :
     items.push_back(bltspd);
     RedHeartContainerItem *redheart = new RedHeartContainerItem("", 1);
     items.push_back(redheart);
-    BrimstoneItem *brim = new BrimstoneItem("");
-    items.push_back(brim);
+    //BrimstoneItem *brim = new BrimstoneItem("");
+    //items.push_back(brim);
     BombItem *bmb = new BombItem("", 1);
     items.push_back(bmb);
     KeyItem *key1 = new KeyItem("", 1);
@@ -42,10 +42,10 @@ Chest::Chest(Player* pl, bool locked_, const QPixmap& pic_chest, double scale) :
 
 void Chest::open() {
     // 检查空格键是否被按下
-    if (QGuiApplication::keyboardModifiers() & Qt::Key_Space) {
         foreach (QGraphicsItem* item, scene()->items()) {
             if (auto player = dynamic_cast<Player*>(item)) {
-                if (abs(player->pos().x() - this->pos().x()) <= open_r &&
+                if (player->keysPressed[Qt::Key_Space] &&
+                    abs(player->pos().x() - this->pos().x()) <= open_r &&
                     abs(player->pos().y() - this->pos().y()) <= open_r) {
 
                     if (locked) {
@@ -57,16 +57,16 @@ void Chest::open() {
                         }
                     }
 
+                    qDebug() << "宝箱被打开";
                     int i = QRandomGenerator::global()->bounded(items.size());
                     items[i]->onPickup(player);
                     scene()->removeItem(this);
                     checkOpen->stop();
-                    delete this;
+                    //delete this;
                     return;
                 }
             }
         }
-    }
 }
 
 lockedChest::lockedChest(Player* pl, const QPixmap& pic_chest, double scale) :

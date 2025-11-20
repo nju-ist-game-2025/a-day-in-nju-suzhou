@@ -5,19 +5,23 @@
 #include <QObject>
 
 class HUD : public QObject, public QGraphicsItem {
-    Q_OBJECT
+Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
 public:
-    HUD(QGraphicsItem* parent = nullptr);
-    
+    HUD(QGraphicsItem *parent = nullptr);
+
     QRectF boundingRect() const override;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
-    
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+
 public slots:
+
     void updateHealth(float current, float max);
+
     void triggerDamageFlash();
 
 private slots:
+
     void endDamageFlash();
 
 private:
@@ -25,9 +29,9 @@ private:
     float maxHealth;
     bool isFlashing;
     bool isScreenFlashing;
-    QTimer* flashTimer;
+    QTimer *flashTimer;
     int flashCount;
-    QTimer* screenFlashTimer; 
+    QTimer *screenFlashTimer;
 };
 
 #endif // HUD_H

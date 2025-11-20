@@ -9,9 +9,9 @@
 class Player;
 
 class Enemy : public Entity {
-    Q_OBJECT
+Q_OBJECT
 
-   public:
+public:
     // 敌人状态枚举
     enum State {
         IDLE,    // 空闲/巡逻
@@ -20,39 +20,50 @@ class Enemy : public Entity {
         WANDER   // 漫游
     };
 
-    Enemy(const QPixmap& pic, double scale = 1.0);
+    Enemy(const QPixmap &pic, double scale = 1.0);
+
     ~Enemy();
 
     void move() override;
+
     void takeDamage(int damage) override;
-    void setPlayer(Player* p) { player = p; }
+
+    void setPlayer(Player *p) { player = p; }
 
     // 配置参数
     void setVisionRange(double range) { visionRange = range; }
+
     void setAttackRange(double range) { attackRange = range; }
+
     void setAttackCooldown(int ms) { attackCooldown = ms; }
+
     void setHealth(int hp) {
         health = hp;
         maxHealth = hp;
     }
+
     void setContactDamage(int dmg) { contactDamage = dmg; }
+
     int getContactDamage() const { return contactDamage; }
+
     void setHurt(double h) { Entity::setHurt(h); }
 
-   signals:
-    void dying(Enemy* enemy);  // 敌人即将死亡信号（在deleteLater之前发出）
+signals:
 
-   private slots:
+    void dying(Enemy *enemy);  // 敌人即将死亡信号（在deleteLater之前发出）
+
+private slots:
+
     void updateAI();
+
     void tryAttack();
 
-   private:
+private:
     // AI相关
     State currentState;
-    Player* player;
-    QTimer* aiTimer;
-    QTimer* attackTimer;
-    QTimer* wanderTimer;
+    Player *player;
+    QTimer *aiTimer;
+    QTimer *attackTimer;
 
     // 属性
     int health;
@@ -69,11 +80,17 @@ class Enemy : public Entity {
 
     // AI方法
     void updateState();
+
     bool canSeePlayer();
+
     double distanceToPlayer();
+
     void moveTowardsPlayer();
+
     void wander();
+
     void attackPlayer();
+
     QPointF getRandomWanderPoint();
 };
 

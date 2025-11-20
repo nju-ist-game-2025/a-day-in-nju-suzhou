@@ -13,33 +13,37 @@
 class Level;
 
 class GameView : public QWidget {
-    Q_OBJECT
+Q_OBJECT
 
-   private:
-    QGraphicsView* view;
-    QGraphicsScene* scene;
-    Player* player;
-    Level* level;  // 关卡管理器
-    HUD* hud;
+private:
+    QGraphicsView *view;
+    QGraphicsScene *scene;
+    Player *player;
+    Level *level;  // 关卡管理器
+    HUD *hud{};
 
-   public:
-    explicit GameView(QWidget* parent = nullptr);
-    ~GameView();
+public:
+    explicit GameView(QWidget *parent = nullptr);
+
+    ~GameView() override;
 
     void initGame();
 
-   protected:
-    void keyPressEvent(QKeyEvent* event) override;
-    void keyReleaseEvent(QKeyEvent* event) override;
+protected:
+    void keyPressEvent(QKeyEvent *event) override;
 
-   private slots:
+    void keyReleaseEvent(QKeyEvent *event) override;
+
+private slots:
+
     void updateHUD();                      // 更新HUD
     void handlePlayerDeath();              // 处理玩家死亡
     void restartGame();                    // 重新开始游戏（槽）
     void quitGame();                       // 退出游戏（槽）
     void onEnemiesCleared(int roomIndex);  // 房间敌人清空提示
 
-   signals:
+signals:
+
     void backToMenu();
 };
 
