@@ -50,6 +50,7 @@ Player::Player(const QPixmap& pic_player, double scale)
     keysPressed[Qt::Key_A] = false;
     keysPressed[Qt::Key_S] = false;
     keysPressed[Qt::Key_D] = false;
+    keysPressed[Qt::Key_Space] = false;
 
     keysTimer = new QTimer(this);
     connect(keysTimer, &QTimer::timeout, this, &Player::move);
@@ -349,3 +350,4 @@ void Player::focusOutEvent(QFocusEvent* event) {
     QGraphicsItem::focusOutEvent(event);
     setFocus();
 }
+
