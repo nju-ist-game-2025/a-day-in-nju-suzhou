@@ -1,25 +1,25 @@
 {
-    "assets": {
-        "background_main": "assets/background/main.png",
-        "map1": "assets/background/map1.png",
-        "map2": "assets/background/map2.png",
-        "player": "assets/player/player.png",
-        "bullet": "assets/items/bullet.png",
-        "enemy": "assets/boss/WashMachine/WashMachineAngrily.png",
-        "boss": "assets/boss/WashMachine/WashMachineAngrily.png",
-        "chest": "assets/chest/chest.png"
-    },
-    "sizes": {
-        "player": 60,
-        "enemy": 40,
-        "bullet": 50,
-        "chest": 40
-    },
-    "game": {
-        "scene_width": 800,
-        "scene_height": 600,
-        "player_speed": 5.0,
-        "enemy_speed": 2.0,
-        "bullet_speed": 9.0
-    }
+  "assets": {
+    "background_main": "assets/background/main.png",
+    "map1": "assets/background/map1.png",
+    "map2": "assets/background/map2.png",
+    "player": "assets/player/player.png",
+    "bullet": "assets/items/bullet.png",
+    "enemy": "assets/boss/WashMachine/WashMachineAngrily.png",
+    "boss": "assets/boss/WashMachine/WashMachineAngrily.png",
+    "chest": "assets/chest/chest.png"
+  },
+  "sizes": {
+    "player": 60,
+    "enemy": 40,
+    "bullet": 50,
+    "chest": 40
+  },
+  "game": {
+    "scene_width": 800,
+    "scene_height": 600,
+    "player_speed": 5.0,
+    "enemy_speed": 2.0,
+    "bullet_speed": 9.0
+  }
 }

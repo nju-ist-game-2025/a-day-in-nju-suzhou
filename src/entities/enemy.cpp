@@ -1,24 +1,23 @@
 #include "enemy.h"
 #include <QDateTime>
-#include <QGraphicsScene>
 #include <QPainter>
 #include <QRandomGenerator>
 #include <QtMath>
 #include <QDebug>
 #include "player.h"
 
-Enemy::Enemy(const QPixmap& pic, double scale)
-    : Entity(nullptr),
-      currentState(WANDER),
-      player(nullptr),
-      health(10),
-      maxHealth(10),
-      contactDamage(1),
-      visionRange(250.0),
-      attackRange(40.0),
-      attackCooldown(1000),
-      lastAttackTime(0),
-      wanderCooldown(0) {
+Enemy::Enemy(const QPixmap &pic, double scale)
+        : Entity(nullptr),
+          currentState(WANDER),
+          player(nullptr),
+          health(10),
+          maxHealth(10),
+          contactDamage(1),
+          visionRange(250.0),
+          attackRange(40.0),
+          attackCooldown(1000),
+          lastAttackTime(0),
+          wanderCooldown(0) {
     // 设置图像
     setPixmap(pic.scaled(pic.width() * scale, pic.height() * scale,
                          Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -47,7 +46,7 @@ Enemy::Enemy(const QPixmap& pic, double scale)
     aiTimer->start(50);
 
     // 移动定时器 (每16ms移动一次，约60fps)
-    QTimer* moveTimer = new QTimer(this);
+    QTimer *moveTimer = new QTimer(this);
     connect(moveTimer, &QTimer::timeout, this, &Enemy::move);
     moveTimer->start(16);
 
@@ -218,9 +217,9 @@ void Enemy::attackPlayer() {
         return;
 
     // 近战攻击：检测碰撞
-    QList<QGraphicsItem*> collisions = collidingItems();
-    for (QGraphicsItem* item : collisions) {
-        Player* p = dynamic_cast<Player*>(item);
+    QList<QGraphicsItem *> collisions = collidingItems();
+    for (QGraphicsItem *item: collisions) {
+        Player *p = dynamic_cast<Player *>(item);
         if (p) {
             p->takeDamage(contactDamage);
             break;

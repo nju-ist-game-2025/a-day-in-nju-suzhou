@@ -1,9 +1,7 @@
-#ifndef LEVEL_H
-#define LEVEL_H
-
 #include <QObject>
 #include <QTimer>
 #include <QVector>
+#include <QPointer>
 #include "room.h"
 
 class Player;
@@ -13,60 +11,42 @@ class Chest;
 class QGraphicsScene;
 
 class Level : public QObject {
-    Q_OBJECT
+Q_OBJECT
 
-   public:
-    explicit Level(Player* player, QGraphicsScene* scene, QObject* parent = nullptr);
+public:
+    explicit Level(Player *player, QGraphicsScene *scene, QObject *parent = nullptr);
     ~Level() override;
 
-    // 初始化关卡
     void init(int levelNumber);
-
-    // 获取当前关卡号
     int currentLevel() const { return m_levelNumber; }
-
-    // 检查是否所有房间都已完成
     bool isAllRoomsCompleted() const;
-
-    // 进入下一个房间
     bool enterNextRoom();
-
-    // 获取当前房间
-    Room* currentRoom() const;
-
+    Room *currentRoom() const;
     void loadRoom(int roomIndex);
-    // 玩家死亡通知：让所有敌人失去玩家引用
     void onPlayerDied();
-   signals:
-    // 关卡完成信号
+
+signals:
     void levelCompleted(int levelNumber);
-    // 玩家进入新房间信号
     void roomEntered(int roomIndex);
-    // 当前房间所有敌人被清除信号
     void enemiesCleared(int roomIndex);
 
-   private:
-    // 初始化当前房间
-    void initCurrentRoom(Room* room);
-    // 清理当前房间实体
+private:
+    void initCurrentRoom(Room *room);
     void clearCurrentRoomEntities();
-    // 生成房间内的敌人
     void spawnEnemiesInRoom(int roomIndex);
-    // 生成房间内的宝箱
     void spawnChestsInRoom(int roomIndex);
 
-    int m_levelNumber;                 // 当前关卡号
-    QVector<Room*> m_rooms;            // 关卡中的房间集合
-    int m_currentRoomIndex;            // 当前房间索引
-    Player* m_player;                  // 玩家引用
-    QGraphicsScene* m_scene;           // 游戏场景引用
-    QVector<Enemy*> m_currentEnemies;  // 当前房间敌人
-    QVector<Chest*> m_currentChests;   // 当前房间宝箱
+    int m_levelNumber;
+    QVector<Room *> m_rooms;
+    int m_currentRoomIndex;
+    Player *m_player;
+    QGraphicsScene *m_scene;
+    QVector<QPointer<Enemy>> m_currentEnemies;
+    QVector<QPointer<Chest>> m_currentChests;
     QVector<bool> visited;
-    QTimer* checkChange;
+    QTimer *checkChange;
     int visited_count;
-   private slots:
-    void onEnemyDying(Enemy* enemy);
-};
 
-#endif  // LEVEL_H
+private slots:
+    void onEnemyDying(Enemy *enemy);
+};

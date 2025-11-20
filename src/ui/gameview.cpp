@@ -7,12 +7,11 @@
 #include <QPushButton>
 #include <QRandomGenerator>
 #include <QVBoxLayout>
-#include "../constants.h"
 #include "../core/resourcefactory.h"
-#include "../entities/enemy.h"
+#include "../core/GameWindow.cpp"
 #include "level.h"
 
-GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr), level(nullptr) {
+GameView::GameView(QWidget *parent) : QWidget(parent), player(nullptr), level(nullptr) {
     // 设置窗口大小
     setFixedSize(scene_bound_x, scene_bound_y);
     setFocusPolicy(Qt::StrongFocus);
@@ -34,7 +33,7 @@ GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr), level(nu
     view->setCacheMode(QGraphicsView::CacheNone);
 
     // 设置布局
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(view);
 
@@ -100,6 +99,9 @@ void GameView::initGame() {
         // 设置射击冷却时间
         player->setShootCooldown(150);
 
+        // 设置地图墙壁
+        setupMap(scene);
+
         // 加载子弹图片
         QPixmap bulletPixmap = ResourceFactory::createBulletImage(50);
         player->setBulletPic(bulletPixmap);
@@ -130,13 +132,13 @@ void GameView::initGame() {
 
         level->init(1);
 
-    } catch (const QString& error) {
+    } catch (const QString &error) {
         QMessageBox::critical(this, "资源加载失败", error);
         emit backToMenu();
     }
 }
 
-void GameView::keyPressEvent(QKeyEvent* event) {
+void GameView::keyPressEvent(QKeyEvent *event) {
     if (!event)
         return;
 
@@ -152,7 +154,7 @@ void GameView::keyPressEvent(QKeyEvent* event) {
     }
     // 同时传递给当前房间（用于触发切换检测）
     if (level) {
-        Room* r = level->currentRoom();
+        Room *r = level->currentRoom();
         if (r)
             QCoreApplication::sendEvent(r, event);
     }
@@ -160,7 +162,7 @@ void GameView::keyPressEvent(QKeyEvent* event) {
     QWidget::keyPressEvent(event);
 }
 
-void GameView::keyReleaseEvent(QKeyEvent* event) {
+void GameView::keyReleaseEvent(QKeyEvent *event) {
     if (!event)
         return;
 
@@ -170,7 +172,7 @@ void GameView::keyReleaseEvent(QKeyEvent* event) {
     }
     // 同时传递给当前房间，更新按键释放状态
     if (level) {
-        Room* r = level->currentRoom();
+        Room *r = level->currentRoom();
         if (r)
             QCoreApplication::sendEvent(r, event);
     }
@@ -217,9 +219,9 @@ void GameView::handlePlayerDeath() {
         msgBox.setIcon(QMessageBox::Information);
 
         // 添加三个按钮
-        QPushButton* retryButton = msgBox.addButton("再试一次", QMessageBox::ActionRole);
-        QPushButton* menuButton = msgBox.addButton("返回主菜单", QMessageBox::ActionRole);
-        QPushButton* quitButton = msgBox.addButton("退出游戏", QMessageBox::ActionRole);
+        QPushButton *retryButton = msgBox.addButton("再试一次", QMessageBox::ActionRole);
+        QPushButton *menuButton = msgBox.addButton("返回主菜单", QMessageBox::ActionRole);
+        QPushButton *quitButton = msgBox.addButton("退出游戏", QMessageBox::ActionRole);
 
         msgBox.exec();
 
@@ -250,7 +252,7 @@ void GameView::onEnemiesCleared(int roomIndex) {
     qDebug() << "GameView::onEnemiesCleared 被调用，房间:" << roomIndex;
 
     // 在场景中显示文字提示
-    QGraphicsTextItem* hint = new QGraphicsTextItem("所有敌人已被击败！前往下一个房间的门已打开。");
+    QGraphicsTextItem *hint = new QGraphicsTextItem("所有敌人已被击败！前往下一个房间的门已打开。");
     hint->setDefaultTextColor(Qt::red);
     hint->setFont(QFont("Arial", 16, QFont::Bold));
     hint->setPos(150, 250);

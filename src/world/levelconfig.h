@@ -23,14 +23,14 @@ struct RoomConfig {
     int doorRight;  // 右门连接到的房间索引
 
     RoomConfig()
-        : enemyCount(0),
-          hasChest(false),
-          isChestLocked(false),
-          hasBoss(false),
-          doorUp(-1),
-          doorDown(-1),
-          doorLeft(-1),
-          doorRight(-1) {}
+            : enemyCount(0),
+              hasChest(false),
+              isChestLocked(false),
+              hasBoss(false),
+              doorUp(-1),
+              doorDown(-1),
+              doorLeft(-1),
+              doorRight(-1) {}
 };
 
 /**
@@ -38,7 +38,7 @@ struct RoomConfig {
  * 用于从 JSON 文件加载关卡的房间布局和配置
  */
 class LevelConfig {
-   public:
+public:
     LevelConfig();
 
     /**
@@ -51,7 +51,7 @@ class LevelConfig {
     /**
      * @brief 从 JSON 对象加载配置
      */
-    bool loadFromJson(const QJsonObject& levelObj);
+    bool loadFromJson(const QJsonObject &levelObj);
 
     /**
      * @brief 获取房间数量
@@ -61,7 +61,7 @@ class LevelConfig {
     /**
      * @brief 获取指定房间的配置
      */
-    const RoomConfig& getRoom(int index) const;
+    const RoomConfig &getRoom(int index) const;
 
     /**
      * @brief 获取起始房间索引
@@ -73,7 +73,7 @@ class LevelConfig {
      */
     QString getLevelName() const { return m_levelName; }
 
-   private:
+private:
     QString m_levelName;          // 关卡名称
     int m_startRoomIndex;         // 起始房间索引
     QVector<RoomConfig> m_rooms;  // 房间配置列表
@@ -81,7 +81,7 @@ class LevelConfig {
     /**
      * @brief 解析单个房间配置
      */
-    RoomConfig parseRoomConfig(const QJsonObject& roomObj);
+    RoomConfig parseRoomConfig(const QJsonObject &roomObj);
 };
 
 #endif  // LEVELCONFIG_H

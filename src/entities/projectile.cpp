@@ -2,8 +2,8 @@
 #include "enemy.h"
 #include "player.h"
 
-Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap& pic_bullet, double scale)
-    : mode(_mode) {
+Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap &pic_bullet, double scale)
+        : mode(_mode) {
     setTransformationMode(Qt::SmoothTransformation);
 
     // 禁用缓存以避免留下轨迹
@@ -20,10 +20,10 @@ Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap& pic_
     } else {
         // 按比例缩放（保持宽高比）
         this->setPixmap(pic_bullet.scaled(
-            pic_bullet.width() * scale,
-            pic_bullet.height() * scale,
-            Qt::KeepAspectRatio,
-            Qt::SmoothTransformation));
+                pic_bullet.width() * scale,
+                pic_bullet.height() * scale,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation));
     }
 
     this->setPos(pos);
@@ -60,37 +60,37 @@ void Projectile::checkCrash() {
     if (!scene())
         return;
 
-    foreach (QGraphicsItem* item, scene()->items()) {
-        if (mode) {
-            if (auto it = dynamic_cast<Player*>(item)) {
-                if (abs(it->pos().x() - this->pos().x()) > it->crash_r ||
-                    abs(it->pos().y() - this->pos().y()) > it->crash_r)
-                    continue;
-                else {
-                    it->takeDamage(hurt);
-                    // 子弹击中玩家后消失
-                    if (scene()) {
-                        scene()->removeItem(this);
+            foreach (QGraphicsItem *item, scene()->items()) {
+            if (mode) {
+                if (auto it = dynamic_cast<Player *>(item)) {
+                    if (abs(it->pos().x() - this->pos().x()) > it->crash_r ||
+                        abs(it->pos().y() - this->pos().y()) > it->crash_r)
+                        continue;
+                    else {
+                        it->takeDamage(hurt);
+                        // 子弹击中玩家后消失
+                        if (scene()) {
+                            scene()->removeItem(this);
+                        }
+                        deleteLater();
+                        return;
                     }
-                    deleteLater();
-                    return;
                 }
-            }
-        } else {
-            if (auto it = dynamic_cast<Enemy*>(item)) {
-                if (abs(it->pos().x() - this->pos().x()) > it->crash_r ||
-                    abs(it->pos().y() - this->pos().y()) > it->crash_r)
-                    continue;
-                else {
-                    it->takeDamage(static_cast<int>(hurt));
-                    // 子弹击中怪物后消失
-                    if (scene()) {
-                        scene()->removeItem(this);
+            } else {
+                if (auto it = dynamic_cast<Enemy *>(item)) {
+                    if (abs(it->pos().x() - this->pos().x()) > it->crash_r ||
+                        abs(it->pos().y() - this->pos().y()) > it->crash_r)
+                        continue;
+                    else {
+                        it->takeDamage(static_cast<int>(hurt));
+                        // 子弹击中怪物后消失
+                        if (scene()) {
+                            scene()->removeItem(this);
+                        }
+                        deleteLater();
+                        return;
                     }
-                    deleteLater();
-                    return;
                 }
             }
         }
-    }
 }

@@ -1,11 +1,11 @@
 #include "hud.h"
-#include <QDebug>
 #include <QFont>
 #include <QPainter>
 #include <QTimer>
 
-HUD::HUD(QGraphicsItem* parent)
-    : QGraphicsItem(parent), currentHealth(3.0f), maxHealth(3.0f), isFlashing(false), isScreenFlashing(false), flashCount(0) {
+HUD::HUD(QGraphicsItem *parent)
+        : QGraphicsItem(parent), currentHealth(3.0f), maxHealth(3.0f), isFlashing(false), isScreenFlashing(false),
+          flashCount(0) {
     flashTimer = new QTimer(this);
     connect(flashTimer, &QTimer::timeout, this, &HUD::endDamageFlash);
 
@@ -23,7 +23,7 @@ QRectF HUD::boundingRect() const {
     return QRectF(0, 0, 230, 60);
 }
 
-void HUD::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
+void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
@@ -133,9 +133,18 @@ void HUD::triggerDamageFlash() {
     isScreenFlashing = true;
     screenFlashTimer->start(300);
 
-    QTimer::singleShot(0, this, [this]() { update(); flashCount++; });
-    QTimer::singleShot(150, this, [this]() { update(); flashCount++; });
-    QTimer::singleShot(300, this, [this]() { update(); flashCount++; });
+    QTimer::singleShot(0, this, [this]() {
+        update();
+        flashCount++;
+    });
+    QTimer::singleShot(150, this, [this]() {
+        update();
+        flashCount++;
+    });
+    QTimer::singleShot(300, this, [this]() {
+        update();
+        flashCount++;
+    });
     QTimer::singleShot(450, this, [this]() {
         isFlashing = false;
         update();

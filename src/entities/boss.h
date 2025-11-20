@@ -3,9 +3,11 @@
 
 #include <QPixmap>
 #include "enemy.h"
+
 class Boss : public Enemy {
-   public:
-    explicit Boss(const QPixmap& pic, double scale = 1.5);
+public:
+    explicit Boss(const QPixmap &pic, double scale = 1.5);
+
     ~Boss() override;
 };
 

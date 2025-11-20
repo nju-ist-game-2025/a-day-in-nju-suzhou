@@ -3,7 +3,7 @@
 
 Room::Room() {}
 
-Room::Room(Player* p, bool u, bool d, bool l, bool r) : up(u), down(d), left(l), right(r), door_size(100) {
+Room::Room(Player *p, bool u, bool d, bool l, bool r) : up(u), down(d), left(l), right(r), door_size(100) {
     player = p;
     change_x = 0;
     change_y = 0;
@@ -18,7 +18,6 @@ Room::Room(Player* p, bool u, bool d, bool l, bool r) : up(u), down(d), left(l),
     keysPressed[Qt::Key_A] = false;
     keysPressed[Qt::Key_S] = false;
     keysPressed[Qt::Key_D] = false;
-    int sz = door_size / 2;
     changeTimer = new QTimer(this);
     connect(changeTimer, &QTimer::timeout, this, &Room::testChange);
 }
@@ -66,17 +65,20 @@ void Room::setDoorOpenRight(bool v) {
 bool Room::isDoorOpenUp() const {
     return openUp;
 }
+
 bool Room::isDoorOpenDown() const {
     return openDown;
 }
+
 bool Room::isDoorOpenLeft() const {
     return openLeft;
 }
+
 bool Room::isDoorOpenRight() const {
     return openRight;
 }
 
-void Room::keyPressEvent(QKeyEvent* event) {
+void Room::keyPressEvent(QKeyEvent *event) {
     if (!event)
         return;
     if (keysPressed.count(event->key())) {
@@ -86,7 +88,7 @@ void Room::keyPressEvent(QKeyEvent* event) {
     }
 }
 
-void Room::keyReleaseEvent(QKeyEvent* event) {
+void Room::keyReleaseEvent(QKeyEvent *event) {
     if (!event)
         return;
     if (keysPressed.count(event->key())) {

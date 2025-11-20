@@ -4,9 +4,8 @@
 #include <QObject>
 #include <QTimer>
 
-class GameController : public QObject
-{
-    Q_OBJECT
+class GameController : public QObject {
+Q_OBJECT
 public:
     explicit GameController(QObject *parent = nullptr);
 
