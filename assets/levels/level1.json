@@ -4,29 +4,43 @@
   "rooms": [
     {
       "background": "map1",
+      "enemyCount": 2,
+      "hasBoss": false,
+      "hasChest": true,
+      "isChestLocked": false,
+      "doors": {"up": -1, "down": 1, "left": -1, "right": -1}
+    },
+    {
+      "background": "map1",
+      "enemyCount": 3,
+      "hasBoss": false,
+      "hasChest": false,
+      "isChestLocked": false,
+      "doors": {"up": 0, "down": -1, "left": -1, "right": 2}
+    },
+    {
+      "background": "map1",
       "enemyCount": 3,
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": false,
-      "doors": {
-        "up": -1,
-        "down": 1,
-        "left": -1,
-        "right": -1
-      }
+      "doors": {"up": -1, "down": 3, "left": 1, "right": -1}
     },
     {
-      "background": "map2",
-      "enemyCount": 0,
+      "background": "map1",
+      "enemyCount": 4,
       "hasBoss": false,
       "hasChest": false,
       "isChestLocked": false,
-      "doors": {
-        "up": 0,
-        "down": -1,
-        "left": -1,
-        "right": -1
-      }
+      "doors": {"up": 2, "down": -1, "left": -1, "right": 4}
+    },
+    {
+      "background": "map1",
+      "enemyCount": 5,
+      "hasBoss": true,
+      "hasChest": true,
+      "isChestLocked": false,
+      "doors": {"up": -1, "down": -1, "left": 3, "right": -1}
     }
   ]
 }

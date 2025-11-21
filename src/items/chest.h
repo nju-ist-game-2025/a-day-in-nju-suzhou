@@ -6,6 +6,7 @@
 #include <QTimer>
 #include "player.h"
 #include "item.h"
+#include "statuseffect.h"
 
 const int open_r = 40;//打开宝箱的半径，后期可调
 
@@ -21,6 +22,8 @@ public:
     void addItem(Item *it) { items.push_back(it); };
 
     void open();
+
+    void bonusEffects();
 };
 
 class lockedChest : public Chest {

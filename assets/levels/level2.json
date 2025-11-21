@@ -1,0 +1,70 @@
+{
+  "name": "第二关 - ",
+  "startRoom": 0,
+  "rooms": [
+    {
+      "background": "map2",
+      "enemyCount": 3,
+      "hasBoss": false,
+      "hasChest": true,
+      "isChestLocked": false,
+      "doors": {"up": -1, "down": 1, "left": -1, "right": 2}
+    },
+    {
+      "background": "map2",
+      "enemyCount": 4,
+      "hasBoss": false,
+      "hasChest": false,
+      "isChestLocked": false,
+      "doors": {"up": 0, "down": 3, "left": -1, "right": -1}
+    },
+    {
+      "background": "map2",
+      "enemyCount": 3,
+      "hasBoss": false,
+      "hasChest": true,
+      "isChestLocked": true,
+      "doors": {"up": -1, "down": 4, "left": 0, "right": -1}
+    },
+    {
+      "background": "map2",
+      "enemyCount": 5,
+      "hasBoss": false,
+      "hasChest": false,
+      "isChestLocked": false,
+      "doors": {"up": 1, "down": -1, "left": -1, "right": 5}
+    },
+    {
+      "background": "map2",
+      "enemyCount": 4,
+      "hasBoss": false,
+      "hasChest": true,
+      "isChestLocked": false,
+      "doors": {"up": 2, "down": 6, "left": -1, "right": -1}
+    },
+    {
+      "background": "map2",
+      "enemyCount": 6,
+      "hasBoss": false,
+      "hasChest": false,
+      "isChestLocked": false,
+      "doors": {"up": -1, "down": 7, "left": 3, "right": -1}
+    },
+    {
+      "background": "map2",
+      "enemyCount": 4,
+      "hasBoss": false,
+      "hasChest": true,
+      "isChestLocked": true,
+      "doors": {"up": 4, "down": -1, "left": -1, "right": -1}
+    },
+    {
+      "background": "map2",
+      "enemyCount": 8,
+      "hasBoss": true,
+      "hasChest": true,
+      "isChestLocked": false,
+      "doors": {"up": 5, "down": -1, "left": -1, "right": -1}
+    }
+  ]
+}

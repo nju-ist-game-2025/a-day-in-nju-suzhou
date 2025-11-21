@@ -455,31 +455,24 @@ void Level::onPlayerDied() {
 }
 
 void Level::bonusEffects() {
-    QVector<StatusEffect*> effectstoPlayer;
+    QVector<StatusEffect*> effectPool;
 
-    SpeedEffect *sp = new SpeedEffect(5, 1.5);
-    effectstoPlayer.push_back(sp);
-    DamageEffect *dam = new DamageEffect(5, 1.5);
-    effectstoPlayer.push_back(dam);
-    shootSpeedEffect *shootsp = new shootSpeedEffect(5, 1.5);
-    effectstoPlayer.push_back(shootsp);
-    soulHeartEffect *soul1 = new soulHeartEffect(m_player, 1);
-    soulHeartEffect *soul2 = new soulHeartEffect(m_player, 1);
-    effectstoPlayer.push_back(soul1);
-    effectstoPlayer.push_back(soul2);
-    decDamage *dec = new decDamage(5, 0.5);
-    effectstoPlayer.push_back(dec);
-    InvincibleEffect *inv = new InvincibleEffect(5);
-    effectstoPlayer.push_back(inv);
+    effectPool.append(new SpeedEffect(5, 1.5));
+    effectPool.append(new DamageEffect(5, 1.5));
+    effectPool.append(new shootSpeedEffect(5, 1.5));
+    effectPool.append(new soulHeartEffect(m_player, 1));
+    effectPool.append(new decDamage(5, 0.5));
+    effectPool.append(new InvincibleEffect(5));
 
+    int selectedIndex = QRandomGenerator::global()->bounded(effectPool.size());
+    if (selectedIndex < effectPool.size() && effectPool[selectedIndex]) {
+        effectPool[selectedIndex]->applyTo(m_player);
+        // 移除选中的效果，避免重复删除
+        effectPool.remove(selectedIndex);
+    }
 
-    int i = QRandomGenerator::global()->bounded(effectstoPlayer.size());
-    if(i >= 0 && i < effectstoPlayer.size() && effectstoPlayer[i]) {
-        effectstoPlayer[i]->applyTo(m_player);
-        for (StatusEffect* effect : effectstoPlayer) {
-            if (effect != effectstoPlayer[i]) { // 只删除未使用的
-                effect->deleteLater();
-            }
-        }
+    // 清理所有未使用的效果
+    for (StatusEffect* effect : effectPool) {
+        effect->deleteLater();
     }
 }

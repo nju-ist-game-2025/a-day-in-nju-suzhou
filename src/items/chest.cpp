@@ -60,6 +60,9 @@ void Chest::open() {
                     qDebug() << "宝箱被打开";
                     int i = QRandomGenerator::global()->bounded(items.size());
                     items[i]->onPickup(player);
+                    QTimer::singleShot(300, [this]() {
+                        bonusEffects();
+                    });
                     scene()->removeItem(this);
                     checkOpen->stop();
                     //delete this;
@@ -67,6 +70,36 @@ void Chest::open() {
                 }
             }
         }
+}
+
+void Chest::bonusEffects() {
+    QVector<StatusEffect*> effectstoPlayer;
+
+    SpeedEffect *sp = new SpeedEffect(5, 1.5);
+    effectstoPlayer.push_back(sp);
+    DamageEffect *dam = new DamageEffect(5, 1.5);
+    effectstoPlayer.push_back(dam);
+    shootSpeedEffect *shootsp = new shootSpeedEffect(5, 1.5);
+    effectstoPlayer.push_back(shootsp);
+    blackHeartEffect *black1 = new blackHeartEffect(player, 1);
+    blackHeartEffect *black2 = new blackHeartEffect(player, 1);
+    effectstoPlayer.push_back(black1);
+    effectstoPlayer.push_back(black2);
+    decDamage *dec = new decDamage(5, 0.5);
+    effectstoPlayer.push_back(dec);
+    InvincibleEffect *inv = new InvincibleEffect(5);
+    effectstoPlayer.push_back(inv);
+
+    //以1/3的概率获得额外增益效果
+    int i = QRandomGenerator::global()->bounded(effectstoPlayer.size() * 3);
+    if(i >= 0 && i < effectstoPlayer.size() && effectstoPlayer[i]) {
+        effectstoPlayer[i]->applyTo(player);
+        for (StatusEffect* effect : effectstoPlayer) {
+            if (effect != effectstoPlayer[i]) { // 只删除未使用的
+                effect->deleteLater();
+            }
+        }
+    }
 }
 
 lockedChest::lockedChest(Player* pl, const QPixmap& pic_chest, double scale) :
