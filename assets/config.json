@@ -7,7 +7,8 @@
         "bullet": "assets/items/bullet.png",
         "enemy": "assets/enemy/enemy.png",
         "boss": "assets/boss/WashMachine/WashMachineAngrily.png",
-        "chest": "assets/chest/chest.png"
+        "chest": "assets/chest/chest.png",
+        "explosion": "assets/explosion/"
     },
     "sizes": {
         "player": 60,

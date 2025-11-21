@@ -7,6 +7,7 @@
 #include <QRandomGenerator>
 #include "player.h"
 #include "../core/audiomanager.h"
+#include "../ui/explosion.h"
 
 Enemy::Enemy(const QPixmap &pic, double scale)
         : Entity(nullptr),
@@ -286,13 +287,26 @@ void Enemy::takeDamage(int damage) {
     int realDamage = qMax(1, damage);  // 每次至少1点伤害
     health -= realDamage;
     if (health <= 0) {
+        // 播放死亡音效
         AudioManager::instance().playSound("enemy_death");
         qDebug() << "敌人死亡音效已触发";
+
+        // 创建爆炸动画
+        Explosion *explosion = new Explosion();
+        explosion->setPos(this->pos()); // 在敌人位置创建爆炸
+        if (scene()) {
+            scene()->addItem(explosion);
+            explosion->startAnimation();
+            qDebug() << "创建爆炸动画在位置:" << this->pos();
+        }
+
         qDebug() << "Enemy::takeDamage - 敌人死亡，发出dying信号";
         emit dying(this);  // 在删除之前发出信号
+
         if (scene()) {
             scene()->removeItem(this);
         }
-        deleteLater();
+
+        QTimer::singleShot(500, this, &Enemy::deleteLater);
     }
 }

@@ -81,7 +81,9 @@ set(UI_SOURCES
         src/ui/codex.h
         src/ui/gameview.cpp
         src/ui/gameview.h
-)
+        src/ui/explosion.h
+        src/ui/explosion.cpp
+        )
 
 
 # 合并所有源文件
