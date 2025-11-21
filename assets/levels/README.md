@@ -79,6 +79,46 @@ if (levelConfig.loadFromFile(levelNumber)) {
     }
 }
 ```
+## 地图设计
+
+### level1
+```mermaid
+flowchart TD
+    A[房间0<br/>起始房间] --> B[房间1]
+    B --> C[房间2]
+    C --> D[房间3]
+    C --> E[房间4<br/>BOSS房间]
+```
+
+### level2
+```mermaid
+flowchart TD
+    A[房间0<br/>起始房间] --> B[房间1]
+    A --> C[房间2]
+    B --> D[房间3]
+    C --> E[房间4]
+    D --> F[房间5]
+    E --> G[房间6]
+    F --> H[房间7<br/>BOSS房间]
+```
+
+### level3
+```mermaid
+flowchart TD
+    A[房间0<br/>起始房间] --> B[房间1]
+    A --> C[房间2]
+    B --> D[房间3]
+    C --> E[房间4]
+    C --> F[房间5]
+    D --> G[房间6]
+    E --> H[房间7]
+    F --> I[房间8]
+    G --> J[房间9]
+    H --> K[房间10]
+    I --> L[房间11]
+    L --> M[房间12<br/>BOSS房间]
+```
+
 
 ## 设计优势
 
