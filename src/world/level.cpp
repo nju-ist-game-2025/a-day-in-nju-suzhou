@@ -455,20 +455,24 @@ void Level::onPlayerDied() {
 }
 
 void Level::bonusEffects() {
+    if(!m_player) return;
     QVector<StatusEffect*> effectPool;
 
     effectPool.append(new SpeedEffect(5, 1.5));
     effectPool.append(new DamageEffect(5, 1.5));
     effectPool.append(new shootSpeedEffect(5, 1.5));
-    effectPool.append(new soulHeartEffect(m_player, 1));
+    //effectPool.append(new soulHeartEffect(m_player, 1));
     effectPool.append(new decDamage(5, 0.5));
     effectPool.append(new InvincibleEffect(5));
 
-    int selectedIndex = QRandomGenerator::global()->bounded(effectPool.size());
+    int selectedIndex = QRandomGenerator::global()->bounded(effectPool.size() + 1);
     if (selectedIndex < effectPool.size() && effectPool[selectedIndex]) {
         effectPool[selectedIndex]->applyTo(m_player);
         // 移除选中的效果，避免重复删除
         effectPool.remove(selectedIndex);
+    } else if(selectedIndex == effectPool.size()) {
+        soulHeartEffect *soul = new soulHeartEffect(m_player, 1);
+        soul->applyTo(m_player);
     }
 
     // 清理所有未使用的效果

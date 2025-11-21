@@ -4,6 +4,7 @@
 #include <QObject>
 #include "Entity.h"
 #include "player.h"
+#include <QPainter>
 
 class StatusEffect : public QObject
 {
@@ -33,8 +34,9 @@ public:
     void onApplyEffect(Entity* target) override {
         if(!target) return;
         target->setSpeed(target->getSpeed() * multiplier);
-        if(multiplier > 1) showFloatText(target->scene(), QString("⚡短暂速度提升↑"), target->pos(), Qt::blue);
-        else if(multiplier < 1) showFloatText(target->scene(), QString("⚡短暂速度下降↓"), target->pos(), Qt::blue);
+        if(multiplier > 1) {
+            showFloatText(target->scene(), QString("⚡短暂速度提升↑"), target->pos(), Qt::blue);
+        }else if(multiplier < 1) showFloatText(target->scene(), QString("⚡短暂速度下降↓"), target->pos(), Qt::blue);
     }
     void onRemoveEffect(Entity* target) override {
         if(!target) return;

@@ -75,10 +75,6 @@ void GameView::initGame() {
         // 背景图片现在由 Level 类负责加载和管理
         // 不再在这里设置背景，避免与 Level 冲突
 
-        // 创建HUD
-        hud = new HUD();
-        scene->addItem(hud);
-        hud->setZValue(9999);
 
         // 加载玩家图片
         int playerSize = 60;
@@ -99,6 +95,10 @@ void GameView::initGame() {
         // 设置射击冷却时间
         player->setShootCooldown(150);
 
+        // 创建HUD
+        hud = new HUD(player);
+        scene->addItem(hud);
+        hud->setZValue(9999);
         // 设置地图墙壁
         setupMap(scene);
 

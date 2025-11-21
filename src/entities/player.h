@@ -74,8 +74,10 @@ public:
         if (soulHearts + n <= max_soul)
             soulHearts += n;
     };
+    int getSoulHearts() {return soulHearts;};
 
     void addBlackHearts(int n) { blackHearts += n; };
+    int getBlackHearts() {return blackHearts;};
 
     void setShootType(int type) { shootType = type; };
 
