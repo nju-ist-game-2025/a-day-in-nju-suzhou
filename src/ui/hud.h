@@ -4,6 +4,7 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include "player.h"
+#include <QDebug>
 
 class HUD : public QObject, public QGraphicsItem {
 Q_OBJECT

@@ -136,6 +136,8 @@ void Player::checkShoot() {
 }
 
 void Player::shoot(int key) {
+    // 播放射击音效
+    AudioManager::instance().playSound("player_shoot");
     // 计算子弹发射位置（从角色中心发射）
     QPointF bulletPos = this->pos() + QPointF(pixmap().width() / 2 - 7.5, pixmap().height() / 2 - 7.5);
     // if(shootType == 0) //改变为发射激光模式，需要ui的图片实现
@@ -164,6 +166,8 @@ void Player::shoot(int key) {
         default:
             break;
     }
+
+    qDebug() << "射击音效已触发";
 }
 
 void Player::move() {
@@ -254,6 +258,10 @@ void Player::takeDamage(int damage) {
     if (isDead || invincible)  // 已死亡或无敌则不受伤
         return;
 
+    // 暂未使用实际的player_hurt.wav
+    //AudioManager::instance().playSound("player_hurt");
+    //qDebug() << "玩家受伤音效已触发";
+
     flash();
     float oldHealth = redHearts;
     damage *= damageScale;
@@ -288,6 +296,10 @@ void Player::die() {
         return;
 
     isDead = true;
+
+    // 暂未使用实际的player_death.wav
+    AudioManager::instance().playSound("player_death");
+    qDebug() << "玩家死亡音效已触发";
 
     // 停止所有定时器
     if (keysTimer) {

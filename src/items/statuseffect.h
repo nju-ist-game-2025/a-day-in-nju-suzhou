@@ -5,6 +5,7 @@
 #include "Entity.h"
 #include "player.h"
 #include <QPainter>
+#include <QDebug>
 
 class StatusEffect : public QObject
 {

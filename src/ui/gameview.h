@@ -34,6 +34,9 @@ protected:
 
     void keyReleaseEvent(QKeyEvent *event) override;
 
+private:
+    void initAudio();
+
 private slots:
 
     void updateHUD();                      // 更新HUD

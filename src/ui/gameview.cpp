@@ -9,6 +9,7 @@
 #include <QVBoxLayout>
 #include "../core/resourcefactory.h"
 #include "../core/GameWindow.cpp"
+#include "../core/audiomanager.h"
 #include "level.h"
 
 GameView::GameView(QWidget *parent) : QWidget(parent), player(nullptr), level(nullptr) {
@@ -75,6 +76,8 @@ void GameView::initGame() {
         // 背景图片现在由 Level 类负责加载和管理
         // 不再在这里设置背景，避免与 Level 冲突
 
+        // 初始化音频系统
+        initAudio();
 
         // 加载玩家图片
         int playerSize = 60;
@@ -136,6 +139,26 @@ void GameView::initGame() {
         QMessageBox::critical(this, "资源加载失败", error);
         emit backToMenu();
     }
+}
+
+void GameView::initAudio()
+{
+    AudioManager& audio = AudioManager::instance();
+    
+    // 预加载音效
+    audio.preloadSound("player_shoot", "assets/sounds/shoot.wav");
+    audio.preloadSound("player_death", "assets/sounds/player_death.wav");
+    audio.preloadSound("player_hurt", "assets/sounds/player_hurt.wav");
+    audio.preloadSound("enemy_hurt", "assets/sounds/enemy_hurt.wav");
+    audio.preloadSound("enemy_death", "assets/sounds/enemy_death.wav");
+    audio.preloadSound("chest_open", "assets/sounds/chest_open.wav");
+    audio.preloadSound("item_pickup", "assets/sounds/item_pickup.wav");
+    audio.preloadSound("door_open", "assets/sounds/door_open.wav");
+    
+    // 播放背景音乐
+    audio.playMusic("assets/music/background.mp3");
+    
+    qDebug() << "音频系统初始化完成";
 }
 
 void GameView::keyPressEvent(QKeyEvent *event) {

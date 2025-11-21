@@ -8,6 +8,7 @@
 #include "constants.h"
 #include "entity.h"
 #include "projectile.h"
+#include "../core/audiomanager.h"
 
 const int max_red_contain = 9;
 const int max_soul = 6;

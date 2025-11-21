@@ -4,6 +4,9 @@
 #include "core/gamewindow.h"
 
 int main(int argc, char *argv[]) {
+    // 禁用缩放，确保窗口大小在所有电脑上一致
+    QApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
+
     QApplication a(argc, argv);
     // 加载配置文件
     if (!ConfigManager::instance().loadConfig("assets/config.json")) {
