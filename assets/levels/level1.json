@@ -11,7 +11,7 @@
       "doors": {"up": -1, "down": 1, "left": -1, "right": -1}
     },
     {
-      "background": "map1",
+      "background": "map2",
       "enemyCount": 3,
       "hasBoss": false,
       "hasChest": false,

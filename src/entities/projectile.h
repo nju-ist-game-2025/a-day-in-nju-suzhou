@@ -1,18 +1,20 @@
 #ifndef PROJECTILE_H
 #define PROJECTILE_H
 
-#include "entity.h"
 #include <QGraphicsScene>
 #include <QPixmap>
 #include <QPointF>
 #include <QVector>
+#include "entity.h"
 
 class Projectile : public Entity {
-    QTimer *moveTimer;
-    QTimer *crashTimer;
-    int mode;//Player发出：0, Enemy发出：1
-public:
-    Projectile(int _mode, double _hurt, QPointF pos, const QPixmap &pic_bullet, double scale = 1.0);
+    QTimer* moveTimer;
+    QTimer* crashTimer;
+    int mode;           // Player发出：0, Enemy发出：1
+    bool isDestroying;  // 标记对象正在销毁，防止重复操作
+   public:
+    Projectile(int _mode, double _hurt, QPointF pos, const QPixmap& pic_bullet, double scale = 1.0);
+    ~Projectile();
 
     void setDir(int x, int y) {
         xdir = x;
@@ -22,6 +24,8 @@ public:
     void move() override;
 
     void checkCrash();
+
+    void destroy();  // 唯一的删除入口
 };
 
-#endif // PROJECTILE_H
+#endif  // PROJECTILE_H

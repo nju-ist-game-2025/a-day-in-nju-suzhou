@@ -4,9 +4,8 @@
 #include "constants.h"
 #include "enemy.h"
 
-Player::Player(const QPixmap &pic_player, double scale)
-        : redContainers(3), redHearts(3.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0),
-    bulletHurt(2), isDead(false), keys(0) {  // 默认150毫秒射击冷却，子弹伤害默认2
+Player::Player(const QPixmap& pic_player, double scale)
+    : redContainers(3), redHearts(3.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(2), isDead(false), keys(0) {  // 默认150毫秒射击冷却，子弹伤害默认2
     setTransformationMode(Qt::SmoothTransformation);
 
     // 如果scale是1.0，直接使用原始pixmap，否则按比例缩放
@@ -16,10 +15,10 @@ Player::Player(const QPixmap &pic_player, double scale)
     } else {
         // 按比例缩放（保持宽高比）
         this->setPixmap(pic_player.scaled(
-                pic_player.width() * scale,
-                pic_player.height() * scale,
-                Qt::KeepAspectRatio,
-                Qt::SmoothTransformation));
+            pic_player.width() * scale,
+            pic_player.height() * scale,
+            Qt::KeepAspectRatio,
+            Qt::SmoothTransformation));
     }
 
     // 禁用缓存以避免留下轨迹
@@ -75,7 +74,7 @@ Player::Player(const QPixmap &pic_player, double scale)
     });
 }
 
-void Player::keyPressEvent(QKeyEvent *event) {
+void Player::keyPressEvent(QKeyEvent* event) {
     if (!event || isDead)  // 已死亡则不处理输入
         return;
 
@@ -94,7 +93,7 @@ void Player::keyPressEvent(QKeyEvent *event) {
     }
 }
 
-void Player::keyReleaseEvent(QKeyEvent *event) {
+void Player::keyReleaseEvent(QKeyEvent* event) {
     if (!event || isDead)  // 已死亡则不处理输入
         return;
 
@@ -136,17 +135,31 @@ void Player::checkShoot() {
 }
 
 void Player::shoot(int key) {
+    // 检查是否已死亡或场景不存在
+    if (isDead || !scene())
+        return;
+
+    // 检查子弹图片是否有效
+    if (pic_bullet.isNull()) {
+        qWarning() << "Player::shoot: pic_bullet is null, cannot shoot";
+        return;
+    }
+
     // 播放射击音效
     AudioManager::instance().playSound("player_shoot");
     // 计算子弹发射位置（从角色中心发射）
     QPointF bulletPos = this->pos() + QPointF(pixmap().width() / 2 - 7.5, pixmap().height() / 2 - 7.5);
     // if(shootType == 0) //改变为发射激光模式，需要ui的图片实现
-    Projectile *bullet = new Projectile(0, bulletHurt, bulletPos, pic_bullet);  // 使用可配置的玩家子弹伤害
+    Projectile* bullet = new Projectile(0, bulletHurt, bulletPos, pic_bullet);  // 使用可配置的玩家子弹伤害
     bullet->setSpeed(shootSpeed);
 
     // 将子弹添加到场景中
     if (scene()) {
         scene()->addItem(bullet);
+    } else {
+        // 如果场景不存在，删除子弹防止内存泄漏
+        delete bullet;
+        return;
     }
 
     // 设置子弹方向和速度
@@ -205,7 +218,7 @@ void Player::move() {
     // 下边界：在门附近允许到达 y = room_bound_y - pixmap().height() + doorMargin
     if (newY > room_bound_y - pixmap().height()) {
         if (qAbs(newX + pixmap().width() / 2 - 400) < doorSize)  // 在下门附近
-            newY = qMin(newY, (double) (room_bound_y - pixmap().height()) + doorMargin);
+            newY = qMin(newY, (double)(room_bound_y - pixmap().height()) + doorMargin);
         else
             newY = room_bound_y - pixmap().height();
     }
@@ -221,7 +234,7 @@ void Player::move() {
     // 右边界：在门附近允许到达 x = room_bound_x - pixmap().width() + doorMargin
     if (newX > room_bound_x - pixmap().width()) {
         if (qAbs(newY + pixmap().height() / 2 - 300) < doorSize)  // 在右门附近
-            newX = qMin(newX, (double) (room_bound_x - pixmap().width()) + doorMargin);
+            newX = qMin(newX, (double)(room_bound_x - pixmap().width()) + doorMargin);
         else
             newX = room_bound_x - pixmap().width();
     }
@@ -324,18 +337,20 @@ void Player::setInvincible() {
 }
 
 void Player::crashEnemy() {
-    if (isDead)  // 已死亡则不检测碰撞
+    if (isDead || !scene())  // 已死亡或无场景则不检测碰撞
         return;
 
-            foreach (QGraphicsItem *item, scene()->items()) {
-            if (auto it = dynamic_cast<Enemy *>(item)) {
-                if (abs(it->pos().x() - this->pos().x()) > it->crash_r + crash_r ||
-                    abs(it->pos().y() - this->pos().y()) > it->crash_r + crash_r)
-                    continue;
-                else
-                    this->takeDamage(it->getContactDamage());
+    // 使用collidingItems代替遍历整个场景
+    QList<QGraphicsItem*> collisions = collidingItems();
+    for (QGraphicsItem* item : collisions) {
+        if (auto it = dynamic_cast<Enemy*>(item)) {
+            if (abs(it->pos().x() - this->pos().x()) <= it->crash_r + crash_r &&
+                abs(it->pos().y() - this->pos().y()) <= it->crash_r + crash_r) {
+                this->takeDamage(it->getContactDamage());
+                break;  // 一次只处理一个碰撞
             }
         }
+    }
 }
 
 void Player::placeBomb() {
@@ -343,20 +358,19 @@ void Player::placeBomb() {
         return;
     auto posi = this->pos();
     QTimer::singleShot(2000, this, [this, posi]() {
-                foreach (QGraphicsItem *item, scene()->items()) {
-                if (auto it = dynamic_cast<Enemy *>(item)) {
-                    if (abs(it->pos().x() - posi.x()) > bomb_r ||
-                        abs(it->pos().y() - posi.y()) > bomb_r)
-                        continue;
-                    else
-                        it->takeDamage(bombHurt);
-                }
+        foreach (QGraphicsItem* item, scene()->items()) {
+            if (auto it = dynamic_cast<Enemy*>(item)) {
+                if (abs(it->pos().x() - posi.x()) > bomb_r ||
+                    abs(it->pos().y() - posi.y()) > bomb_r)
+                    continue;
+                else
+                    it->takeDamage(bombHurt);
             }
+        }
     });
 }
 
-void Player::focusOutEvent(QFocusEvent *event) {
+void Player::focusOutEvent(QFocusEvent* event) {
     QGraphicsItem::focusOutEvent(event);
     setFocus();
 }
-

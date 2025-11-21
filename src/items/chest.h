@@ -2,24 +2,28 @@
 #define CHEST_H
 
 #include <QGraphicsPixmapItem>
-#include <QVector>
+#include <QPointer>
 #include <QTimer>
-#include "player.h"
+#include <QVector>
 #include "item.h"
+#include "player.h"
 #include "statuseffect.h"
 
-const int open_r = 40;//打开宝箱的半径，后期可调
+const int open_r = 40;  // 打开宝箱的半径，后期可调
 
 class Chest : public QObject, public QGraphicsPixmapItem {
-protected:
+   protected:
     bool locked;
-    QVector<Item *> items;
-    QTimer *checkOpen;
-    Player *player;
-public:
-    Chest(Player *pl, bool locked_, const QPixmap &pic_chest, double scale = 1.0);
+    bool isOpened;  // 防止重复打开
+    QVector<Item*> items;
+    QTimer* checkOpen;
+    QPointer<Player> player;  // 使用QPointer保护player指针
 
-    void addItem(Item *it) { items.push_back(it); };
+   public:
+    Chest(Player* pl, bool locked_, const QPixmap& pic_chest, double scale = 1.0);
+    ~Chest();
+
+    void addItem(Item* it) { items.push_back(it); };
 
     void open();
 
@@ -27,8 +31,8 @@ public:
 };
 
 class lockedChest : public Chest {
-public:
-    lockedChest(Player *pl, const QPixmap &pic_chest, double scale = 1.0);
+   public:
+    lockedChest(Player* pl, const QPixmap& pic_chest, double scale = 1.0);
 };
 
-#endif // CHEST_H
+#endif  // CHEST_H

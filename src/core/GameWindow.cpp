@@ -1,9 +1,10 @@
-#include <QDebug>
-#include "world/map.h"
 #include "GameWindow.h"
+#include <QDebug>
+#include <QFile>
+#include "world/map.h"
 
-GameWindow::GameWindow(QWidget *parent)
-        : QMainWindow(parent) {
+GameWindow::GameWindow(QWidget* parent)
+    : QMainWindow(parent) {
     // 设置窗口属性
     setWindowTitle("智科er的一天");
     setFixedSize(800, 600);
@@ -57,10 +58,15 @@ void GameWindow::exitGame() {
     close();
 }
 
-void setupMap(QGraphicsScene *scene) {
+void setupMap(QGraphicsScene* scene) {
     static Map map;
     const QString levelPath = QStringLiteral("assets/levels/level1_wall.json");
-    if (!map.loadFromFile(levelPath, scene)) {
-        qWarning() << "加载地图失败:" << levelPath;
+    // 墙壁配置是可选的，如果文件不存在也不影响游戏运行
+    if (QFile::exists(levelPath)) {
+        if (!map.loadFromFile(levelPath, scene)) {
+            qWarning() << "加载地图失败:" << levelPath;
+        }
+    } else {
+        qDebug() << "未找到墙壁配置文件:" << levelPath;
     }
 }

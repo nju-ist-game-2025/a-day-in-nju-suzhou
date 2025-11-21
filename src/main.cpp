@@ -3,9 +3,11 @@
 #include "core/configmanager.h"
 #include "core/gamewindow.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     // 禁用缩放，确保窗口大小在所有电脑上一致
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
+#endif
 
     QApplication a(argc, argv);
     // 加载配置文件

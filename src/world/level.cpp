@@ -2,27 +2,28 @@
 #include <QDebug>
 #include <QGraphicsScene>
 #include <QMessageBox>
+#include <QPointer>
 #include <QRandomGenerator>
 #include <algorithm>
-#include <QPointer>
+#include "../core/audiomanager.h"
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
-#include "../core/audiomanager.h"
 #include "../entities/boss.h"
 #include "../entities/enemy.h"
 #include "../entities/player.h"
+#include "../entities/projectile.h"
 #include "../items/chest.h"
 #include "levelconfig.h"
 #include "room.h"
 
-Level::Level(Player *player, QGraphicsScene *scene, QObject *parent)
-        : QObject(parent),
-          m_levelNumber(1),
-          m_currentRoomIndex(0),
-          m_player(player),
-          m_scene(scene),
-          checkChange(nullptr),
-          visited_count(0) {
+Level::Level(Player* player, QGraphicsScene* scene, QObject* parent)
+    : QObject(parent),
+      m_levelNumber(1),
+      m_currentRoomIndex(0),
+      m_player(player),
+      m_scene(scene),
+      checkChange(nullptr),
+      visited_count(0) {
 }
 
 Level::~Level() {
@@ -58,13 +59,13 @@ void Level::init(int levelNumber) {
     qDebug() << "加载关卡:" << config.getLevelName();
 
     for (int i = 0; i < config.getRoomCount(); ++i) {
-        const RoomConfig &roomCfg = config.getRoom(i);
+        const RoomConfig& roomCfg = config.getRoom(i);
         bool hasUp = (roomCfg.doorUp >= 0);
         bool hasDown = (roomCfg.doorDown >= 0);
         bool hasLeft = (roomCfg.doorLeft >= 0);
         bool hasRight = (roomCfg.doorRight >= 0);
 
-        Room *room = new Room(m_player, hasUp, hasDown, hasLeft, hasRight);
+        Room* room = new Room(m_player, hasUp, hasDown, hasLeft, hasRight);
         m_rooms.append(room);
     }
 
@@ -74,13 +75,13 @@ void Level::init(int levelNumber) {
     visited_count = 1;
 
     m_currentRoomIndex = config.getStartRoomIndex();
-    const RoomConfig &startRoomCfg = config.getRoom(m_currentRoomIndex);
+    const RoomConfig& startRoomCfg = config.getRoom(m_currentRoomIndex);
 
     try {
         QString bgPath = ConfigManager::instance().getAssetPath(startRoomCfg.backgroundImage);
         QPixmap bg = ResourceFactory::loadImage(bgPath);
         m_scene->setBackgroundBrush(QBrush(bg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
-    } catch (const QString &e) {
+    } catch (const QString& e) {
         qWarning() << "加载房间背景失败:" << e;
     }
 
@@ -91,11 +92,11 @@ void Level::init(int levelNumber) {
     checkChange->start(100);
 }
 
-void Level::initCurrentRoom(Room *room) {
+void Level::initCurrentRoom(Room* room) {
     if (m_currentRoomIndex >= m_rooms.size())
         return;
 
-    for (Room *rr: m_rooms) {
+    for (Room* rr : m_rooms) {
         if (rr)
             rr->stopChangeTimer();
     }
@@ -104,14 +105,14 @@ void Level::initCurrentRoom(Room *room) {
 
     LevelConfig config;
     if (config.loadFromFile(m_levelNumber)) {
-        const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
+        const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
         try {
             QString bgPath = ConfigManager::instance().getAssetPath(roomCfg.backgroundImage);
             QPixmap bg = ResourceFactory::loadImage(bgPath);
             if (m_scene)
                 m_scene->setBackgroundBrush(QBrush(bg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
             qDebug() << "加载房间" << m_currentRoomIndex << "背景:" << roomCfg.backgroundImage;
-        } catch (const QString &e) {
+        } catch (const QString& e) {
             qWarning() << "加载地图背景失败:" << e;
         }
     }
@@ -133,7 +134,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
         return;
     }
 
-    const RoomConfig &roomCfg = config.getRoom(roomIndex);
+    const RoomConfig& roomCfg = config.getRoom(roomIndex);
 
     try {
         QPixmap enemyPix = ResourceFactory::createEnemyImage(40);
@@ -148,7 +149,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
                 y += 150;
             }
 
-            Enemy *enemy = new Enemy(enemyPix, 1.0);
+            Enemy* enemy = new Enemy(enemyPix, 1.0);
             enemy->setPos(x, y);
             enemy->setPlayer(m_player);
             m_scene->addItem(enemy);
@@ -162,7 +163,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
             connect(enemy, &Enemy::dying, this, &Level::onEnemyDying);
             qDebug() << "创建敌人" << i << "位置:" << x << "," << y << "已连接dying信号";
         }
-    } catch (const QString &error) {
+    } catch (const QString& error) {
         qWarning() << "生成敌人失败:" << error;
     }
 }
@@ -174,7 +175,7 @@ void Level::spawnChestsInRoom(int roomIndex) {
         return;
     }
 
-    const RoomConfig &roomCfg = config.getRoom(roomIndex);
+    const RoomConfig& roomCfg = config.getRoom(roomIndex);
 
     if (!roomCfg.hasChest) {
         return;
@@ -186,7 +187,7 @@ void Level::spawnChestsInRoom(int roomIndex) {
         int x = QRandomGenerator::global()->bounded(150, 650);
         int y = QRandomGenerator::global()->bounded(150, 450);
 
-        Chest *chest;
+        Chest* chest;
         if (roomCfg.isChestLocked) {
             chest = new lockedChest(m_player, chestPix, 1.0);
         } else {
@@ -198,7 +199,7 @@ void Level::spawnChestsInRoom(int roomIndex) {
         QPointer<Chest> cptr(chest);
         m_currentChests.append(cptr);
         m_rooms[roomIndex]->currentChests.append(cptr);
-    } catch (const QString &error) {
+    } catch (const QString& error) {
         qWarning() << "生成宝箱失败:" << error;
     }
 }
@@ -206,10 +207,15 @@ void Level::spawnChestsInRoom(int roomIndex) {
 void Level::clearCurrentRoomEntities() {
     // 敌人
     for (QPointer<Enemy> enemyPtr : m_currentEnemies) {
-        Enemy *enemy = enemyPtr.data();
+        Enemy* enemy = enemyPtr.data();
+        if (enemy) {
+            // 停止敌人的所有定时器
+            disconnect(enemy, nullptr, this, nullptr);
+        }
         // 从所有房间的列表中移除该 QPointer（使用 Qt 接口）
-        for (Room *r: m_rooms) {
-            if (!r) continue;
+        for (Room* r : m_rooms) {
+            if (!r)
+                continue;
             r->currentEnemies.removeAll(enemyPtr);
         }
         if (m_scene && enemy)
@@ -221,9 +227,10 @@ void Level::clearCurrentRoomEntities() {
 
     // 宝箱
     for (QPointer<Chest> chestPtr : m_currentChests) {
-        Chest *chest = chestPtr.data();
-        for (Room *r: m_rooms) {
-            if (!r) continue;
+        Chest* chest = chestPtr.data();
+        for (Room* r : m_rooms) {
+            if (!r)
+                continue;
             r->currentChests.removeAll(chestPtr);
         }
         if (m_scene && chest)
@@ -232,10 +239,30 @@ void Level::clearCurrentRoomEntities() {
             delete chest;
     }
     m_currentChests.clear();
+
+    // 清理场景中残留的子弹
+    if (m_scene) {
+        QList<QGraphicsItem*> allItems = m_scene->items();
+        QVector<Projectile*> projectilesToDelete;
+
+        // 先收集所有子弹
+        for (QGraphicsItem* item : allItems) {
+            if (auto proj = dynamic_cast<Projectile*>(item)) {
+                projectilesToDelete.append(proj);
+            }
+        }
+
+        // 再统一删除，避免在遍历时修改容器
+        for (Projectile* proj : projectilesToDelete) {
+            if (proj) {
+                proj->destroy();
+            }
+        }
+    }
 }
 
 bool Level::enterNextRoom() {
-    Room *currentRoom = m_rooms[m_currentRoomIndex];
+    Room* currentRoom = m_rooms[m_currentRoomIndex];
     int x = currentRoom->getChangeX();
     int y = currentRoom->getChangeY();
 
@@ -253,7 +280,7 @@ bool Level::enterNextRoom() {
         return false;
     }
 
-    const RoomConfig &currentRoomCfg = config.getRoom(m_currentRoomIndex);
+    const RoomConfig& currentRoomCfg = config.getRoom(m_currentRoomIndex);
     int nextRoomIndex = -1;
 
     if (y == -1) {
@@ -294,8 +321,8 @@ bool Level::enterNextRoom() {
         loadRoom(m_currentRoomIndex);
     }
 
-    const RoomConfig &nextRoomCfg = config.getRoom(nextRoomIndex);
-    Room *nextRoom = m_rooms[nextRoomIndex];
+    const RoomConfig& nextRoomCfg = config.getRoom(nextRoomIndex);
+    Room* nextRoom = m_rooms[nextRoomIndex];
 
     if (y == -1 && nextRoomCfg.doorDown >= 0) {
         nextRoom->setDoorOpenDown(true);
@@ -317,30 +344,30 @@ void Level::loadRoom(int roomIndex) {
         return;
     }
 
-    for (Room *rr: m_rooms) {
+    for (Room* rr : m_rooms) {
         if (rr)
             rr->stopChangeTimer();
     }
 
     m_currentRoomIndex = roomIndex;
-    Room *targetRoom = m_rooms[roomIndex];
+    Room* targetRoom = m_rooms[roomIndex];
 
     LevelConfig config;
     if (config.loadFromFile(m_levelNumber)) {
-        const RoomConfig &roomCfg = config.getRoom(roomIndex);
+        const RoomConfig& roomCfg = config.getRoom(roomIndex);
         try {
             QString bgPath = ConfigManager::instance().getAssetPath(roomCfg.backgroundImage);
             QPixmap bg = ResourceFactory::loadImage(bgPath);
             m_scene->setBackgroundBrush(QBrush(bg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
             qDebug() << "加载房间" << roomIndex << "背景:" << roomCfg.backgroundImage;
-        } catch (const QString &e) {
+        } catch (const QString& e) {
             qWarning() << "加载地图背景失败:" << e;
         }
     }
 
     // 重新添加房间实体到场景（使用 QPointer）
     for (QPointer<Enemy> enemyPtr : targetRoom->currentEnemies) {
-        Enemy *enemy = enemyPtr.data();
+        Enemy* enemy = enemyPtr.data();
         if (enemy) {
             m_scene->addItem(enemy);
             m_currentEnemies.append(enemyPtr);
@@ -348,7 +375,7 @@ void Level::loadRoom(int roomIndex) {
     }
 
     for (QPointer<Chest> chestPtr : targetRoom->currentChests) {
-        Chest *chest = chestPtr.data();
+        Chest* chest = chestPtr.data();
         if (chest) {
             m_scene->addItem(chest);
             m_currentChests.append(chestPtr);
@@ -365,14 +392,14 @@ void Level::loadRoom(int roomIndex) {
         targetRoom->startChangeTimer();
 }
 
-Room *Level::currentRoom() const {
+Room* Level::currentRoom() const {
     if (m_currentRoomIndex < m_rooms.size()) {
         return m_rooms[m_currentRoomIndex];
     }
     return nullptr;
 }
 
-void Level::onEnemyDying(Enemy *enemy) {
+void Level::onEnemyDying(Enemy* enemy) {
     qDebug() << "onEnemyDying 被调用";
 
     if (!enemy) {
@@ -385,20 +412,27 @@ void Level::onEnemyDying(Enemy *enemy) {
     m_currentEnemies.removeAll(target);
 
     qDebug() << "已从全局敌人列表移除，剩余:" << m_currentEnemies.size();
-    bonusEffects();
 
-    for (Room *r: m_rooms) {
-        if (!r) continue;
+    // 延迟执行bonusEffects，避免在dying信号处理中访问不稳定状态
+    QTimer::singleShot(100, this, [this]() {
+        if (m_player) {
+            bonusEffects();
+        }
+    });
+
+    for (Room* r : m_rooms) {
+        if (!r)
+            continue;
         r->currentEnemies.removeAll(target);
     }
 
-    Room *cur = m_rooms[m_currentRoomIndex];
+    Room* cur = m_rooms[m_currentRoomIndex];
     qDebug() << "当前房间" << m_currentRoomIndex << "敌人数量:" << (cur ? cur->currentEnemies.size() : -1);
 
     if (cur && cur->currentEnemies.isEmpty()) {
         LevelConfig config;
         if (config.loadFromFile(m_levelNumber)) {
-            const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
+            const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
 
             AudioManager::instance().playSound("door_open");
             qDebug() << "敌人清空，播放门打开音效";
@@ -430,31 +464,32 @@ void Level::onPlayerDied() {
     qDebug() << "Level::onPlayerDied - 通知所有敌人移除玩家引用";
 
     // 先收集当前全局敌人的原始指针，并断开其 dying 信号，避免在调用 setPlayer 时触发 onEnemyDying 导致容器被修改
-    QVector<Enemy *> rawEnemies;
+    QVector<Enemy*> rawEnemies;
     for (QPointer<Enemy> ePtr : m_currentEnemies) {
-        Enemy *e = ePtr.data();
+        Enemy* e = ePtr.data();
         if (e) {
             QObject::disconnect(e, &Enemy::dying, this, &Level::onEnemyDying);
             rawEnemies.append(e);
         }
     }
-    for (Enemy *e : rawEnemies) {
+    for (Enemy* e : rawEnemies) {
         if (e)
             e->setPlayer(nullptr);
     }
 
     // 对每个房间同样处理：先收集原始指针并断开信号，再调用 setPlayer(nullptr)
-    for (Room *r : m_rooms) {
-        if (!r) continue;
-        QVector<Enemy *> roomRaw;
+    for (Room* r : m_rooms) {
+        if (!r)
+            continue;
+        QVector<Enemy*> roomRaw;
         for (QPointer<Enemy> ePtr : r->currentEnemies) {
-            Enemy *e = ePtr.data();
+            Enemy* e = ePtr.data();
             if (e) {
                 QObject::disconnect(e, &Enemy::dying, this, &Level::onEnemyDying);
                 roomRaw.append(e);
             }
         }
-        for (Enemy *e : roomRaw) {
+        for (Enemy* e : roomRaw) {
             if (e)
                 e->setPlayer(nullptr);
         }
@@ -462,28 +497,43 @@ void Level::onPlayerDied() {
 }
 
 void Level::bonusEffects() {
-    if(!m_player) return;
-    QVector<StatusEffect*> effectPool;
+    if (!m_player)
+        return;
 
-    effectPool.append(new SpeedEffect(5, 1.5));
-    effectPool.append(new DamageEffect(5, 1.5));
-    effectPool.append(new shootSpeedEffect(5, 1.5));
-    //effectPool.append(new soulHeartEffect(m_player, 1));
-    effectPool.append(new decDamage(5, 0.5));
-    effectPool.append(new InvincibleEffect(5));
+    // 随机选择一种效果
+    // 0: SpeedEffect
+    // 1: DamageEffect
+    // 2: shootSpeedEffect
+    // 3: decDamage
+    // 4: InvincibleEffect
+    // 5: soulHeartEffect
 
-    int selectedIndex = QRandomGenerator::global()->bounded(effectPool.size() + 1);
-    if (selectedIndex < effectPool.size() && effectPool[selectedIndex]) {
-        effectPool[selectedIndex]->applyTo(m_player);
-        // 移除选中的效果，避免重复删除
-        effectPool.remove(selectedIndex);
-    } else if(selectedIndex == effectPool.size()) {
-        soulHeartEffect *soul = new soulHeartEffect(m_player, 1);
-        soul->applyTo(m_player);
+    int type = QRandomGenerator::global()->bounded(6);
+    StatusEffect* effect = nullptr;
+
+    switch (type) {
+        case 0:
+            effect = new SpeedEffect(5, 1.5);
+            break;
+        case 1:
+            effect = new DamageEffect(5, 1.5);
+            break;
+        case 2:
+            effect = new shootSpeedEffect(5, 1.5);
+            break;
+        case 3:
+            effect = new decDamage(5, 0.5);
+            break;
+        case 4:
+            effect = new InvincibleEffect(5);
+            break;
+        case 5:
+            effect = new soulHeartEffect(m_player, 1);
+            break;
     }
 
-    // 清理所有未使用的效果
-    for (StatusEffect* effect : effectPool) {
-        effect->deleteLater();
+    if (effect) {
+        effect->applyTo(m_player);
+        // effect会在expire()中调用deleteLater()自我销毁
     }
 }

@@ -1,26 +1,25 @@
 #include "enemy.h"
 #include <QDateTime>
+#include <QDebug>
 #include <QPainter>
 #include <QRandomGenerator>
 #include <QtMath>
-#include <QDebug>
-#include <QRandomGenerator>
-#include "player.h"
 #include "../core/audiomanager.h"
 #include "../ui/explosion.h"
+#include "player.h"
 
-Enemy::Enemy(const QPixmap &pic, double scale)
-        : Entity(nullptr),
-          currentState(WANDER),
-          player(nullptr),
-          health(10),
-          maxHealth(10),
-          contactDamage(1),
-          visionRange(250.0),
-          attackRange(40.0),
-          attackCooldown(1000),
-          lastAttackTime(0),
-          wanderCooldown(0) {
+Enemy::Enemy(const QPixmap& pic, double scale)
+    : Entity(nullptr),
+      currentState(WANDER),
+      player(nullptr),
+      health(10),
+      maxHealth(10),
+      contactDamage(1),
+      visionRange(250.0),
+      attackRange(40.0),
+      attackCooldown(1000),
+      lastAttackTime(0),
+      wanderCooldown(0) {
     // 设置图像
     setPixmap(pic.scaled(pic.width() * scale, pic.height() * scale,
                          Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -45,15 +44,15 @@ Enemy::Enemy(const QPixmap &pic, double scale)
     // 初始化随机漫游点
     wanderTarget = getRandomWanderPoint();
 
-    // AI更新定时器 (每50ms更新一次AI)
+    // AI更新定时器
     aiTimer = new QTimer(this);
     connect(aiTimer, &QTimer::timeout, this, &Enemy::updateAI);
-    aiTimer->start(50);
+    aiTimer->start(100);
 
-    // 移动定时器 (每16ms移动一次，约60fps)
-    QTimer *moveTimer = new QTimer(this);
+    // 移动定时器 (每20ms移动一次，50fps足够流畅)
+    moveTimer = new QTimer(this);
     connect(moveTimer, &QTimer::timeout, this, &Enemy::move);
-    moveTimer->start(16);
+    moveTimer->start(20);
 
     // 攻击检测定时器
     attackTimer = new QTimer(this);
@@ -65,36 +64,63 @@ Enemy::~Enemy() {
     if (aiTimer) {
         aiTimer->stop();
         delete aiTimer;
+        aiTimer = nullptr;
+    }
+    if (moveTimer) {
+        moveTimer->stop();
+        delete moveTimer;
+        moveTimer = nullptr;
     }
     if (attackTimer) {
         attackTimer->stop();
         delete attackTimer;
+        attackTimer = nullptr;
     }
 }
 
 void Enemy::getEffects() {
-    if(!player) return;
-    if(player->getCurrentHealth() < 1) return;
-    QVector<StatusEffect*> effectstoPlayer;
-    //防止中毒效果在delete后施加
-    int min_ = (3 > player->getCurrentHealth()*2 ? (int)player->getCurrentHealth() :3);
-    PoisonEffect *poi = new PoisonEffect(player, min_, 1);
-    effectstoPlayer.push_back(poi);
-    SpeedEffect *sp = new SpeedEffect(5, 0.5);
-    effectstoPlayer.push_back(sp);
-    DamageEffect *dam = new DamageEffect(5, 0.5);
-    effectstoPlayer.push_back(dam);
-    shootSpeedEffect *shootsp = new shootSpeedEffect(5, 0.5);
-    effectstoPlayer.push_back(shootsp);
+    if (!player)
+        return;
+    if (player->getCurrentHealth() < 1)
+        return;
 
-    //依1/2的概率获得效果
-    int i = QRandomGenerator::global()->bounded(effectstoPlayer.size()*2);
-    if(i >= 0 && i < effectstoPlayer.size() && effectstoPlayer[i]) {
-        effectstoPlayer[i]->applyTo(player);
-        for (StatusEffect* effect : effectstoPlayer) {
-            if (effect != effectstoPlayer[i]) { // 只删除未使用的
-                effect->deleteLater();
-            }
+    // 随机选择一种负面效果
+    // 0: PoisonEffect
+    // 1: SpeedEffect (slow)
+    // 2: DamageEffect (weak)
+    // 3: shootSpeedEffect (slow fire)
+
+    int type = QRandomGenerator::global()->bounded(4);
+    StatusEffect* effect = nullptr;
+
+    switch (type) {
+        case 0: {
+            // 防止中毒效果在delete后施加
+            int duration = (3 > player->getCurrentHealth() * 2 ? (int)player->getCurrentHealth() : 3);
+            effect = new PoisonEffect(player, duration, 1);
+            break;
+        }
+        case 1:
+            effect = new SpeedEffect(5, 0.5);
+            break;
+        case 2:
+            effect = new DamageEffect(5, 0.5);
+            break;
+        case 3:
+            effect = new shootSpeedEffect(5, 0.5);
+            break;
+    }
+
+    // 50% 概率应用效果
+    if (QRandomGenerator::global()->bounded(2) == 0) {
+        if (effect) {
+            effect->applyTo(player);
+            // effect会在expire()中调用deleteLater()自我销毁
+        }
+    } else {
+        // 如果未选中应用，需要手动删除创建的对象
+        if (effect) {
+            delete effect;
         }
     }
 }
@@ -249,9 +275,9 @@ void Enemy::attackPlayer() {
         return;
 
     // 近战攻击：检测碰撞
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item: collisions) {
-        Player *p = dynamic_cast<Player *>(item);
+    QList<QGraphicsItem*> collisions = collidingItems();
+    for (QGraphicsItem* item : collisions) {
+        Player* p = dynamic_cast<Player*>(item);
         if (p) {
             p->takeDamage(contactDamage);
             getEffects();
@@ -287,13 +313,24 @@ void Enemy::takeDamage(int damage) {
     int realDamage = qMax(1, damage);  // 每次至少1点伤害
     health -= realDamage;
     if (health <= 0) {
+        // 立即停止所有定时器，防止死亡后仍在运行AI
+        if (aiTimer) {
+            aiTimer->stop();
+        }
+        if (moveTimer) {
+            moveTimer->stop();
+        }
+        if (attackTimer) {
+            attackTimer->stop();
+        }
+
         // 播放死亡音效
         AudioManager::instance().playSound("enemy_death");
         qDebug() << "敌人死亡音效已触发";
 
         // 创建爆炸动画
-        Explosion *explosion = new Explosion();
-        explosion->setPos(this->pos()); // 在敌人位置创建爆炸
+        Explosion* explosion = new Explosion();
+        explosion->setPos(this->pos());  // 在敌人位置创建爆炸
         if (scene()) {
             scene()->addItem(explosion);
             explosion->startAnimation();
@@ -307,6 +344,7 @@ void Enemy::takeDamage(int damage) {
             scene()->removeItem(this);
         }
 
-        QTimer::singleShot(500, this, &Enemy::deleteLater);
+        // 立即删除，不再延迟
+        deleteLater();
     }
 }

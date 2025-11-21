@@ -3,17 +3,17 @@
 
 #include <QGraphicsScene>
 #include <QTimer>
-#include <QtMath>
 #include <QVector>
+#include <QtMath>
 #include "entity.h"
 #include "statuseffect.h"
 
 class Player;
 
 class Enemy : public Entity {
-Q_OBJECT
+    Q_OBJECT
 
-public:
+   public:
     // 敌人状态枚举
     enum State {
         IDLE,    // 空闲/巡逻
@@ -22,7 +22,7 @@ public:
         WANDER   // 漫游
     };
 
-    Enemy(const QPixmap &pic, double scale = 1.0);
+    Enemy(const QPixmap& pic, double scale = 1.0);
 
     ~Enemy();
 
@@ -30,7 +30,7 @@ public:
 
     void takeDamage(int damage) override;
 
-    void setPlayer(Player *p) { player = p; }
+    void setPlayer(Player* p) { player = p; }
 
     // 配置参数
     void setVisionRange(double range) { visionRange = range; }
@@ -52,24 +52,25 @@ public:
 
     void getEffects();
 
-    int getHealth() {return health;};
+    int getHealth() { return health; };
 
-signals:
+   signals:
 
-    void dying(Enemy *enemy);  // 敌人即将死亡信号（在deleteLater之前发出）
+    void dying(Enemy* enemy);  // 敌人即将死亡信号（在deleteLater之前发出）
 
-private slots:
+   private slots:
 
     void updateAI();
 
     void tryAttack();
 
-private:
+   private:
     // AI相关
     State currentState;
-    Player *player;
-    QTimer *aiTimer;
-    QTimer *attackTimer;
+    Player* player;
+    QTimer* aiTimer;
+    QTimer* moveTimer;
+    QTimer* attackTimer;
 
     // 属性
     int health;
