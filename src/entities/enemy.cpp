@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QRandomGenerator>
 #include "player.h"
+#include "../core/audiomanager.h"
 
 Enemy::Enemy(const QPixmap &pic, double scale)
         : Entity(nullptr),
@@ -285,6 +286,8 @@ void Enemy::takeDamage(int damage) {
     int realDamage = qMax(1, damage);  // 每次至少1点伤害
     health -= realDamage;
     if (health <= 0) {
+        AudioManager::instance().playSound("enemy_death");
+        qDebug() << "敌人死亡音效已触发";
         qDebug() << "Enemy::takeDamage - 敌人死亡，发出dying信号";
         emit dying(this);  // 在删除之前发出信号
         if (scene()) {

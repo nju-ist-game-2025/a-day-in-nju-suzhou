@@ -7,6 +7,7 @@
 #include <QPointer>
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
+#include "../core/audiomanager.h"
 #include "../entities/boss.h"
 #include "../entities/enemy.h"
 #include "../entities/player.h"
@@ -243,6 +244,9 @@ bool Level::enterNextRoom() {
 
     qDebug() << "enterNextRoom: 检测到切换请求 x=" << x << ", y=" << y;
 
+    AudioManager::instance().playSound("enter_room");
+    qDebug() << "进入新房间音效已触发";
+
     LevelConfig config;
     if (!config.loadFromFile(m_levelNumber)) {
         qWarning() << "加载关卡配置失败";
@@ -395,6 +399,9 @@ void Level::onEnemyDying(Enemy *enemy) {
         LevelConfig config;
         if (config.loadFromFile(m_levelNumber)) {
             const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
+
+            AudioManager::instance().playSound("door_open");
+            qDebug() << "敌人清空，播放门打开音效";
 
             if (roomCfg.doorUp >= 0) {
                 cur->setDoorOpenUp(true);

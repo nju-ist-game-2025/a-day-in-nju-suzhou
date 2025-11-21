@@ -258,10 +258,6 @@ void Player::takeDamage(int damage) {
     if (isDead || invincible)  // 已死亡或无敌则不受伤
         return;
 
-    // 暂未使用实际的player_hurt.wav
-    //AudioManager::instance().playSound("player_hurt");
-    //qDebug() << "玩家受伤音效已触发";
-
     flash();
     float oldHealth = redHearts;
     damage *= damageScale;

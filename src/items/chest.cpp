@@ -2,6 +2,7 @@
 #include "player.h"
 #include <QRandomGenerator>
 #include <QApplication>
+#include "../core/audiomanager.h"
 
 Chest::Chest(Player* pl, bool locked_, const QPixmap& pic_chest, double scale) :locked(locked_), player(pl){
     if (scale == 1.0) {
@@ -58,6 +59,9 @@ void Chest::open() {
                             return;
                         }
                     }
+
+                    AudioManager::instance().playSound("chest_open");
+                    qDebug() << "宝箱开启音效已触发";
 
                     qDebug() << "宝箱被打开";
                     int i = QRandomGenerator::global()->bounded(items.size());
