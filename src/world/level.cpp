@@ -4,7 +4,6 @@
 #include <QMessageBox>
 #include <QPointer>
 #include <QRandomGenerator>
-#include <algorithm>
 #include "../core/audiomanager.h"
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
@@ -165,7 +164,9 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
 
     try {
         QPixmap enemyPix = ResourceFactory::createEnemyImage(40);
+        QPixmap bossPix = ResourceFactory::createBossImage(80);
         int enemyCount = roomCfg.enemyCount;
+        bool hasBoss = roomCfg.hasBoss;
 
         for (int i = 0; i < enemyCount; ++i) {
             int x = QRandomGenerator::global()->bounded(100, 700);
@@ -190,6 +191,31 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
             connect(enemy, &Enemy::dying, this, &Level::onEnemyDying);
             qDebug() << "创建敌人" << i << "位置:" << x << "," << y << "已连接dying信号";
         }
+
+        if(hasBoss) {
+            int x = QRandomGenerator::global()->bounded(100, 700);
+            int y = QRandomGenerator::global()->bounded(100, 500);
+
+            if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100) {
+                x += 150;
+                y += 150;
+            }
+
+            Boss* boss = new Boss(bossPix, 1.0);
+            boss->setPos(x, y);
+            boss->setPlayer(m_player);
+            m_scene->addItem(boss);
+
+            // 使用 QPointer 存储
+            QPointer<Boss> eptr(boss);
+            m_currentEnemies.append(eptr);
+            // Room::currentEnemies 也应为 QVector<QPointer<Enemy>>
+            m_rooms[roomIndex]->currentEnemies.append(eptr);
+
+            connect(boss, &Boss::dying, this, &Level::onEnemyDying);
+            qDebug() << "创建boss" << "位置:" << x << "," << y << "已连接dying信号";
+        }
+
     } catch (const QString& error) {
         qWarning() << "生成敌人失败:" << error;
     }
@@ -458,6 +484,7 @@ void Level::onEnemyDying(Enemy* enemy) {
 
     if (cur && cur->currentEnemies.isEmpty()) {
         LevelConfig config;
+        bool up = false, down = false, left = false, right = false;
         if (config.loadFromFile(m_levelNumber)) {
             const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
 
@@ -466,25 +493,29 @@ void Level::onEnemyDying(Enemy* enemy) {
 
             if (roomCfg.doorUp >= 0) {
                 cur->setDoorOpenUp(true);
+                up = true;
                 qDebug() << "打开上门，通往房间" << roomCfg.doorUp;
             }
             if (roomCfg.doorDown >= 0) {
                 cur->setDoorOpenDown(true);
+                down = true;
                 qDebug() << "打开下门，通往房间" << roomCfg.doorDown;
             }
             if (roomCfg.doorLeft >= 0) {
                 cur->setDoorOpenLeft(true);
+                left = true;
                 qDebug() << "打开左门，通往房间" << roomCfg.doorLeft;
             }
             if (roomCfg.doorRight >= 0) {
                 cur->setDoorOpenRight(true);
+                right = true;
                 qDebug() << "打开右门，通往房间" << roomCfg.doorRight;
             }
         }
 
         qDebug() << "房间" << m_currentRoomIndex << "敌人全部清空，门已打开";
         if(m_currentRoomIndex == m_rooms.size() - 1) emit levelCompleted(m_levelNumber);
-        emit enemiesCleared(m_currentRoomIndex);
+        emit enemiesCleared(m_currentRoomIndex, up, down, left, right);
     }
 }
 
@@ -536,7 +567,8 @@ void Level::bonusEffects() {
     // 4: InvincibleEffect
     // 5: soulHeartEffect
 
-    int type = QRandomGenerator::global()->bounded(6);
+    int type = QRandomGenerator::global()->bounded(12);
+    if(type >= 6) return;
     StatusEffect* effect = nullptr;
 
     switch (type) {

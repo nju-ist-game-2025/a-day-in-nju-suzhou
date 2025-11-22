@@ -334,11 +334,18 @@ void GameView::quitGame() {
     QApplication::quit();
 }
 
-void GameView::onEnemiesCleared(int roomIndex) {
+void GameView::onEnemiesCleared(int roomIndex, bool up, bool down, bool left, bool right) {
     qDebug() << "GameView::onEnemiesCleared 被调用，房间:" << roomIndex;
 
     // 在场景中显示文字提示
-    QGraphicsTextItem *hint = new QGraphicsTextItem("所有敌人已被击败！前往下一个房间的门已打开。");
+    QString text = "所有敌人已被击败！";
+    if(up || down || left || right) text += QString("前往 ");
+    if(up) text += QString("上方 ");
+    if(down) text += QString("下方 ");
+    if(left) text += QString("左侧 ");
+    if(right) text += QString("右侧 ");
+    if(up || down || left || right) text += QString("房间的门已打开");
+    QGraphicsTextItem *hint = new QGraphicsTextItem(text);
     hint->setDefaultTextColor(Qt::red);
     hint->setFont(QFont("Arial", 16, QFont::Bold));
     hint->setPos(150, 250);

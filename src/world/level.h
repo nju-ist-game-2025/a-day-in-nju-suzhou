@@ -32,7 +32,8 @@ public:
 signals:
     void levelCompleted(int levelNumber);
     void roomEntered(int roomIndex);
-    void enemiesCleared(int roomIndex);
+    void enemiesCleared(int roomIndex, bool up = false, bool down = false,
+                        bool left = false, bool right = false);
 
 private:
     void initCurrentRoom(Room *room);
