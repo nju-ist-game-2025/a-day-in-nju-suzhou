@@ -127,19 +127,84 @@ void GameView::initGame() {
             level = nullptr;
         }
 
-        // 创建关卡（Level 会负责生成敌人、宝箱、Boss 等）
+        // 初始化关卡变量
+        currentLevel = 1;  // 从第一关开始
+        isLevelTransition = false;
+
+        // 创建关卡
         level = new Level(player, scene, this);
 
-        // 连接敌人清空信号，显示提示
+        // 连接信号
         connect(level, &Level::enemiesCleared, this, &GameView::onEnemiesCleared);
+        connect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);  // 新增连接
 
-        level->init(1);
+        level->init(currentLevel);
 
     } catch (const QString &error) {
         QMessageBox::critical(this, "资源加载失败", error);
         emit backToMenu();
     }
 }
+
+void GameView::onLevelCompleted() {
+    if (isLevelTransition) return;
+    isLevelTransition = true;
+
+    QGraphicsTextItem *levelTextItem = new QGraphicsTextItem(QString("关卡完成！准备进入下一关..."));
+    levelTextItem->setDefaultTextColor(Qt::black);
+    levelTextItem->setFont(QFont("Arial", 20, QFont::Bold));
+    levelTextItem->setPos(200, 200);
+    levelTextItem->setZValue(10000);
+    scene->addItem(levelTextItem);
+    scene->update();
+
+    // 3秒后自动移除
+    QTimer::singleShot(2000, [levelTextItem, this]() {
+        scene->removeItem(levelTextItem);
+        delete levelTextItem;
+    });
+
+    // 延迟后进入下一关
+    QTimer::singleShot(2000, this, &GameView::advanceToNextLevel);
+}
+
+void GameView::advanceToNextLevel() {
+    currentLevel++;
+
+    // 检查是否所有关卡都已完成
+    if (currentLevel > 3) {
+        // 游戏通关
+        QMessageBox::information(this, "恭喜", "你已通关所有关卡！");
+        emit backToMenu();
+        return;
+    }
+
+    // 清理当前关卡（保留玩家）
+    if (level) {
+        // 断开连接，避免重复信号
+        disconnect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);
+        disconnect(level, &Level::enemiesCleared, this, &GameView::onEnemiesCleared);
+
+        // 清理关卡特定的敌人和物品，但保留玩家
+        level->clearCurrentRoomEntities();
+    }
+
+    // 重新初始化下一关
+    isLevelTransition = false;
+
+    // 初始化新关卡
+    if (level) {
+        level->init(currentLevel);
+
+        // 重新连接信号
+        connect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);
+        connect(level, &Level::enemiesCleared, this, &GameView::onEnemiesCleared);
+    }
+
+    // 更新HUD显示当前关卡
+    updateHUD();
+}
+
 
 void GameView::initAudio()
 {

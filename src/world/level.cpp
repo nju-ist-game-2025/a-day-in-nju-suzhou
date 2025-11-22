@@ -37,6 +37,10 @@ Level::~Level() {
 }
 
 void Level::init(int levelNumber) {
+
+    // 显示关卡开始文字
+    showLevelStartText(levelNumber);
+
     if (checkChange) {
         checkChange->stop();
         delete checkChange;
@@ -90,6 +94,29 @@ void Level::init(int levelNumber) {
     checkChange = new QTimer(this);
     connect(checkChange, &QTimer::timeout, this, &Level::enterNextRoom);
     checkChange->start(100);
+}
+
+
+void Level::showLevelStartText(int levelNum) {
+    qDebug() << "尝试显示关卡文字: 第" << levelNum << "关";
+    QGraphicsTextItem *levelTextItem = new QGraphicsTextItem(QString("第 %1 关").arg(levelNum));
+    levelTextItem->setDefaultTextColor(Qt::red);
+    levelTextItem->setFont(QFont("Arial", 28, QFont::Bold));
+
+    int sceneWidth = 800;
+    int sceneHeight = 600;
+    levelTextItem->setPos(sceneWidth / 2 - 80, sceneHeight / 2 - 30);
+    levelTextItem->setZValue(10000);
+    m_scene->addItem(levelTextItem);
+    m_scene->update();
+    qDebug() << "文字项已添加到场景，Z值:" << levelTextItem->zValue();
+
+    // 3秒后自动移除
+    QTimer::singleShot(3000, [levelTextItem, this]() {
+        m_scene->removeItem(levelTextItem);
+        delete levelTextItem;
+        qDebug() << "测试文字已移除";
+    });
 }
 
 void Level::initCurrentRoom(Room* room) {
@@ -456,6 +483,7 @@ void Level::onEnemyDying(Enemy* enemy) {
         }
 
         qDebug() << "房间" << m_currentRoomIndex << "敌人全部清空，门已打开";
+        if(m_currentRoomIndex == m_rooms.size() - 1) emit levelCompleted(m_levelNumber);
         emit enemiesCleared(m_currentRoomIndex);
     }
 }

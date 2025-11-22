@@ -25,6 +25,9 @@ public:
     void loadRoom(int roomIndex);
     void onPlayerDied();
     void bonusEffects();
+    void clearCurrentRoomEntities();
+
+    void showLevelStartText(int levelNum);
 
 signals:
     void levelCompleted(int levelNumber);
@@ -33,7 +36,6 @@ signals:
 
 private:
     void initCurrentRoom(Room *room);
-    void clearCurrentRoomEntities();
     void spawnEnemiesInRoom(int roomIndex);
     void spawnChestsInRoom(int roomIndex);
 

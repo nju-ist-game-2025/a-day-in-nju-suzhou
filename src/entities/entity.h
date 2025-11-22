@@ -10,7 +10,7 @@
 #include "constants.h"
 
 class Entity : public QObject, public QGraphicsPixmapItem {
-Q_OBJECT
+    Q_OBJECT
 protected:
     int xdir{}, ydir{};            // 移动方向（由 player/enemy 维护）
     int curr_xdir{}, curr_ydir{};  // 目前朝向（可选使用）

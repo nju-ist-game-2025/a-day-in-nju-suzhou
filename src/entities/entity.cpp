@@ -3,7 +3,7 @@
 #include <QTimer>
 
 Entity::Entity(QGraphicsPixmapItem *parent)
-        : QGraphicsPixmapItem(parent), crash_r(20), isFlashing(false) {
+    : QGraphicsPixmapItem(parent), crash_r(20), isFlashing(false) {
     setTransformationMode(Qt::SmoothTransformation);
     damageScale = 1.0;
     facingRight = true;

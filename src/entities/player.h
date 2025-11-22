@@ -16,7 +16,7 @@ const int bomb_r = 60;
 const int bombHurt = 1;
 
 class Player : public Entity {
-Q_OBJECT
+    Q_OBJECT
     int redContainers;
     double redHearts;
     int soulHearts;
@@ -115,4 +115,3 @@ protected:
 };
 
 #endif  // PLAYER_H
-

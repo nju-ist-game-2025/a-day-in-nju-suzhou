@@ -21,6 +21,8 @@ private:
     Player *player;
     Level *level;  // 关卡管理器
     HUD *hud{};
+    int currentLevel;  // 添加当前关卡变量
+    bool isLevelTransition;  // 防止重复触发
 
 public:
     explicit GameView(QWidget *parent = nullptr);
@@ -44,6 +46,9 @@ private slots:
     void restartGame();                    // 重新开始游戏（槽）
     void quitGame();                       // 退出游戏（槽）
     void onEnemiesCleared(int roomIndex);  // 房间敌人清空提示
+
+    void advanceToNextLevel();
+    void onLevelCompleted();  // 关卡完成时的处理
 
 signals:
 

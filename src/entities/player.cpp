@@ -164,20 +164,20 @@ void Player::shoot(int key) {
 
     // 设置子弹方向和速度
     switch (key) {
-        case Qt::Key_Up:
-            bullet->setDir(0, -9);
-            break;
-        case Qt::Key_Down:
-            bullet->setDir(0, 9);
-            break;
-        case Qt::Key_Left:
-            bullet->setDir(-9, 0);
-            break;
-        case Qt::Key_Right:
-            bullet->setDir(9, 0);
-            break;
-        default:
-            break;
+    case Qt::Key_Up:
+        bullet->setDir(0, -9);
+        break;
+    case Qt::Key_Down:
+        bullet->setDir(0, 9);
+        break;
+    case Qt::Key_Left:
+        bullet->setDir(-9, 0);
+        break;
+    case Qt::Key_Right:
+        bullet->setDir(9, 0);
+        break;
+    default:
+        break;
     }
 
     qDebug() << "射击音效已触发";
