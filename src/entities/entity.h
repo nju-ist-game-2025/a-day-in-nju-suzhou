@@ -6,47 +6,65 @@
 #include <QPointF>
 #include <QTimer>
 #include <QVector>
+#include <QTransform>
 #include "constants.h"
 
 class Entity : public QObject, public QGraphicsPixmapItem {
 Q_OBJECT
 protected:
-    int xdir, ydir;            // 移动方向
-    int curr_xdir, curr_ydir;  // 目前朝向
-    double speed;
-    double shootSpeed;
-    double hurt;  // 既可以当作玩家敌人的攻击伤害，又可以作为射击的伤害
-    bool invincible;
-    bool isFlashing;                // 是否正在闪烁
-    QPixmap originalPixmap;         // 原始图片，用于闪烁后恢复
-    QPixmap down, up, left, right;  // 不同朝向的图像，可选
+    int xdir{}, ydir{};            // 移动方向（由 player/enemy 维护）
+    int curr_xdir{}, curr_ydir{};  // 目前朝向（可选使用）
+    double speed{};
+    double shootSpeed{};
+    double hurt{};
+    bool invincible{};
+    bool isFlashing;
+
+    // 保留四方向图（兼容 player/enemy）
+    QPixmap down, up, left, right;
+
+    // 记录当前面向（true = 向右，false = 向左）
+    bool facingRight = true;
+
+    // 当我们需要避免在翻转期间再次触发翻转时用到的锁
+    bool flippingInProgress = false;
+
 public:
     int crash_r;
-    double damageScale;  // 用于伤害减免
+    double damageScale;
+
     explicit Entity(QGraphicsPixmapItem *parent = nullptr);
 
-    double getSpeed() { return speed; };
-
+    [[nodiscard]] double getSpeed() const { return speed; };
     void setSpeed(double sp) { speed = sp; };
 
-    double getshootSpeed() { return shootSpeed; };
-
+    [[nodiscard]] double getshootSpeed() const { return shootSpeed; };
     void setshootSpeed(double sp) { shootSpeed = sp; };
 
-    double getHurt() { return hurt; };
-
+    [[nodiscard]] double getHurt() const { return hurt; };
     void setHurt(double h) { hurt = h; };
 
     virtual void move() = 0;
 
+    // 保留原接口（player/enemy 可能会调用）
     void setPixmapofDirs(QPixmap &down, QPixmap &up, QPixmap &left, QPixmap &right);
 
+    // 覆写 setPixmap，保持对 base 图的设置权限（仍调用基类实现）
+    void setPixmap(const QPixmap &pix);
+
     virtual void takeDamage(int damage);
+    void flash();
 
-    void flash();  // 受击闪烁效果
     void setCrashR(int r) { crash_r = r; };
-
     void setInvincible(bool i) { invincible = i; };
+
+    // 重载 setPos，以便在每次位置更新时检查并调整朝向
+    void setPos(qreal x, qreal y);
+    void setPos(const QPointF &pos);
+
+protected:
+    // 检查 xdir，必要时基于当前 pixmap 做水平镜像从而切换朝向
+    void updateFacing();
 };
 
 #endif  // ENTITY_H

@@ -44,7 +44,7 @@ public:
 
     QMap<int, bool> keysPressed;
 
-    Player(const QPixmap &pic_player, double scale = 1.0);
+    explicit Player(const QPixmap &pic_player, double scale = 1.0);
 
     void keyPressEvent(QKeyEvent *event) override;  // 控制移动
     void keyReleaseEvent(QKeyEvent *event) override;
@@ -54,12 +54,12 @@ public:
     void setBulletPic(const QPixmap &pic) { pic_bullet = pic; };
 
     void setShootCooldown(int milliseconds) { shootCooldown = milliseconds; }  // 设置射击冷却时间
-    int getShootCooldown() { return shootCooldown; };
+    [[nodiscard]] int getShootCooldown() const { return shootCooldown; };
 
     void takeDamage(int damage) override;  // 减血
-    float getCurrentHealth() const { return redHearts; }
+    [[nodiscard]] double getCurrentHealth() const { return redHearts; }
 
-    float getMaxHealth() const { return redContainers; }
+    [[nodiscard]] double getMaxHealth() const { return redContainers; }
 
     void addRedContainers(int n) {
         if (redContainers + n <= max_red_contain)
@@ -75,10 +75,12 @@ public:
         if (soulHearts + n <= max_soul)
             soulHearts += n;
     };
-    int getSoulHearts() {return soulHearts;};
+
+    [[nodiscard]] int getSoulHearts() const { return soulHearts; };
 
     void addBlackHearts(int n) { blackHearts += n; };
-    int getBlackHearts() {return blackHearts;};
+
+    [[nodiscard]] int getBlackHearts() const { return blackHearts; };
 
     void setShootType(int type) { shootType = type; };
 
@@ -94,12 +96,12 @@ public:
 
     void addKeys(int n) { keys += n; };
 
-    int getKeys() { return keys; };
+    [[nodiscard]] int getKeys() const { return keys; };
 
     // 玩家子弹伤害相关接口
     void setBulletHurt(int hurt) { bulletHurt = hurt; }
 
-    int getBulletHurt() const { return bulletHurt; }
+    [[nodiscard]] int getBulletHurt() const { return bulletHurt; }
 
 signals:
 

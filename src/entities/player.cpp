@@ -150,7 +150,7 @@ void Player::shoot(int key) {
     // 计算子弹发射位置（从角色中心发射）
     QPointF bulletPos = this->pos() + QPointF(pixmap().width() / 2 - 7.5, pixmap().height() / 2 - 7.5);
     // if(shootType == 0) //改变为发射激光模式，需要ui的图片实现
-    Projectile* bullet = new Projectile(0, bulletHurt, bulletPos, pic_bullet);  // 使用可配置的玩家子弹伤害
+    auto* bullet = new Projectile(0, bulletHurt, bulletPos, pic_bullet);  // 使用可配置的玩家子弹伤害
     bullet->setSpeed(shootSpeed);
 
     // 将子弹添加到场景中
@@ -272,7 +272,7 @@ void Player::takeDamage(int damage) {
         return;
 
     flash();
-    float oldHealth = redHearts;
+    double oldHealth = redHearts;
     damage *= damageScale;
 
     while (damage > 0 && soulHearts > 0) {
