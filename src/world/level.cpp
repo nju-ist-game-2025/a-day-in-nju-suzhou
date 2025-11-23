@@ -68,23 +68,26 @@ void Level::init(int levelNumber)
     qDebug() << "关卡描述条数:" << config.getDescription().size();
 
     // 如果有剧情描述，显示剧情；否则直接初始化关卡
-    if (!config.getDescription().isEmpty()) {
-        connect(this, &Level::storyFinished, this, [this, config]() {
-            initializeLevelAfterStory(config);
-        });
+    if (!config.getDescription().isEmpty())
+    {
+        connect(this, &Level::storyFinished, this, [this, config]()
+                { initializeLevelAfterStory(config); });
         showLevelStartText(config);
         const QStringList list = config.getDescription();
-        //showCredits(list);
+        // showCredits(list);
         showStoryDialog(config.getDescription());
-    } else {
+    }
+    else
+    {
         showLevelStartText(config);
         const QStringList list = config.getDescription();
-        //showCredits(list);
+        // showCredits(list);
         initializeLevelAfterStory(config);
     }
 }
 
-void Level::initializeLevelAfterStory(const LevelConfig& config) {
+void Level::initializeLevelAfterStory(const LevelConfig &config)
+{
 
     qDebug() << "加载关卡:" << config.getLevelName();
 
@@ -129,13 +132,16 @@ void Level::initializeLevelAfterStory(const LevelConfig& config) {
 }
 
 // 处理鼠标点击继续对话
-void Level::onDialogClicked() {
-    if (!m_isStoryFinished) {
+void Level::onDialogClicked()
+{
+    if (!m_isStoryFinished)
+    {
         nextDialog();
     }
 }
 
-void Level::showStoryDialog(const QStringList& dialogs) {
+void Level::showStoryDialog(const QStringList &dialogs)
+{
     m_currentDialogs = dialogs;
     m_currentDialogIndex = 0;
 
@@ -172,8 +178,10 @@ void Level::showStoryDialog(const QStringList& dialogs) {
     nextDialog();
 }
 
-void Level::nextDialog() {
-    if (m_currentDialogIndex >= m_currentDialogs.size()) {
+void Level::nextDialog()
+{
+    if (m_currentDialogIndex >= m_currentDialogs.size())
+    {
         finishStory();
         return;
     }
@@ -185,21 +193,25 @@ void Level::nextDialog() {
     qDebug() << "显示对话:" << m_currentDialogIndex << "/" << m_currentDialogs.size();
 }
 
-void Level::finishStory() {
+void Level::finishStory()
+{
     qDebug() << "剧情播放完毕";
 
     // 清理剧情UI
-    if (m_dialogBox) {
+    if (m_dialogBox)
+    {
         m_scene->removeItem(m_dialogBox);
         delete m_dialogBox;
         m_dialogBox = nullptr;
     }
-    if (m_dialogText) {
+    if (m_dialogText)
+    {
         m_scene->removeItem(m_dialogText);
         delete m_dialogText;
         m_dialogText = nullptr;
     }
-    if (m_continueHint) {
+    if (m_continueHint)
+    {
         m_scene->removeItem(m_continueHint);
         delete m_continueHint;
         m_continueHint = nullptr;
@@ -209,8 +221,9 @@ void Level::finishStory() {
     emit storyFinished();
 }
 
-//文本滚动——暂时搁置
-void Level::showCredits(const QStringList &desc) {
+// 文本滚动——暂时搁置
+void Level::showCredits(const QStringList &desc)
+{
     const QStringList credits = desc;
     // 创建文本项
     QGraphicsTextItem *creditsText = new QGraphicsTextItem();
@@ -245,8 +258,7 @@ void Level::showCredits(const QStringList &desc) {
             {
                 m_scene->removeItem(creditsText);
                 delete creditsText;
-                animation->deleteLater();
-            });
+                animation->deleteLater(); });
 
     animation->start();
 }
@@ -625,7 +637,8 @@ void Level::clearSceneEntities()
 
 void Level::clearCurrentRoomEntities()
 {
-    if (m_scene) {
+    if (m_scene)
+    {
         m_scene->setBackgroundBrush(QBrush()); // 设置为空画刷
     }
     // Delete all entities completely (used when resetting level)

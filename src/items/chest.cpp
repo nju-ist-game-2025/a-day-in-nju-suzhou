@@ -70,7 +70,7 @@ void Chest::open()
     }
 
     // 检查玩家是否在范围内并按下空格键
-    if (player->keysPressed[Qt::Key_Space] &&
+    if (player->isKeyPressed(Qt::Key_Space) &&
         abs(player->pos().x() - this->pos().x()) <= open_r &&
         abs(player->pos().y() - this->pos().y()) <= open_r)
     {

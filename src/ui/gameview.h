@@ -35,7 +35,7 @@ public:
     HUD *getHUD() const { return hud; }
 
 protected:
-    void mousePressEvent(QMouseEvent* event) override;
+    void mousePressEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
 
     void keyReleaseEvent(QKeyEvent *event) override;
