@@ -24,6 +24,7 @@ private:
     HUD *hud{};
     int currentLevel;       // 添加当前关卡变量
     bool isLevelTransition; // 防止重复触发
+    bool m_isInStoryMode;
 
 public:
     explicit GameView(QWidget *parent = nullptr);
@@ -34,6 +35,7 @@ public:
     HUD *getHUD() const { return hud; }
 
 protected:
+    void mousePressEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent *event) override;
 
     void keyReleaseEvent(QKeyEvent *event) override;
@@ -52,6 +54,8 @@ private slots:
 
     void advanceToNextLevel();
     void onLevelCompleted(); // 关卡完成时的处理
+
+    void onStoryFinished();
 
 signals:
 

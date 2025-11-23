@@ -93,23 +93,10 @@ void GameView::initGame()
 
         // 创建玩家
         player = new Player(playerPixmap, 1.0);
-        scene->addItem(player);
-
-        connect(player, &Player::healthChanged, this, &GameView::updateHUD);
-
-        // 设置玩家初始位置（屏幕中央）
-        player->setPos(scene_bound_x / 2 - playerSize / 2, scene_bound_y / 2 - playerSize / 2);
-
-        // 设置玩家在场景中的堆叠顺序，确保在最前面
-        player->setZValue(100);
-
-        // 设置射击冷却时间
-        player->setShootCooldown(150);
 
         // 创建HUD
         hud = new HUD(player);
-        scene->addItem(hud);
-        hud->setZValue(9999);
+
         // 设置地图墙壁
         setupMap(scene);
 
@@ -146,32 +133,64 @@ void GameView::initGame()
         // 连接信号
         connect(level, &Level::enemiesCleared, this, &GameView::onEnemiesCleared);
         connect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);
+        connect(player, &Player::playerDamaged, hud, &HUD::triggerDamageFlash);
 
         // 连接房间进入信号到HUD小地图更新 - 必须在创建level之后
-        connect(level, &Level::roomEntered, this, [this](int roomIndex)
-                {
+        connect(level, &Level::roomEntered, this, [this](int roomIndex) {
             if (hud) {
                 hud->updateMinimap(roomIndex, QVector<int>());
                 qDebug() << "GameView: Updating minimap for room" << roomIndex;
-            } });
+            }
+        });
 
         level->init(currentLevel);
 
         // 初始化小地图
         if (hud)
             hud->updateMinimap(0, QVector<int>());
-    }
-    catch (const QString &error)
-    {
+
+        m_isInStoryMode = true;
+        connect(level, &Level::storyFinished, this, [this]() {
+            m_isInStoryMode = false;
+            onStoryFinished();
+        });
+
+    } catch (const QString &error) {
         QMessageBox::critical(this, "资源加载失败", error);
         emit backToMenu();
     }
 }
 
-void GameView::onLevelCompleted()
-{
-    if (isLevelTransition)
-        return;
+// 实现
+void GameView::onStoryFinished() {
+    qDebug() << "剧情结束，显示玩家和HUD";
+
+    // 将玩家添加到场景
+    if (player && !player->scene()) {
+        scene->addItem(player);
+
+        // 设置玩家初始位置（屏幕中央）
+        int playerSize = 60; // 需要与initGame中的一致
+        player->setPos(scene_bound_x / 2 - playerSize / 2, scene_bound_y / 2 - playerSize / 2);
+        player->setZValue(100);
+        player->setShootCooldown(150);
+    }
+
+    // 将HUD添加到场景
+    if (hud && !hud->scene()) {
+        scene->addItem(hud);
+        hud->setZValue(9999);
+    }
+
+    // 更新HUD显示
+    updateHUD();
+
+    // 可以在这里添加一些入场动画效果
+    //showPlayerEntranceAnimation();
+}
+
+void GameView::onLevelCompleted() {
+    if (isLevelTransition) return;
     isLevelTransition = true;
 
     QGraphicsTextItem *levelTextItem = new QGraphicsTextItem(QString("关卡完成！准备进入下一关..."));
@@ -220,9 +239,15 @@ void GameView::advanceToNextLevel()
     isLevelTransition = false;
 
     // 初始化新关卡
-    if (level)
-    {
+    if (level) {
+        player->setPos(1000, 800);
         level->init(currentLevel);
+
+        m_isInStoryMode = true;
+        connect(level, &Level::storyFinished, this, [this]() {
+            m_isInStoryMode = false;
+            onStoryFinished();
+        });
 
         // 重新连接信号
         connect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);
@@ -251,21 +276,41 @@ void GameView::initAudio()
     qDebug() << "音频系统初始化完成";
 }
 
-void GameView::keyPressEvent(QKeyEvent *event)
-{
+void GameView::mousePressEvent(QMouseEvent* event) {
+    // 剧情模式下，任何鼠标点击都继续对话
+    if (level && m_isInStoryMode) {
+        level->nextDialog();
+        event->accept();  // 标记事件已处理
+        return;
+    }
+}
+
+void GameView::keyPressEvent(QKeyEvent *event) {
     if (!event)
         return;
 
-    // ESC键返回主菜单
-    if (event->key() == Qt::Key_Escape)
-    {
+    // ESC键返回主菜单（在任何模式下都有效）
+    if (event->key() == Qt::Key_Escape) {
         emit backToMenu();
         return;
     }
 
-    // 传递给玩家处理
-    if (player)
-    {
+    // 检查是否在剧情模式下
+    if (level && m_isInStoryMode) {
+        // 剧情模式下，空格键或回车键继续对话
+        if (event->key() == Qt::Key_Space || event->key() == Qt::Key_Return) {
+            level->nextDialog();
+            return;  // 事件已处理，不传递给玩家
+        }
+        return;
+    }
+
+    if (!hasFocus()) {
+        setFocus();
+    }
+
+    // 正常游戏模式：传递给玩家处理
+    if (player) {
         player->keyPressEvent(event);
     }
     // 同时传递给当前房间（用于触发切换检测）
