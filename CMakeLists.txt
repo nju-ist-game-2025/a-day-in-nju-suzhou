@@ -9,6 +9,13 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# 修复Qt 6.8.3与MinGW的noexcept兼容性问题
+if (MINGW)
+    add_compile_definitions(QT_FORCE_ASSERTS)
+    # 禁用noexcept静态断言错误
+    add_compile_options(-Wno-error -fpermissive)
+endif()
+
 # Option: build as Windows GUI (no console). Default OFF for maximum compatibility.
 option(BUILD_WIN32_EXECUTABLE "Build as Windows GUI executable (no console)" OFF)
 
@@ -57,6 +64,8 @@ set(WORLD_SOURCES
         src/world/level.h
         src/world/room.cpp
         src/world/room.h
+        src/world/door.cpp
+        src/world/door.h
         src/world/randomgenerator.cpp
         src/world/randomgenerator.h
         src/world/levelconfig.cpp

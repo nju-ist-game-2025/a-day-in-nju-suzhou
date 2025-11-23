@@ -467,36 +467,68 @@ void Level::spawnDoors(const RoomConfig &roomCfg)
 {
     try
     {
-        QPixmap doorPix = ResourceFactory::createChestImage(50); // Use chest as placeholder
+        // 清空当前门列表
+        m_currentDoors.clear();
 
+        // 场景尺寸：800x600
+        // 上下门：120x80，左右门：80x120
+        
         if (roomCfg.doorUp >= 0)
         {
-            QGraphicsPixmapItem *item = new QGraphicsPixmapItem(doorPix);
-            item->setPos(400 - 25, 0); // Centered at 400
-            m_scene->addItem(item);
-            m_doorItems.append(item);
+            Door *door = new Door(Door::Up);
+            // 上门：水平居中在顶部 (800-120)/2 = 340
+            door->setPos(340, 0);
+            m_scene->addItem(door);
+            m_currentDoors.append(door);
+            
+            // 检查这个门是否应该已经是打开状态
+            Room *currentRoom = m_rooms[m_currentRoomIndex];
+            if (currentRoom && currentRoom->isDoorOpenUp()) {
+                door->setOpenState();
+            }
         }
         if (roomCfg.doorDown >= 0)
         {
-            QGraphicsPixmapItem *item = new QGraphicsPixmapItem(doorPix);
-            item->setPos(400 - 25, 600 - 50);
-            m_scene->addItem(item);
-            m_doorItems.append(item);
+            Door *door = new Door(Door::Down);
+            // 下门：水平居中在底部 (600-80) = 520
+            door->setPos(340, 520);
+            m_scene->addItem(door);
+            m_currentDoors.append(door);
+            
+            Room *currentRoom = m_rooms[m_currentRoomIndex];
+            if (currentRoom && currentRoom->isDoorOpenDown()) {
+                door->setOpenState();
+            }
         }
         if (roomCfg.doorLeft >= 0)
         {
-            QGraphicsPixmapItem *item = new QGraphicsPixmapItem(doorPix);
-            item->setPos(0, 300 - 25);
-            m_scene->addItem(item);
-            m_doorItems.append(item);
+            Door *door = new Door(Door::Left);
+            // 左门：垂直居中在左侧 (600-120)/2 = 240
+            door->setPos(0, 240);
+            m_scene->addItem(door);
+            m_currentDoors.append(door);
+            
+            Room *currentRoom = m_rooms[m_currentRoomIndex];
+            if (currentRoom && currentRoom->isDoorOpenLeft()) {
+                door->setOpenState();
+            }
         }
         if (roomCfg.doorRight >= 0)
         {
-            QGraphicsPixmapItem *item = new QGraphicsPixmapItem(doorPix);
-            item->setPos(800 - 50, 300 - 25);
-            m_scene->addItem(item);
-            m_doorItems.append(item);
+            Door *door = new Door(Door::Right);
+            // 右门：垂直居中在右侧 800-80 = 720
+            door->setPos(720, 240);
+            m_scene->addItem(door);
+            m_currentDoors.append(door);
+            
+            Room *currentRoom = m_rooms[m_currentRoomIndex];
+            if (currentRoom && currentRoom->isDoorOpenRight()) {
+                door->setOpenState();
+            }
         }
+
+        // 保存到房间门映射
+        m_roomDoors[m_currentRoomIndex] = m_currentDoors;
     }
     catch (const QString &error)
     {
@@ -598,7 +630,7 @@ void Level::clearSceneEntities()
     }
     m_currentChests.clear();
 
-    // Clear doors
+    // Clear old door items (deprecated)
     for (QGraphicsItem *item : m_doorItems)
     {
         if (m_scene && item)
@@ -608,6 +640,16 @@ void Level::clearSceneEntities()
         delete item;
     }
     m_doorItems.clear();
+
+    // Clear new Door objects (don't delete, just remove from scene)
+    for (Door *door : m_currentDoors)
+    {
+        if (m_scene && door)
+        {
+            m_scene->removeItem(door);
+        }
+    }
+    m_currentDoors.clear();
 
     // 清理场景中残留的子弹
     if (m_scene)
@@ -951,36 +993,72 @@ void Level::openDoors(Room *cur)
         const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
 
         AudioManager::instance().playSound("door_open");
-        qDebug() << "敌人清空，播放门打开音效";
+        qDebug() << "敌人清空，播放门打开音效和动画";
+
+        int doorIndex = 0;
 
         if (roomCfg.doorUp >= 0)
         {
             cur->setDoorOpenUp(true);
             up = true;
+            // 播放开门动画
+            if (doorIndex < m_currentDoors.size()) {
+                m_currentDoors[doorIndex]->open();
+            }
+            doorIndex++;
             qDebug() << "打开上门，通往房间" << roomCfg.doorUp;
+            
+            // 设置邻房间的对应门为打开状态
+            int neighborRoom = roomCfg.doorUp;
+            if (neighborRoom >= 0 && neighborRoom < m_rooms.size()) {
+                m_rooms[neighborRoom]->setDoorOpenDown(true);
+            }
         }
         if (roomCfg.doorDown >= 0)
         {
             cur->setDoorOpenDown(true);
             down = true;
+            if (doorIndex < m_currentDoors.size()) {
+                m_currentDoors[doorIndex]->open();
+            }
+            doorIndex++;
             qDebug() << "打开下门，通往房间" << roomCfg.doorDown;
+            
+            int neighborRoom = roomCfg.doorDown;
+            if (neighborRoom >= 0 && neighborRoom < m_rooms.size()) {
+                m_rooms[neighborRoom]->setDoorOpenUp(true);
+            }
         }
         if (roomCfg.doorLeft >= 0)
         {
             cur->setDoorOpenLeft(true);
             left = true;
+            if (doorIndex < m_currentDoors.size()) {
+                m_currentDoors[doorIndex]->open();
+            }
+            doorIndex++;
             qDebug() << "打开左门，通往房间" << roomCfg.doorLeft;
+            
+            int neighborRoom = roomCfg.doorLeft;
+            if (neighborRoom >= 0 && neighborRoom < m_rooms.size()) {
+                m_rooms[neighborRoom]->setDoorOpenRight(true);
+            }
         }
         if (roomCfg.doorRight >= 0)
         {
             cur->setDoorOpenRight(true);
             right = true;
+            if (doorIndex < m_currentDoors.size()) {
+                m_currentDoors[doorIndex]->open();
+            }
+            doorIndex++;
             qDebug() << "打开右门，通往房间" << roomCfg.doorRight;
+            
+            int neighborRoom = roomCfg.doorRight;
+            if (neighborRoom >= 0 && neighborRoom < m_rooms.size()) {
+                m_rooms[neighborRoom]->setDoorOpenLeft(true);
+            }
         }
-
-        // Do NOT remove door visuals, just keep them as open doors
-        // Ideally we would change the image to an open door, but for now we keep the placeholder
-        // The logic in Room::testChange handles the passage.
     }
 
     qDebug() << "房间" << m_currentRoomIndex << "敌人全部清空，门已打开";

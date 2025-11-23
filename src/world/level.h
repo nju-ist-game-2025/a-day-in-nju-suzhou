@@ -5,6 +5,7 @@
 #include <QPropertyAnimation>
 #include "room.h"
 #include "levelconfig.h"
+#include "door.h"
 
 class Player;
 class Enemy;
@@ -62,6 +63,8 @@ private:
     QVector<QPointer<Enemy>> m_currentEnemies;
     QVector<QPointer<Chest>> m_currentChests;
     QVector<QGraphicsItem *> m_doorItems;
+    QVector<Door *> m_currentDoors;  // 当前房间的门对象
+    QMap<int, QVector<Door *>> m_roomDoors;  // 每个房间的门（roomIndex -> doors）
     QVector<bool> visited;
     QTimer *checkChange;
     int visited_count;
