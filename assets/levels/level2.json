@@ -7,7 +7,7 @@
   "rooms": [
     {
       "background": "map2",
-      "enemyCount": 3,
+      "enemyCount": 0,
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": false,
