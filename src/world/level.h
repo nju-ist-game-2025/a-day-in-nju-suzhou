@@ -34,11 +34,16 @@ public:
 
     void showCredits(const QStringList &desc);
 
+    void showStoryDialog(const QStringList& dialogs);
+
 signals:
     void levelCompleted(int levelNumber);
     void roomEntered(int roomIndex);
     void enemiesCleared(int roomIndex, bool up = false, bool down = false,
                         bool left = false, bool right = false);
+
+    void storyFinished();
+    void levelInitialized();
 
 private:
     void initCurrentRoom(Room *room);
@@ -56,6 +61,21 @@ private:
     QTimer *checkChange;
     int visited_count;
 
+    //galgame相关
+    QGraphicsRectItem* m_dialogBox;
+    QGraphicsTextItem* m_dialogText;
+    QGraphicsTextItem* m_continueHint;
+    QStringList m_currentDialogs;
+    int m_currentDialogIndex;
+    bool m_isStoryFinished;
+
+public slots:
+    void onDialogClicked();
+    void nextDialog();
+
 private slots:
     void onEnemyDying(Enemy *enemy);
+
+    void finishStory();
+    void initializeLevelAfterStory(const LevelConfig& config);
 };

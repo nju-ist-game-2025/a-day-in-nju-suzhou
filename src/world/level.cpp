@@ -56,9 +56,27 @@ void Level::init(int levelNumber) {
         return;
     }
 
-    showLevelStartText(config);
-    const QStringList list = config.getDescription();
-    showCredits(list);
+    qDebug() << "加载关卡:" << config.getLevelName();
+    qDebug() << "关卡描述条数:" << config.getDescription().size();
+
+    // 如果有剧情描述，显示剧情；否则直接初始化关卡
+    if (!config.getDescription().isEmpty()) {
+        connect(this, &Level::storyFinished, this, [this, config]() {
+            initializeLevelAfterStory(config);
+        });
+        showLevelStartText(config);
+        const QStringList list = config.getDescription();
+        //showCredits(list);
+        showStoryDialog(config.getDescription());
+    } else {
+        showLevelStartText(config);
+        const QStringList list = config.getDescription();
+        //showCredits(list);
+        initializeLevelAfterStory(config);
+    }
+}
+
+void Level::initializeLevelAfterStory(const LevelConfig& config) {
 
     qDebug() << "加载关卡:" << config.getLevelName();
 
@@ -96,7 +114,89 @@ void Level::init(int levelNumber) {
     checkChange->start(100);
 }
 
+// 处理鼠标点击继续对话
+void Level::onDialogClicked() {
+    if (!m_isStoryFinished) {
+        nextDialog();
+    }
+}
 
+void Level::showStoryDialog(const QStringList& dialogs) {
+    m_currentDialogs = dialogs;
+    m_currentDialogIndex = 0;
+
+    // 创建对话框背景
+    m_dialogBox = new QGraphicsRectItem(0, 400, 800, 200);
+    m_dialogBox->setBrush(QColor(0, 0, 0, 220));
+    m_dialogBox->setPen(QPen(Qt::NoPen));
+    m_dialogBox->setZValue(10000);
+    m_scene->addItem(m_dialogBox);
+
+    // 创建对话框文本
+    m_dialogText = new QGraphicsTextItem();
+    m_dialogText->setDefaultTextColor(Qt::white);
+    m_dialogText->setFont(QFont("Microsoft YaHei", 14, QFont::Normal));
+    m_dialogText->setTextWidth(700);
+    m_dialogText->setPos(50, 420);
+    m_dialogText->setZValue(10001);
+    m_scene->addItem(m_dialogText);
+
+    // 创建继续提示
+    m_continueHint = new QGraphicsTextItem("点击或按Enter键继续...");
+    m_continueHint->setDefaultTextColor(QColor(255, 255, 255, 180));
+    m_continueHint->setFont(QFont("Microsoft YaHei", 12, QFont::Light));
+    m_continueHint->setPos(600, 550);
+    m_continueHint->setZValue(10001);
+    m_scene->addItem(m_continueHint);
+
+    // 让对话框可点击
+    m_dialogBox->setFlag(QGraphicsItem::ItemIsFocusable);
+    m_dialogBox->setAcceptHoverEvents(true);
+    m_scene->installEventFilter(this);
+
+    // 显示第一句对话
+    nextDialog();
+}
+
+void Level::nextDialog() {
+    if (m_currentDialogIndex >= m_currentDialogs.size()) {
+        finishStory();
+        return;
+    }
+
+    QString currentText = m_currentDialogs[m_currentDialogIndex];
+    m_dialogText->setPlainText(currentText);
+    m_currentDialogIndex++;
+
+    qDebug() << "显示对话:" << m_currentDialogIndex << "/" << m_currentDialogs.size();
+}
+
+void Level::finishStory() {
+    qDebug() << "剧情播放完毕";
+
+    // 清理剧情UI
+    if (m_dialogBox) {
+        m_scene->removeItem(m_dialogBox);
+        delete m_dialogBox;
+        m_dialogBox = nullptr;
+    }
+    if (m_dialogText) {
+        m_scene->removeItem(m_dialogText);
+        delete m_dialogText;
+        m_dialogText = nullptr;
+    }
+    if (m_continueHint) {
+        m_scene->removeItem(m_continueHint);
+        delete m_continueHint;
+        m_continueHint = nullptr;
+    }
+
+    m_isStoryFinished = true;
+    emit storyFinished();
+}
+
+
+//文本滚动——暂时搁置
 void Level::showCredits(const QStringList &desc) {
     const QStringList credits = desc;
     // 创建文本项
@@ -210,14 +310,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
         bool hasBoss = roomCfg.hasBoss;
 
         Room* cur = m_rooms[roomIndex];
-        if(enemyCount == 0) {
-            if(roomIndex != 0) openDoors(cur);
-            else {
-                QTimer::singleShot(12000, [this]() {
-                    openDoors(m_rooms[0]);
-                });
-            }
-        }
+        if(enemyCount == 0) openDoors(cur);
 
         for (int i = 0; i < enemyCount; ++i) {
             int x = QRandomGenerator::global()->bounded(100, 700);
@@ -309,6 +402,9 @@ void Level::spawnChestsInRoom(int roomIndex) {
 }
 
 void Level::clearCurrentRoomEntities() {
+    if (m_scene) {
+        m_scene->setBackgroundBrush(QBrush()); // 设置为空画刷
+    }
     // 敌人
     for (QPointer<Enemy> enemyPtr : m_currentEnemies) {
         Enemy* enemy = enemyPtr.data();
