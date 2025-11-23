@@ -37,9 +37,6 @@ Level::~Level() {
 
 void Level::init(int levelNumber) {
 
-    // 显示关卡开始文字
-    showLevelStartText(levelNumber);
-
     if (checkChange) {
         checkChange->stop();
         delete checkChange;
@@ -58,6 +55,10 @@ void Level::init(int levelNumber) {
         qWarning() << "加载关卡配置失败，使用默认配置";
         return;
     }
+
+    showLevelStartText(config);
+    const QStringList list = config.getDescription();
+    showCredits(list);
 
     qDebug() << "加载关卡:" << config.getLevelName();
 
@@ -96,22 +97,62 @@ void Level::init(int levelNumber) {
 }
 
 
-void Level::showLevelStartText(int levelNum) {
-    qDebug() << "尝试显示关卡文字: 第" << levelNum << "关";
-    QGraphicsTextItem *levelTextItem = new QGraphicsTextItem(QString("第 %1 关").arg(levelNum));
+void Level::showCredits(const QStringList &desc) {
+    const QStringList credits = desc;
+    // 创建文本项
+    QGraphicsTextItem* creditsText = new QGraphicsTextItem();
+    creditsText->setDefaultTextColor(QColor(102, 0, 153));
+    creditsText->setFont(QFont("SimSun", 20, QFont::Bold));
+
+    // 设置文本内容
+    QString fullText;
+    for (const QString& line : credits) {
+        fullText += line + "\n" + "\n" + "\n";
+    }
+    creditsText->setPlainText(fullText);
+
+    // 设置初始位置（屏幕底部）
+    QRectF sceneRect = m_scene->sceneRect();
+    creditsText->setPos(sceneRect.width() / 2 - creditsText->boundingRect().width() / 2,
+                        sceneRect.height() + 100);
+    creditsText->setZValue(11000);
+    m_scene->addItem(creditsText);
+
+    // 创建动画
+    QPropertyAnimation* animation = new QPropertyAnimation(creditsText, "pos");
+    animation->setDuration(15000); // 15秒
+    animation->setStartValue(creditsText->pos());
+    animation->setEndValue(QPointF(sceneRect.width() / 2 - creditsText->boundingRect().width() / 2,
+                                   -creditsText->boundingRect().height() - 100));
+    animation->setEasingCurve(QEasingCurve::Linear);
+
+    // 动画结束时清理
+    connect(animation, &QPropertyAnimation::finished, [this, creditsText, animation]() {
+        m_scene->removeItem(creditsText);
+        delete creditsText;
+        animation->deleteLater();
+
+    });
+
+    animation->start();
+}
+
+
+void Level::showLevelStartText(LevelConfig &config) {
+    QGraphicsTextItem *levelTextItem = new QGraphicsTextItem(QString(config.getLevelName()));
     levelTextItem->setDefaultTextColor(Qt::red);
     levelTextItem->setFont(QFont("Arial", 28, QFont::Bold));
 
     int sceneWidth = 800;
     int sceneHeight = 600;
-    levelTextItem->setPos(sceneWidth / 2 - 80, sceneHeight / 2 - 30);
+    levelTextItem->setPos(sceneWidth / 2 - 150, sceneHeight / 2 - 30);
     levelTextItem->setZValue(10000);
     m_scene->addItem(levelTextItem);
     m_scene->update();
     qDebug() << "文字项已添加到场景，Z值:" << levelTextItem->zValue();
 
-    // 3秒后自动移除
-    QTimer::singleShot(3000, [levelTextItem, this]() {
+    // 2秒后自动移除
+    QTimer::singleShot(2000, [levelTextItem, this]() {
         m_scene->removeItem(levelTextItem);
         delete levelTextItem;
         qDebug() << "测试文字已移除";
@@ -167,6 +208,16 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
         QPixmap bossPix = ResourceFactory::createBossImage(80);
         int enemyCount = roomCfg.enemyCount;
         bool hasBoss = roomCfg.hasBoss;
+
+        Room* cur = m_rooms[roomIndex];
+        if(enemyCount == 0) {
+            if(roomIndex != 0) openDoors(cur);
+            else {
+                QTimer::singleShot(12000, [this]() {
+                    openDoors(m_rooms[0]);
+                });
+            }
+        }
 
         for (int i = 0; i < enemyCount; ++i) {
             int x = QRandomGenerator::global()->bounded(100, 700);
@@ -483,40 +534,44 @@ void Level::onEnemyDying(Enemy* enemy) {
     qDebug() << "当前房间" << m_currentRoomIndex << "敌人数量:" << (cur ? cur->currentEnemies.size() : -1);
 
     if (cur && cur->currentEnemies.isEmpty()) {
-        LevelConfig config;
-        bool up = false, down = false, left = false, right = false;
-        if (config.loadFromFile(m_levelNumber)) {
-            const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
-
-            AudioManager::instance().playSound("door_open");
-            qDebug() << "敌人清空，播放门打开音效";
-
-            if (roomCfg.doorUp >= 0) {
-                cur->setDoorOpenUp(true);
-                up = true;
-                qDebug() << "打开上门，通往房间" << roomCfg.doorUp;
-            }
-            if (roomCfg.doorDown >= 0) {
-                cur->setDoorOpenDown(true);
-                down = true;
-                qDebug() << "打开下门，通往房间" << roomCfg.doorDown;
-            }
-            if (roomCfg.doorLeft >= 0) {
-                cur->setDoorOpenLeft(true);
-                left = true;
-                qDebug() << "打开左门，通往房间" << roomCfg.doorLeft;
-            }
-            if (roomCfg.doorRight >= 0) {
-                cur->setDoorOpenRight(true);
-                right = true;
-                qDebug() << "打开右门，通往房间" << roomCfg.doorRight;
-            }
-        }
-
-        qDebug() << "房间" << m_currentRoomIndex << "敌人全部清空，门已打开";
-        if(m_currentRoomIndex == m_rooms.size() - 1) emit levelCompleted(m_levelNumber);
-        emit enemiesCleared(m_currentRoomIndex, up, down, left, right);
+        openDoors(cur);
     }
+}
+
+void Level::openDoors(Room* cur) {
+    LevelConfig config;
+    bool up = false, down = false, left = false, right = false;
+    if (config.loadFromFile(m_levelNumber)) {
+        const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
+
+        AudioManager::instance().playSound("door_open");
+        qDebug() << "敌人清空，播放门打开音效";
+
+        if (roomCfg.doorUp >= 0) {
+            cur->setDoorOpenUp(true);
+            up = true;
+            qDebug() << "打开上门，通往房间" << roomCfg.doorUp;
+        }
+        if (roomCfg.doorDown >= 0) {
+            cur->setDoorOpenDown(true);
+            down = true;
+            qDebug() << "打开下门，通往房间" << roomCfg.doorDown;
+        }
+        if (roomCfg.doorLeft >= 0) {
+            cur->setDoorOpenLeft(true);
+            left = true;
+            qDebug() << "打开左门，通往房间" << roomCfg.doorLeft;
+        }
+        if (roomCfg.doorRight >= 0) {
+            cur->setDoorOpenRight(true);
+            right = true;
+            qDebug() << "打开右门，通往房间" << roomCfg.doorRight;
+        }
+    }
+
+    qDebug() << "房间" << m_currentRoomIndex << "敌人全部清空，门已打开";
+    if(m_currentRoomIndex == m_rooms.size() - 1) emit levelCompleted(m_levelNumber);
+    emit enemiesCleared(m_currentRoomIndex, up, down, left, right);
 }
 
 void Level::onPlayerDied() {

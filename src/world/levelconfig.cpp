@@ -32,6 +32,8 @@ bool LevelConfig::loadFromFile(int levelNumber) {
         return false;
     }
 
+    m_description = readDescriptionsFromJson(filePath);
+
     return loadFromJson(doc.object());
 }
 
@@ -69,6 +71,39 @@ const RoomConfig &LevelConfig::getRoom(int index) const {
         return defaultRoom;
     }
     return m_rooms[index];
+}
+
+QStringList LevelConfig::readDescriptionsFromJson(const QString& filePath) {
+    QStringList descriptions;
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return descriptions;
+    }
+
+    QByteArray jsonData = file.readAll();
+    file.close();
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(jsonData, &parseError);
+
+    if (parseError.error != QJsonParseError::NoError) {
+        return descriptions;
+    }
+
+    QJsonObject rootObj = doc.object();
+
+    if (!rootObj.contains("description")) {
+        qWarning() << "找不到description字段";
+        return descriptions;
+    }
+
+    QJsonArray descArray = rootObj["description"].toArray();
+
+    for (const QJsonValue& value : descArray) {
+        QString text = value.toString();
+        descriptions.append(text);
+    }
+    return descriptions;
 }
 
 RoomConfig LevelConfig::parseRoomConfig(const QJsonObject &roomObj) {

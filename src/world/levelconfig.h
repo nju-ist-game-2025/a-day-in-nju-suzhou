@@ -73,10 +73,15 @@ public:
      */
     QString getLevelName() const { return m_levelName; }
 
+    QStringList readDescriptionsFromJson(const QString& filePath);
+
+    QStringList& getDescription() { return m_description; };
+
 private:
     QString m_levelName;          // 关卡名称
     int m_startRoomIndex;         // 起始房间索引
     QVector<RoomConfig> m_rooms;  // 房间配置列表
+    QStringList m_description;
 
     /**
      * @brief 解析单个房间配置

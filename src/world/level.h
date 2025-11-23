@@ -2,7 +2,9 @@
 #include <QTimer>
 #include <QVector>
 #include <QPointer>
+#include <QPropertyAnimation>
 #include "room.h"
+#include "levelconfig.h"
 
 class Player;
 class Enemy;
@@ -27,7 +29,10 @@ public:
     void bonusEffects();
     void clearCurrentRoomEntities();
 
-    void showLevelStartText(int levelNum);
+    void showLevelStartText(LevelConfig &config);
+    void openDoors(Room* cur);
+
+    void showCredits(const QStringList &desc);
 
 signals:
     void levelCompleted(int levelNumber);
