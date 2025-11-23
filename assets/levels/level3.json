@@ -1,6 +1,9 @@
 {
   "name": "第三关 - ",
   "startRoom": 0,
+  "description": [
+    ""
+  ],
   "rooms": [
     {
       "background": "map3",
