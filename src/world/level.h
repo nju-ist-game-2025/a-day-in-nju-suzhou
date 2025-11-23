@@ -12,8 +12,9 @@ class Boss;
 class Chest;
 class QGraphicsScene;
 
-class Level : public QObject {
-Q_OBJECT
+class Level : public QObject
+{
+    Q_OBJECT
 
 public:
     explicit Level(Player *player, QGraphicsScene *scene, QObject *parent = nullptr);
@@ -28,9 +29,10 @@ public:
     void onPlayerDied();
     void bonusEffects();
     void clearCurrentRoomEntities();
+    void clearSceneEntities();
 
     void showLevelStartText(LevelConfig &config);
-    void openDoors(Room* cur);
+    void openDoors(Room *cur);
 
     void showCredits(const QStringList &desc);
 
@@ -44,6 +46,8 @@ private:
     void initCurrentRoom(Room *room);
     void spawnEnemiesInRoom(int roomIndex);
     void spawnChestsInRoom(int roomIndex);
+    void spawnDoors(const RoomConfig &roomCfg);
+    void buildMinimapData(); // New method
 
     int m_levelNumber;
     QVector<Room *> m_rooms;
@@ -52,6 +56,7 @@ private:
     QGraphicsScene *m_scene;
     QVector<QPointer<Enemy>> m_currentEnemies;
     QVector<QPointer<Chest>> m_currentChests;
+    QVector<QGraphicsItem *> m_doorItems;
     QVector<bool> visited;
     QTimer *checkChange;
     int visited_count;

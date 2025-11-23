@@ -5,35 +5,45 @@
 #include <QElapsedTimer>
 
 HUD::HUD(Player *pl, QGraphicsItem *parent)
-        : QGraphicsItem(parent), currentHealth(3.0f), maxHealth(3.0f), isFlashing(false), isScreenFlashing(false),
-          flashCount(0) {
+    : QGraphicsItem(parent), currentHealth(3.0f), maxHealth(3.0f), isFlashing(false), isScreenFlashing(false),
+      flashCount(0), currentRoomIndex(0)
+{
     player = pl;
     flashTimer = new QTimer(this);
     connect(flashTimer, &QTimer::timeout, this, &HUD::endDamageFlash);
 
     screenFlashTimer = new QTimer(this);
     screenFlashTimer->setSingleShot(true);
-    connect(screenFlashTimer, &QTimer::timeout, this, [this]() {
+    connect(screenFlashTimer, &QTimer::timeout, this, [this]()
+            {
         isScreenFlashing = false;
-        update();
-    });
+        update(); });
 
     setPos(0, 0);
 }
 
-QRectF HUD::boundingRect() const {
-    return QRectF(0, 0, 230, 60);
+void HUD::setMapLayout(const QVector<RoomNode> &nodes)
+{
+    mapNodes = nodes;
+    update();
 }
 
+QRectF HUD::boundingRect() const
+{
+    // 扩大边界以包含小地图区域（右上角）
+    return QRectF(0, 0, 800, 200);
+}
 
-void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
+void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
     painter->setRenderHint(QPainter::Antialiasing);
 
     // 绘制屏幕边缘红光闪烁效果
-    if (isScreenFlashing) {
+    if (isScreenFlashing)
+    {
         QLinearGradient gradient;
 
         gradient.setStart(0, 0);
@@ -66,11 +76,11 @@ void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
         painter->drawRect(700, 0, 100, 600);
     }
 
-    const int textAreaWidth = 80;          // 文字区域宽度
-    const int healthBarX = textAreaWidth;  // 血条起始X坐标
-    const int healthBarY = 10;             // 血条Y坐标
-    const int healthBarWidth = 150;        // 血条宽度
-    const int healthBarHeight = 25;        // 血条高度
+    const int textAreaWidth = 80;         // 文字区域宽度
+    const int healthBarX = textAreaWidth; // 血条起始X坐标
+    const int healthBarY = 10;            // 血条Y坐标
+    const int healthBarWidth = 150;       // 血条宽度
+    const int healthBarHeight = 25;       // 血条高度
 
     currentHealth = player->getCurrentHealth();
     maxHealth = player->getMaxHealth();
@@ -81,7 +91,8 @@ void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
     painter->drawRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
 
     // 绘制当前血量
-    if (currentHealth > 0) {
+    if (currentHealth > 0)
+    {
         float healthWidth = (currentHealth / maxHealth) * healthBarWidth;
 
         // 留出边框
@@ -90,10 +101,14 @@ void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
         int fillWidth = healthWidth - 2;
         int fillHeight = healthBarHeight - 2;
 
-        if (fillWidth > 0) {
-            if (isFlashing && flashCount % 2 == 0) {
+        if (fillWidth > 0)
+        {
+            if (isFlashing && flashCount % 2 == 0)
+            {
                 painter->setBrush(QColor(255, 100, 100));
-            } else {
+            }
+            else
+            {
                 painter->setBrush(Qt::red);
             }
             painter->setPen(QPen(Qt::darkRed, 1));
@@ -119,16 +134,17 @@ void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
     painter->drawText(QRect(12, healthBarY, textAreaWidth - 12, healthBarHeight),
                       Qt::AlignLeft | Qt::AlignVCenter, "🧡生命值");
 
-
     paintKey(painter);
     paintSoul(painter);
     paintBlack(painter);
+    paintMinimap(painter);
 }
 
-void HUD::paintKey(QPainter *painter) {
-    const int textAreaWidth = 150;          // 文字区域宽度
-    const int Y = 10;             // 血条Y坐标
-    const int Height = 25;        // 血条高度
+void HUD::paintKey(QPainter *painter)
+{
+    const int textAreaWidth = 150; // 文字区域宽度
+    const int Y = 10;              // 血条Y坐标
+    const int Height = 25;         // 血条高度
     QFont font = painter->font();
     painter->setPen(Qt::darkYellow);
     font.setPointSize(11);
@@ -138,10 +154,11 @@ void HUD::paintKey(QPainter *painter) {
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }
 
-void HUD::paintSoul(QPainter *painter) {
-    const int textAreaWidth = 150;          // 文字区域宽度
-    const int Y = 40;             // 血条Y坐标
-    const int Height = 25;        // 血条高度
+void HUD::paintSoul(QPainter *painter)
+{
+    const int textAreaWidth = 150; // 文字区域宽度
+    const int Y = 40;              // 血条Y坐标
+    const int Height = 25;         // 血条高度
     QFont font = painter->font();
     painter->setPen(Qt::green);
     font.setPointSize(11);
@@ -151,11 +168,12 @@ void HUD::paintSoul(QPainter *painter) {
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }
 
-void HUD::paintBlack(QPainter *painter) {
-    const int textAreaWidth = 150;          // 文字区域宽度
-    const int X = textAreaWidth;  // 血条起始X坐标
-    const int Y = 60;             // 血条Y坐标
-    const int Height = 25;        // 血条高度
+void HUD::paintBlack(QPainter *painter)
+{
+    const int textAreaWidth = 150; // 文字区域宽度
+    const int X = textAreaWidth;   // 血条起始X坐标
+    const int Y = 60;              // 血条Y坐标
+    const int Height = 25;         // 血条高度
     QFont font = painter->font();
     painter->setPen(Qt::black);
     font.setPointSize(11);
@@ -165,7 +183,8 @@ void HUD::paintBlack(QPainter *painter) {
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }
 
-void HUD::paintEffects(QPainter *painter, const QString& text, int count, double duration, QColor color) {
+void HUD::paintEffects(QPainter *painter, const QString &text, int count, double duration, QColor color)
+{
     const int textAreaWidth = 120;
     const int Y = 100 + 30 * count;
     const int Width = 150;
@@ -175,7 +194,8 @@ void HUD::paintEffects(QPainter *painter, const QString& text, int count, double
     static QElapsedTimer elapsedTimer;
     static bool firstCall = true;
 
-    if (firstCall) {
+    if (firstCall)
+    {
         elapsedTimer.start();
         firstCall = false;
     }
@@ -200,8 +220,8 @@ void HUD::paintEffects(QPainter *painter, const QString& text, int count, double
     painter->drawRect(textAreaWidth, Y, Width, Height);
 }
 
-
-void HUD::updateHealth(float current, float max) {
+void HUD::updateHealth(float current, float max)
+{
     float oldHealth = currentHealth;
     currentHealth = qMax(0.0f, current);
     maxHealth = qMax(1.0f, max);
@@ -211,7 +231,8 @@ void HUD::updateHealth(float current, float max) {
     update();
 }
 
-void HUD::triggerDamageFlash() {
+void HUD::triggerDamageFlash()
+{
     isFlashing = true;
     flashCount = 0;
 
@@ -220,27 +241,121 @@ void HUD::triggerDamageFlash() {
     isScreenFlashing = true;
     screenFlashTimer->start(300);
 
-    QTimer::singleShot(0, this, [this]() {
+    QTimer::singleShot(0, this, [this]()
+                       {
         update();
-        flashCount++;
-    });
-    QTimer::singleShot(150, this, [this]() {
+        flashCount++; });
+    QTimer::singleShot(150, this, [this]()
+                       {
         update();
-        flashCount++;
-    });
-    QTimer::singleShot(300, this, [this]() {
+        flashCount++; });
+    QTimer::singleShot(300, this, [this]()
+                       {
         update();
-        flashCount++;
-    });
-    QTimer::singleShot(450, this, [this]() {
+        flashCount++; });
+    QTimer::singleShot(450, this, [this]()
+                       {
         isFlashing = false;
-        update();
-    });
+        update(); });
 
     update();
 }
 
-void HUD::endDamageFlash() {
+void HUD::endDamageFlash()
+{
     isFlashing = false;
+    update();
+}
+
+void HUD::paintMinimap(QPainter *painter)
+{
+    if (mapNodes.isEmpty())
+    {
+        return;
+    }
+
+    int mapSize = 150;
+    int startX = 800 - mapSize - 20; // Top right
+    int startY = 20;
+    int cellSize = 15;
+    int spacing = 5;
+
+    // Draw background
+    painter->setBrush(QColor(0, 0, 0, 150));
+    painter->setPen(QPen(Qt::white, 1));
+    painter->drawRect(startX, startY, mapSize, mapSize);
+
+    // Draw "Room X" text
+    painter->setPen(Qt::white);
+    QFont font = painter->font();
+    font.setPointSize(10);
+    painter->setFont(font);
+    painter->drawText(QRect(startX, startY + mapSize + 5, mapSize, 20), Qt::AlignCenter, QString("Room %1").arg(currentRoomIndex));
+
+    // Find center of map (Start Room 0 at center)
+    int centerX = startX + mapSize / 2;
+    int centerY = startY + mapSize / 2;
+
+    for (const RoomNode &node : mapNodes)
+    {
+        // Only draw visited rooms or all rooms? User said "overall room structure". Let's draw all but dim unvisited.
+        // Or just draw all for now as requested.
+
+        int drawX = centerX + node.x * (cellSize + spacing) - cellSize / 2;
+        int drawY = centerY + node.y * (cellSize + spacing) - cellSize / 2;
+
+        // Check bounds
+        if (drawX < startX || drawX > startX + mapSize || drawY < startY || drawY > startY + mapSize)
+            continue;
+
+        if (node.id == currentRoomIndex)
+        {
+            painter->setBrush(Qt::red); // Current room
+        }
+        else if (node.visited)
+        {
+            painter->setBrush(Qt::lightGray); // Visited
+        }
+        else
+        {
+            painter->setBrush(Qt::darkGray); // Unvisited
+        }
+
+        painter->setPen(Qt::black);
+        painter->drawRect(drawX, drawY, cellSize, cellSize);
+
+        // Draw Room ID text next to the cell
+        painter->setPen(Qt::white);
+        QFont idFont = painter->font();
+        idFont.setPointSize(6);
+        painter->setFont(idFont);
+        painter->drawText(QRect(drawX, drawY, cellSize, cellSize), Qt::AlignCenter, QString::number(node.id));
+
+        // Draw connections (lines)
+        painter->setPen(QPen(Qt::white, 1));
+        if (node.right >= 0)
+        {
+            painter->drawLine(drawX + cellSize, drawY + cellSize / 2, drawX + cellSize + spacing, drawY + cellSize / 2);
+        }
+        if (node.down >= 0)
+        {
+            painter->drawLine(drawX + cellSize / 2, drawY + cellSize, drawX + cellSize / 2, drawY + cellSize + spacing);
+        }
+    }
+}
+
+void HUD::updateMinimap(int currentRoom, const QVector<int> & /*roomLayout*/)
+{
+    currentRoomIndex = currentRoom;
+
+    // Update visited status
+    for (int i = 0; i < mapNodes.size(); ++i)
+    {
+        if (mapNodes[i].id == currentRoom)
+        {
+            mapNodes[i].visited = true;
+            break;
+        }
+    }
     update();
 }

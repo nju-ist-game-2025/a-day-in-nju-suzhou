@@ -3,7 +3,8 @@
 
 Room::Room() {}
 
-Room::Room(Player *p, bool u, bool d, bool l, bool r) : up(u), down(d), left(l), right(r), door_size(100) {
+Room::Room(Player *p, bool u, bool d, bool l, bool r) : up(u), down(d), left(l), right(r), door_size(100)
+{
     player = p;
     change_x = 0;
     change_y = 0;
@@ -14,89 +15,82 @@ Room::Room(Player *p, bool u, bool d, bool l, bool r) : up(u), down(d), left(l),
     openLeft = false;
     openRight = false;
 
-    keysPressed[Qt::Key_W] = false;
-    keysPressed[Qt::Key_A] = false;
-    keysPressed[Qt::Key_S] = false;
-    keysPressed[Qt::Key_D] = false;
     changeTimer = new QTimer(this);
     connect(changeTimer, &QTimer::timeout, this, &Room::testChange);
 }
 
-void Room::startChangeTimer() {
+void Room::startChangeTimer()
+{
     if (changeTimer)
         changeTimer->start(12);
 }
 
-void Room::stopChangeTimer() {
+void Room::stopChangeTimer()
+{
     if (changeTimer)
         changeTimer->stop();
 }
 
-void Room::setDoorOpenUp(bool v) {
-    if (!openUp && v) {
+void Room::setDoorOpenUp(bool v)
+{
+    if (!openUp && v)
+    {
         // 门从关闭变为打开，发射开门信号（用于触发动画）
-        emit doorOpened(0);  // 0 = 上
+        emit doorOpened(0); // 0 = 上
     }
     openUp = v;
 }
 
-void Room::setDoorOpenDown(bool v) {
-    if (!openDown && v) {
-        emit doorOpened(1);  // 1 = 下
+void Room::setDoorOpenDown(bool v)
+{
+    if (!openDown && v)
+    {
+        emit doorOpened(1); // 1 = 下
     }
     openDown = v;
     qDebug() << "setDoorOpenDown 被调用，down=" << down << ", openDown=" << openDown;
 }
 
-void Room::setDoorOpenLeft(bool v) {
-    if (!openLeft && v) {
-        emit doorOpened(2);  // 2 = 左
+void Room::setDoorOpenLeft(bool v)
+{
+    if (!openLeft && v)
+    {
+        emit doorOpened(2); // 2 = 左
     }
     openLeft = v;
 }
 
-void Room::setDoorOpenRight(bool v) {
-    if (!openRight && v) {
-        emit doorOpened(3);  // 3 = 右
+void Room::setDoorOpenRight(bool v)
+{
+    if (!openRight && v)
+    {
+        emit doorOpened(3); // 3 = 右
     }
     openRight = v;
 }
 
-bool Room::isDoorOpenUp() const {
+bool Room::isDoorOpenUp() const
+{
     return openUp;
 }
 
-bool Room::isDoorOpenDown() const {
+bool Room::isDoorOpenDown() const
+{
     return openDown;
 }
 
-bool Room::isDoorOpenLeft() const {
+bool Room::isDoorOpenLeft() const
+{
     return openLeft;
 }
 
-bool Room::isDoorOpenRight() const {
+bool Room::isDoorOpenRight() const
+{
     return openRight;
 }
 
-void Room::keyPressEvent(QKeyEvent *event) {
-    if (!event)
-        return;
-    if (keysPressed.count(event->key())) {
-        keysPressed[event->key()] = true;
-        event->accept();
-        return;
-    }
-}
-
-void Room::keyReleaseEvent(QKeyEvent *event) {
-    if (!event)
-        return;
-    if (keysPressed.count(event->key())) {
-        keysPressed[event->key()] = false;
-    }
-}
-
-void Room::testChange() {
+void Room::testChange()
+{
     int sz = door_size / 2;
     int x = player->pos().x(), y = player->pos().y();
 
@@ -104,19 +98,24 @@ void Room::testChange() {
     change_x = 0;
     change_y = 0;
 
-    if (up && openUp && y <= 40 && qAbs(x - 400) < sz && keysPressed[Qt::Key_W]) {
+    // 只要玩家到达边缘且门是打开的，就触发切换，无需按键
+    if (up && openUp && y <= 40 && qAbs(x - 400) < sz)
+    {
         change_y = -1;
         qDebug() << "检测到向上切换请求，玩家位置:" << x << "," << y;
     }
-    if (down && openDown && y >= 560 && qAbs(x - 400) < sz && keysPressed[Qt::Key_S]) {
+    if (down && openDown && y >= 560 && qAbs(x - 400) < sz)
+    {
         change_y = 1;
         qDebug() << "检测到向下切换请求，玩家位置:" << x << "," << y;
     }
-    if (left && openLeft && x <= 40 && qAbs(y - 300) < sz && keysPressed[Qt::Key_A]) {
+    if (left && openLeft && x <= 40 && qAbs(y - 300) < sz)
+    {
         change_x = -1;
         qDebug() << "检测到向左切换请求，玩家位置:" << x << "," << y;
     }
-    if (right && openRight && x >= 760 && qAbs(y - 300) < sz && keysPressed[Qt::Key_D]) {
+    if (right && openRight && x >= 760 && qAbs(y - 300) < sz)
+    {
         change_x = 1;
         qDebug() << "检测到向右切换请求，玩家位置:" << x << "," << y;
     }

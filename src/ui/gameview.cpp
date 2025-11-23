@@ -12,7 +12,8 @@
 #include "../core/audiomanager.h"
 #include "level.h"
 
-GameView::GameView(QWidget *parent) : QWidget(parent), player(nullptr), level(nullptr) {
+GameView::GameView(QWidget *parent) : QWidget(parent), player(nullptr), level(nullptr)
+{
     // 设置窗口大小
     setFixedSize(scene_bound_x, scene_bound_y);
     setFocusPolicy(Qt::StrongFocus);
@@ -41,27 +42,34 @@ GameView::GameView(QWidget *parent) : QWidget(parent), player(nullptr), level(nu
     setLayout(layout);
 }
 
-GameView::~GameView() {
-    if (level) {
+GameView::~GameView()
+{
+    if (level)
+    {
         delete level;
         level = nullptr;
     }
-    if (scene) {
+    if (scene)
+    {
         delete scene;
     }
 }
 
-void GameView::initGame() {
-    try {
+void GameView::initGame()
+{
+    try
+    {
         // 清理现有内容
         // 先断开信号连接
 
-        if (player) {
+        if (player)
+        {
             disconnect(player, &Player::playerDied, this, &GameView::handlePlayerDeath);
         }
 
         // 清理HUD
-        if (hud) {
+        if (hud)
+        {
             scene->removeItem(hud);
             delete hud;
             hud = nullptr;
@@ -71,7 +79,7 @@ void GameView::initGame() {
 
         // scene->clear()会自动删除所有图形项（包括player和enemies）
         scene->clear();
-        player = nullptr;  // 清空指针引用
+        player = nullptr; // 清空指针引用
 
         // 背景图片现在由 Level 类负责加载和管理
         // 不再在这里设置背景，避免与 Level 冲突
@@ -122,13 +130,14 @@ void GameView::initGame() {
         updateHUD();
 
         // 删除旧的关卡对象
-        if (level) {
+        if (level)
+        {
             delete level;
             level = nullptr;
         }
 
         // 初始化关卡变量
-        currentLevel = 1;  // 从第一关开始
+        currentLevel = 1; // 从第一关开始
         isLevelTransition = false;
 
         // 创建关卡
@@ -136,18 +145,33 @@ void GameView::initGame() {
 
         // 连接信号
         connect(level, &Level::enemiesCleared, this, &GameView::onEnemiesCleared);
-        connect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);  // 新增连接
+        connect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);
+
+        // 连接房间进入信号到HUD小地图更新 - 必须在创建level之后
+        connect(level, &Level::roomEntered, this, [this](int roomIndex)
+                {
+            if (hud) {
+                hud->updateMinimap(roomIndex, QVector<int>());
+                qDebug() << "GameView: Updating minimap for room" << roomIndex;
+            } });
 
         level->init(currentLevel);
 
-    } catch (const QString &error) {
+        // 初始化小地图
+        if (hud)
+            hud->updateMinimap(0, QVector<int>());
+    }
+    catch (const QString &error)
+    {
         QMessageBox::critical(this, "资源加载失败", error);
         emit backToMenu();
     }
 }
 
-void GameView::onLevelCompleted() {
-    if (isLevelTransition) return;
+void GameView::onLevelCompleted()
+{
+    if (isLevelTransition)
+        return;
     isLevelTransition = true;
 
     QGraphicsTextItem *levelTextItem = new QGraphicsTextItem(QString("关卡完成！准备进入下一关..."));
@@ -159,20 +183,22 @@ void GameView::onLevelCompleted() {
     scene->update();
 
     // 3秒后自动移除
-    QTimer::singleShot(2000, [levelTextItem, this]() {
+    QTimer::singleShot(2000, [levelTextItem, this]()
+                       {
         scene->removeItem(levelTextItem);
-        delete levelTextItem;
-    });
+        delete levelTextItem; });
 
     // 延迟后进入下一关
     QTimer::singleShot(2000, this, &GameView::advanceToNextLevel);
 }
 
-void GameView::advanceToNextLevel() {
+void GameView::advanceToNextLevel()
+{
     currentLevel++;
 
     // 检查是否所有关卡都已完成
-    if (currentLevel > 3) {
+    if (currentLevel > 3)
+    {
         // 游戏通关
         QMessageBox::information(this, "恭喜", "你已通关所有关卡！");
         emit backToMenu();
@@ -180,7 +206,8 @@ void GameView::advanceToNextLevel() {
     }
 
     // 清理当前关卡（保留玩家）
-    if (level) {
+    if (level)
+    {
         // 断开连接，避免重复信号
         disconnect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);
         disconnect(level, &Level::enemiesCleared, this, &GameView::onEnemiesCleared);
@@ -193,7 +220,8 @@ void GameView::advanceToNextLevel() {
     isLevelTransition = false;
 
     // 初始化新关卡
-    if (level) {
+    if (level)
+    {
         level->init(currentLevel);
 
         // 重新连接信号
@@ -205,11 +233,10 @@ void GameView::advanceToNextLevel() {
     updateHUD();
 }
 
-
 void GameView::initAudio()
 {
-    AudioManager& audio = AudioManager::instance();
-    
+    AudioManager &audio = AudioManager::instance();
+
     // 预加载音效
     audio.preloadSound("player_shoot", "assets/sounds/shoot.wav");
     audio.preloadSound("player_death", "assets/sounds/player_death.wav");
@@ -217,29 +244,33 @@ void GameView::initAudio()
     audio.preloadSound("chest_open", "assets/sounds/chest_open.wav");
     audio.preloadSound("door_open", "assets/sounds/door_open.wav");
     audio.preloadSound("enter_room", "assets/sounds/enter_room.wav");
-    
+
     // 播放背景音乐
     audio.playMusic("assets/music/background.mp3");
-    
+
     qDebug() << "音频系统初始化完成";
 }
 
-void GameView::keyPressEvent(QKeyEvent *event) {
+void GameView::keyPressEvent(QKeyEvent *event)
+{
     if (!event)
         return;
 
     // ESC键返回主菜单
-    if (event->key() == Qt::Key_Escape) {
+    if (event->key() == Qt::Key_Escape)
+    {
         emit backToMenu();
         return;
     }
 
     // 传递给玩家处理
-    if (player) {
+    if (player)
+    {
         player->keyPressEvent(event);
     }
     // 同时传递给当前房间（用于触发切换检测）
-    if (level) {
+    if (level)
+    {
         Room *r = level->currentRoom();
         if (r)
             QCoreApplication::sendEvent(r, event);
@@ -248,16 +279,19 @@ void GameView::keyPressEvent(QKeyEvent *event) {
     QWidget::keyPressEvent(event);
 }
 
-void GameView::keyReleaseEvent(QKeyEvent *event) {
+void GameView::keyReleaseEvent(QKeyEvent *event)
+{
     if (!event)
         return;
 
     // 传递给玩家处理
-    if (player) {
+    if (player)
+    {
         player->keyReleaseEvent(event);
     }
     // 同时传递给当前房间，更新按键释放状态
-    if (level) {
+    if (level)
+    {
         Room *r = level->currentRoom();
         if (r)
             QCoreApplication::sendEvent(r, event);
@@ -266,7 +300,8 @@ void GameView::keyReleaseEvent(QKeyEvent *event) {
     QWidget::keyReleaseEvent(event);
 }
 
-void GameView::updateHUD() {
+void GameView::updateHUD()
+{
     if (!player || !hud)
         return;
 
@@ -278,26 +313,31 @@ void GameView::updateHUD() {
     hud->updateHealth(currentHealth, maxHealth);
 }
 
-void GameView::handlePlayerDeath() {
+void GameView::handlePlayerDeath()
+{
     // 让 Level 处理敌人状态切换（Level::onPlayerDied 会被调用下方）
 
     // 断开信号连接，避免重复触发
-    if (player) {
+    if (player)
+    {
         disconnect(player, &Player::playerDied, this, &GameView::handlePlayerDeath);
     }
 
     // 强制更新HUD显示血量为0
-    if (hud && player) {
+    if (hud && player)
+    {
         hud->updateHealth(0, player->getMaxHealth());
     }
 
     // 通知 Level 玩家已死亡，以便 Level 能让所有敌人失去玩家引用
-    if (level) {
+    if (level)
+    {
         level->onPlayerDied();
     }
 
     // 使用 QTimer::singleShot 延迟显示对话框
-    QTimer::singleShot(100, this, [this]() {
+    QTimer::singleShot(100, this, [this]()
+                       {
         // 创建自定义对话框
         QMessageBox msgBox(this);
         msgBox.setWindowTitle("游戏结束");
@@ -321,42 +361,50 @@ void GameView::handlePlayerDeath() {
         } else if (msgBox.clickedButton() == quitButton) {
             // 退出游戏
             QApplication::quit();
-        }
-    });
+        } });
 }
 
-void GameView::restartGame() {
+void GameView::restartGame()
+{
     // 重新初始化游戏场景
     initGame();
 }
 
-void GameView::quitGame() {
+void GameView::quitGame()
+{
     QApplication::quit();
 }
 
-void GameView::onEnemiesCleared(int roomIndex, bool up, bool down, bool left, bool right) {
+void GameView::onEnemiesCleared(int roomIndex, bool up, bool down, bool left, bool right)
+{
     qDebug() << "GameView::onEnemiesCleared 被调用，房间:" << roomIndex;
 
     // 在场景中显示文字提示
     QString text = "所有敌人已被击败！";
-    if(up || down || left || right) text += QString("前往 ");
-    if(up) text += QString("上方 ");
-    if(down) text += QString("下方 ");
-    if(left) text += QString("左侧 ");
-    if(right) text += QString("右侧 ");
-    if(up || down || left || right) text += QString("房间的门已打开");
+    if (up || down || left || right)
+        text += QString("前往 ");
+    if (up)
+        text += QString("上方 ");
+    if (down)
+        text += QString("下方 ");
+    if (left)
+        text += QString("左侧 ");
+    if (right)
+        text += QString("右侧 ");
+    if (up || down || left || right)
+        text += QString("房间的门已打开");
     QGraphicsTextItem *hint = new QGraphicsTextItem(text);
     hint->setDefaultTextColor(Qt::red);
     hint->setFont(QFont("Arial", 16, QFont::Bold));
     hint->setPos(150, 250);
-    hint->setZValue(1000);  // 确保在最上层
+    hint->setZValue(1000); // 确保在最上层
     scene->addItem(hint);
 
     // 3秒后自动消失
-    QTimer::singleShot(3000, [this, hint]() {
+    QTimer::singleShot(3000, [this, hint]()
+                       {
         if (scene && hint->scene() == scene) {
             scene->removeItem(hint);
             delete hint;
-        }
-    });
+        } });
 }

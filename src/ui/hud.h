@@ -6,8 +6,9 @@
 #include "player.h"
 #include <QDebug>
 
-class HUD : public QObject, public QGraphicsItem {
-Q_OBJECT
+class HUD : public QObject, public QGraphicsItem
+{
+    Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
 public:
     HUD(Player *pl, QGraphicsItem *parent = nullptr);
@@ -22,12 +23,23 @@ public:
 
     void paintKey(QPainter *painter);
 
-    void paintEffects(QPainter *painter, const QString& text, int count, double duration, QColor color = Qt::black);
+    void paintEffects(QPainter *painter, const QString &text, int count, double duration, QColor color = Qt::black);
+    void paintMinimap(QPainter *painter);
+
+    struct RoomNode
+    {
+        int id;
+        int x, y; // Grid coordinates relative to start (0,0)
+        bool visited;
+        int up, down, left, right;
+    };
+
 public slots:
 
     void updateHealth(float current, float max);
-
+    void updateMinimap(int currentRoom, const QVector<int> &roomLayout); // Simplified layout data
     void triggerDamageFlash();
+    void setMapLayout(const QVector<RoomNode> &nodes); // Set map layout from Level
 
 private slots:
 
@@ -42,6 +54,9 @@ private:
     int flashCount;
     QTimer *screenFlashTimer;
     Player *player;
+    int currentRoomIndex;
+
+    QVector<RoomNode> mapNodes;
 };
 
 #endif // HUD_H
