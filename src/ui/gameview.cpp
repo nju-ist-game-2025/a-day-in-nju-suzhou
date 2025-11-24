@@ -59,9 +59,23 @@ void GameView::initGame()
 {
     try
     {
-        // 清理现有内容
-        // 先断开信号连接
+        // ===== 第一步：删除旧Level（让Level自己清理场景对象） =====
+        if (level)
+        {
+            // 断开所有与 level 相关的信号连接
+            disconnect(level, nullptr, this, nullptr);
+            disconnect(this, nullptr, level, nullptr);
 
+            // 阻止Level发出新信号
+            level->blockSignals(true);
+
+            // 立即删除（不使用deleteLater，因为需要在clear场景前完成清理）
+            delete level;
+            level = nullptr;
+        }
+
+        // ===== 第二步：清理场景和UI =====
+        // 先断开信号连接
         if (player)
         {
             disconnect(player, &Player::playerDied, this, &GameView::handlePlayerDeath);
@@ -75,15 +89,11 @@ void GameView::initGame()
             hud = nullptr;
         }
 
-        // 清理敌人列表（对象会被scene->clear()删除）
-
         // scene->clear()会自动删除所有图形项（包括player和enemies）
         scene->clear();
         player = nullptr; // 清空指针引用
 
-        // 背景图片现在由 Level 类负责加载和管理
-        // 不再在这里设置背景，避免与 Level 冲突
-
+        // ===== 第三步：重新初始化游戏 =====
         // 初始化音频系统
         initAudio();
 
@@ -115,13 +125,6 @@ void GameView::initGame()
 
         // 初始更新HUD
         updateHUD();
-
-        // 删除旧的关卡对象
-        if (level)
-        {
-            delete level;
-            level = nullptr;
-        }
 
         // 初始化关卡变量
         currentLevel = 1; // 从第一关开始
@@ -413,8 +416,8 @@ void GameView::handlePlayerDeath()
 
         // 根据用户选择执行相应操作
         if (msgBox.clickedButton() == retryButton) {
-            // 重新开始游戏
-            initGame();
+            // 请求上层窗口处理重试（避免在 GameView 内部直接重入）
+            emit requestRestart();
         } else if (msgBox.clickedButton() == menuButton) {
             // 返回主菜单
             emit backToMenu();

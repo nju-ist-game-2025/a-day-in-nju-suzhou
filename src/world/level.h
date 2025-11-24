@@ -37,7 +37,7 @@ public:
 
     void showCredits(const QStringList &desc);
 
-    void showStoryDialog(const QStringList& dialogs);
+    void showStoryDialog(const QStringList &dialogs);
 
 signals:
     void levelCompleted(int levelNumber);
@@ -63,16 +63,17 @@ private:
     QVector<QPointer<Enemy>> m_currentEnemies;
     QVector<QPointer<Chest>> m_currentChests;
     QVector<QGraphicsItem *> m_doorItems;
-    QVector<Door *> m_currentDoors;  // 当前房间的门对象
-    QMap<int, QVector<Door *>> m_roomDoors;  // 每个房间的门（roomIndex -> doors）
+    QVector<Door *> m_currentDoors;         // 当前房间的门对象
+    QMap<int, QVector<Door *>> m_roomDoors; // 每个房间的门（roomIndex -> doors）
     QVector<bool> visited;
     QTimer *checkChange;
     int visited_count;
+    QTimer *m_levelTextTimer; // 追踪关卡文字显示的定时器
 
-    //galgame相关
-    QGraphicsRectItem* m_dialogBox;
-    QGraphicsTextItem* m_dialogText;
-    QGraphicsTextItem* m_continueHint;
+    // galgame相关
+    QGraphicsRectItem *m_dialogBox;
+    QGraphicsTextItem *m_dialogText;
+    QGraphicsTextItem *m_continueHint;
     QStringList m_currentDialogs;
     int m_currentDialogIndex;
     bool m_isStoryFinished;
@@ -85,5 +86,5 @@ private slots:
     void onEnemyDying(Enemy *enemy);
 
     void finishStory();
-    void initializeLevelAfterStory(const LevelConfig& config);
+    void initializeLevelAfterStory(const LevelConfig &config);
 };

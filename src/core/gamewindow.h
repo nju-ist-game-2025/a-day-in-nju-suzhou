@@ -7,8 +7,9 @@
 #include "../ui/gameview.h"
 #include "../ui/mainmenu.h"
 
-class GameWindow : public QMainWindow {
-Q_OBJECT
+class GameWindow : public QMainWindow
+{
+    Q_OBJECT
 
 public:
     GameWindow(QWidget *parent = nullptr);
@@ -21,8 +22,9 @@ private slots:
 
     void startGame();
 
-    void showCodex();  // 新增：显示图鉴
+    void showCodex(); // 新增：显示图鉴
     void exitGame();
+    void onRequestRestart();
 
 private:
     QStackedWidget *stackedWidget;
@@ -31,4 +33,4 @@ private:
     Codex *codex;
 };
 
-#endif  // GAMEWINDOW_H
+#endif // GAMEWINDOW_H

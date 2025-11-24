@@ -60,6 +60,7 @@ private slots:
 signals:
 
     void backToMenu();
+    void requestRestart();
 };
 
 #endif // GAMEVIEW_H
