@@ -331,7 +331,7 @@ void HUD::paintMinimap(QPainter *painter)
         painter->setFont(idFont);
         painter->drawText(QRect(drawX, drawY, cellSize, cellSize), Qt::AlignCenter, QString::number(node.id));
 
-        // Draw connections (lines)
+        // Draw connections (lines) - 只绘制右和下的连接，避免重复绘制
         painter->setPen(QPen(Qt::white, 1));
         if (node.right >= 0)
         {
@@ -341,6 +341,7 @@ void HUD::paintMinimap(QPainter *painter)
         {
             painter->drawLine(drawX + cellSize / 2, drawY + cellSize, drawX + cellSize / 2, drawY + cellSize + spacing);
         }
+        // 上和左的连接会由相邻房间的下和右来绘制，所以不需要重复绘制
     }
 }
 

@@ -173,6 +173,14 @@ void Level::initializeLevelAfterStory(const LevelConfig &config)
         bool hasRight = (roomCfg.doorRight >= 0);
 
         Room *room = new Room(m_player, hasUp, hasDown, hasLeft, hasRight);
+
+        // 根据配置自动判断战斗房间（有敌人或有Boss的房间）
+        if (roomCfg.enemyCount > 0 || roomCfg.hasBoss)
+        {
+            room->setBattleRoom(true);
+            qDebug() << "房间" << i << "标记为战斗房间（敌人数:" << roomCfg.enemyCount << "，Boss:" << roomCfg.hasBoss << "）";
+        }
+
         m_rooms.append(room);
     }
 
@@ -425,6 +433,13 @@ void Level::initCurrentRoom(Room *room)
     spawnChestsInRoom(m_currentRoomIndex);
     qDebug() << "初始化房间" << m_currentRoomIndex << "完成，房间敌人数:" << room->currentEnemies.size() << "，全局敌人数:" << m_currentEnemies.size();
 
+    // 如果是战斗房间且尚未开始战斗，且有敌人，则标记战斗开始
+    if (room && room->isBattleRoom() && !room->isBattleStarted() && !room->currentEnemies.isEmpty())
+    {
+        qDebug() << "战斗房间" << m_currentRoomIndex << "触发战斗";
+        room->startBattle();
+    }
+
     if (m_player)
     {
         m_player->setZValue(100);
@@ -455,7 +470,8 @@ void Level::spawnEnemiesInRoom(int roomIndex)
         bool hasBoss = roomCfg.hasBoss;
 
         Room *cur = m_rooms[roomIndex];
-        if (enemyCount == 0)
+        // 如果没有敌人且不是战斗房间，或者战斗已经结束，则打开门
+        if (enemyCount == 0 && (!cur->isBattleRoom() || cur->isBattleStarted()))
         {
             openDoors(cur);
         }
@@ -966,6 +982,12 @@ bool Level::enterNextRoom()
         m_player->setPos(40, m_player->pos().y());
     }
 
+    const RoomConfig &nextRoomCfg = config.getRoom(nextRoomIndex);
+    Room *nextRoom = m_rooms[nextRoomIndex];
+
+    // 判断是否是首次进入战斗房间（在visited标记之前判断）
+    bool isFirstEnterBattleRoom = !visited[m_currentRoomIndex] && nextRoom->isBattleRoom();
+
     if (!visited[m_currentRoomIndex])
     {
         visited[m_currentRoomIndex] = true;
@@ -977,25 +999,30 @@ bool Level::enterNextRoom()
         loadRoom(m_currentRoomIndex);
     }
 
-    const RoomConfig &nextRoomCfg = config.getRoom(nextRoomIndex);
-    Room *nextRoom = m_rooms[nextRoomIndex];
-
-    // Bidirectional door opening: if we came from current to next, open the reverse door in next room
-    if (y == -1 && nextRoomCfg.doorDown >= 0)
+    // 单向门逻辑：如果是首次进入战斗房间，不打开返回的门
+    if (!isFirstEnterBattleRoom)
     {
-        nextRoom->setDoorOpenDown(true);
+        // 正常情况：双向开门
+        if (y == -1 && nextRoomCfg.doorDown >= 0)
+        {
+            nextRoom->setDoorOpenDown(true);
+        }
+        else if (y == 1 && nextRoomCfg.doorUp >= 0)
+        {
+            nextRoom->setDoorOpenUp(true);
+        }
+        else if (x == -1 && nextRoomCfg.doorRight >= 0)
+        {
+            nextRoom->setDoorOpenRight(true);
+        }
+        else if (x == 1 && nextRoomCfg.doorLeft >= 0)
+        {
+            nextRoom->setDoorOpenLeft(true);
+        }
     }
-    else if (y == 1 && nextRoomCfg.doorUp >= 0)
+    else
     {
-        nextRoom->setDoorOpenUp(true);
-    }
-    else if (x == -1 && nextRoomCfg.doorRight >= 0)
-    {
-        nextRoom->setDoorOpenRight(true);
-    }
-    else if (x == 1 && nextRoomCfg.doorLeft >= 0)
-    {
-        nextRoom->setDoorOpenLeft(true);
+        qDebug() << "首次进入战斗房间" << nextRoomIndex << "，返回门保持关闭";
     }
 
     currentRoom->resetChangeDir();
@@ -1158,11 +1185,16 @@ void Level::openDoors(Room *cur)
             doorIndex++;
             qDebug() << "打开上门，通往房间" << roomCfg.doorUp;
 
-            // 设置邻房间的对应门为打开状态
+            // 设置邻房间的对应门为打开状态（除非邻居是未访问的战斗房间）
             int neighborRoom = roomCfg.doorUp;
             if (neighborRoom >= 0 && neighborRoom < m_rooms.size())
             {
-                m_rooms[neighborRoom]->setDoorOpenDown(true);
+                Room *neighbor = m_rooms[neighborRoom];
+                bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
+                if (shouldOpenNeighborDoor)
+                {
+                    neighbor->setDoorOpenDown(true);
+                }
             }
         }
         if (roomCfg.doorDown >= 0)
@@ -1179,7 +1211,12 @@ void Level::openDoors(Room *cur)
             int neighborRoom = roomCfg.doorDown;
             if (neighborRoom >= 0 && neighborRoom < m_rooms.size())
             {
-                m_rooms[neighborRoom]->setDoorOpenUp(true);
+                Room *neighbor = m_rooms[neighborRoom];
+                bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
+                if (shouldOpenNeighborDoor)
+                {
+                    neighbor->setDoorOpenUp(true);
+                }
             }
         }
         if (roomCfg.doorLeft >= 0)
@@ -1196,7 +1233,12 @@ void Level::openDoors(Room *cur)
             int neighborRoom = roomCfg.doorLeft;
             if (neighborRoom >= 0 && neighborRoom < m_rooms.size())
             {
-                m_rooms[neighborRoom]->setDoorOpenRight(true);
+                Room *neighbor = m_rooms[neighborRoom];
+                bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
+                if (shouldOpenNeighborDoor)
+                {
+                    neighbor->setDoorOpenRight(true);
+                }
             }
         }
         if (roomCfg.doorRight >= 0)
@@ -1213,7 +1255,12 @@ void Level::openDoors(Room *cur)
             int neighborRoom = roomCfg.doorRight;
             if (neighborRoom >= 0 && neighborRoom < m_rooms.size())
             {
-                m_rooms[neighborRoom]->setDoorOpenLeft(true);
+                Room *neighbor = m_rooms[neighborRoom];
+                bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
+                if (shouldOpenNeighborDoor)
+                {
+                    neighbor->setDoorOpenLeft(true);
+                }
             }
         }
     }

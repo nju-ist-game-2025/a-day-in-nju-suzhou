@@ -15,6 +15,10 @@ Room::Room(Player *p, bool u, bool d, bool l, bool r) : up(u), down(d), left(l),
     openLeft = false;
     openRight = false;
 
+    // 默认不是战斗房间
+    m_isBattleRoom = false;
+    m_battleStarted = false;
+
     changeTimer = new QTimer(this);
     connect(changeTimer, &QTimer::timeout, this, &Room::testChange);
 }
@@ -119,4 +123,35 @@ void Room::testChange()
         change_x = 1;
         qDebug() << "检测到向右切换请求，玩家位置:" << x << "," << y;
     }
+}
+
+void Room::setBattleRoom(bool isBattle)
+{
+    m_isBattleRoom = isBattle;
+}
+
+bool Room::isBattleRoom() const
+{
+    return m_isBattleRoom;
+}
+
+void Room::startBattle()
+{
+    m_battleStarted = true;
+    // 战斗开始标记（门的状态由Level控制）
+}
+
+bool Room::isBattleStarted() const
+{
+    return m_battleStarted;
+}
+
+bool Room::canLeaveRoom() const
+{
+    // 如果是战斗房间且战斗已开始但还有敌人，不能离开
+    if (m_isBattleRoom && m_battleStarted && !currentEnemies.isEmpty())
+    {
+        return false;
+    }
+    return true;
 }

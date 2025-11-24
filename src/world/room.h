@@ -23,6 +23,8 @@ class Room : public QGraphicsScene
     bool openDown;
     bool openLeft;
     bool openRight;
+    bool m_isBattleRoom;  // 是否是战斗房间
+    bool m_battleStarted; // 战斗是否已开始（首次进入触发）
 
 public:
     Room();
@@ -62,6 +64,13 @@ public:
     bool isDoorOpenLeft() const;
 
     bool isDoorOpenRight() const;
+
+    // 战斗房间控制
+    void setBattleRoom(bool isBattle);
+    bool isBattleRoom() const;
+    void startBattle();
+    bool isBattleStarted() const;
+    bool canLeaveRoom() const; // 检查是否可以离开房间
 
     void testChange();
 
