@@ -71,7 +71,7 @@ private:
     QTimer *m_levelTextTimer; // 追踪关卡文字显示的定时器
 
     // galgame相关
-    QGraphicsRectItem *m_dialogBox;
+    QGraphicsPixmapItem *m_dialogBox;
     QGraphicsTextItem *m_dialogText;
     QGraphicsTextItem *m_continueHint;
     QStringList m_currentDialogs;

@@ -225,18 +225,36 @@ void Level::showStoryDialog(const QStringList &dialogs)
 {
     m_currentDialogs = dialogs;
     m_currentDialogIndex = 0;
+    QString imagePath;
+    if(m_levelNumber == 1) imagePath = "assets/galgame/l1.png";
+    else if(m_levelNumber == 2) imagePath = "assets/galgame/l2.png";
+    else imagePath = "assets/galgame/l3.png";
 
-    // 创建对话框背景
-    m_dialogBox = new QGraphicsRectItem(0, 400, 800, 200);
-    m_dialogBox->setBrush(QColor(0, 0, 0, 220));
-    m_dialogBox->setPen(QPen(Qt::NoPen));
+    // 检查文件是否存在
+    QFile file(imagePath);
+    if (!file.exists()) {
+        qWarning() << "图片文件不存在:" << imagePath;
+        return;
+    }
+
+    // 加载图片
+    QPixmap bgPixmap(imagePath);
+    if (bgPixmap.isNull()) {
+        qWarning() << "加载图片失败:" << imagePath;
+        return;
+    }
+
+    // 创建图片项
+    m_dialogBox = new QGraphicsPixmapItem(bgPixmap.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    m_dialogBox->setPos(0, 0);
     m_dialogBox->setZValue(10000);
     m_scene->addItem(m_dialogBox);
 
     // 创建对话框文本
     m_dialogText = new QGraphicsTextItem();
-    m_dialogText->setDefaultTextColor(Qt::white);
-    m_dialogText->setFont(QFont("Microsoft YaHei", 14, QFont::Normal));
+    if(m_levelNumber == 2) m_dialogText->setDefaultTextColor(Qt::black);
+    else m_dialogText->setDefaultTextColor(Qt::white);
+    m_dialogText->setFont(QFont("Microsoft YaHei", 14, QFont::Bold));
     m_dialogText->setTextWidth(700);
     m_dialogText->setPos(50, 420);
     m_dialogText->setZValue(10001);
