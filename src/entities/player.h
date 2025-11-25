@@ -112,12 +112,19 @@ public:
         return keysPressed.value(key, false);
     }
 
+    // 控制玩家是否可以移动（用于昏睡等状态效果）
+    void setCanMove(bool canMove) { m_canMove = canMove; }
+    bool canMove() const { return m_canMove; }
+
 signals:
 
     void playerDied(); // 玩家死亡信号
     void healthChanged(float current, float max);
 
     void playerDamaged();
+
+private:
+    bool m_canMove = true; // 是否可以移动
 
 protected:
     void focusOutEvent(QFocusEvent *event) override;

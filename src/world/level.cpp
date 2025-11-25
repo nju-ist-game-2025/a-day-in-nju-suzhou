@@ -9,6 +9,9 @@
 #include "../core/resourcefactory.h"
 #include "../entities/boss.h"
 #include "../entities/enemy.h"
+#include "../entities/clockenemy.h"
+#include "../entities/clockboom.h"
+#include "../entities/sockenemy.h"
 #include "../entities/player.h"
 #include "../entities/projectile.h"
 #include "../items/chest.h"
@@ -226,20 +229,25 @@ void Level::showStoryDialog(const QStringList &dialogs)
     m_currentDialogs = dialogs;
     m_currentDialogIndex = 0;
     QString imagePath;
-    if(m_levelNumber == 1) imagePath = "assets/galgame/l1.png";
-    else if(m_levelNumber == 2) imagePath = "assets/galgame/l2.png";
-    else imagePath = "assets/galgame/l3.png";
+    if (m_levelNumber == 1)
+        imagePath = "assets/galgame/l1.png";
+    else if (m_levelNumber == 2)
+        imagePath = "assets/galgame/l2.png";
+    else
+        imagePath = "assets/galgame/l3.png";
 
     // 检查文件是否存在
     QFile file(imagePath);
-    if (!file.exists()) {
+    if (!file.exists())
+    {
         qWarning() << "图片文件不存在:" << imagePath;
         return;
     }
 
     // 加载图片
     QPixmap bgPixmap(imagePath);
-    if (bgPixmap.isNull()) {
+    if (bgPixmap.isNull())
+    {
         qWarning() << "加载图片失败:" << imagePath;
         return;
     }
@@ -252,8 +260,10 @@ void Level::showStoryDialog(const QStringList &dialogs)
 
     // 创建对话框文本
     m_dialogText = new QGraphicsTextItem();
-    if(m_levelNumber == 2) m_dialogText->setDefaultTextColor(Qt::black);
-    else m_dialogText->setDefaultTextColor(Qt::white);
+    if (m_levelNumber == 2)
+        m_dialogText->setDefaultTextColor(Qt::black);
+    else
+        m_dialogText->setDefaultTextColor(Qt::white);
     m_dialogText->setFont(QFont("Microsoft YaHei", 14, QFont::Bold));
     m_dialogText->setTextWidth(700);
     m_dialogText->setPos(50, 420);
@@ -482,7 +492,18 @@ void Level::spawnEnemiesInRoom(int roomIndex)
 
     try
     {
-        QPixmap enemyPix = ResourceFactory::createEnemyImage(40);
+        // 根据关卡号确定敌人类型
+        QString enemyType;
+        if (m_levelNumber == 1)
+        {
+            enemyType = "clock_normal";
+        }
+        else if (m_levelNumber == 2)
+        {
+            enemyType = "sock_normal";
+        }
+
+        QPixmap enemyPix = ResourceFactory::createEnemyImage(40, m_levelNumber, enemyType);
         QPixmap bossPix = ResourceFactory::createBossImage(80);
         int enemyCount = roomCfg.enemyCount;
         bool hasBoss = roomCfg.hasBoss;
@@ -505,7 +526,8 @@ void Level::spawnEnemiesInRoom(int roomIndex)
                 y += 150;
             }
 
-            Enemy *enemy = new Enemy(enemyPix, 1.0);
+            // 根据关卡号和敌人类型创建具体的敌人实例
+            Enemy *enemy = createEnemyByType(m_levelNumber, enemyType, enemyPix, 1.0);
             enemy->setPos(x, y);
             enemy->setPlayer(m_player);
             m_scene->addItem(enemy);
@@ -513,11 +535,43 @@ void Level::spawnEnemiesInRoom(int roomIndex)
             // 使用 QPointer 存储
             QPointer<Enemy> eptr(enemy);
             m_currentEnemies.append(eptr);
-            // Room::currentEnemies 也应为 QVector<QPointer<Enemy>>
             m_rooms[roomIndex]->currentEnemies.append(eptr);
 
             connect(enemy, &Enemy::dying, this, &Level::onEnemyDying);
-            qDebug() << "创建敌人" << i << "位置:" << x << "," << y << "已连接dying信号";
+            qDebug() << "创建敌人" << enemyType << "位置:" << x << "," << y;
+        }
+
+        // 第一关的战斗房间生成clock_boom（房间k生成k-1个）
+        if (m_levelNumber == 1 && cur->isBattleRoom() && roomIndex > 0)
+        {
+            int boomCount = roomIndex - 1; // room1不生成，room2生成1个，room3生成2个...
+
+            QPixmap boomNormalPic = ResourceFactory::createEnemyImage(40, 1, "clock_boom");
+            // 红色闪烁效果会在ClockBoom构造函数中自动生成（类似Entity的flash效果）
+
+            for (int i = 0; i < boomCount; ++i)
+            {
+                int x = QRandomGenerator::global()->bounded(100, 700);
+                int y = QRandomGenerator::global()->bounded(100, 500);
+
+                if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100)
+                {
+                    x += 150;
+                    y += 150;
+                }
+
+                ClockBoom *boom = new ClockBoom(boomNormalPic, boomNormalPic, 1.0);
+                boom->setPos(x, y);
+                boom->setPlayer(m_player);
+                m_scene->addItem(boom);
+
+                QPointer<Enemy> eptr(boom);
+                m_currentEnemies.append(eptr);
+                m_rooms[roomIndex]->currentEnemies.append(eptr);
+
+                connect(boom, &Enemy::dying, this, &Level::onEnemyDying);
+                qDebug() << "创建ClockBoom，房间" << roomIndex << "，编号" << i << "，位置:" << x << "," << y;
+            }
         }
 
         if (hasBoss)
@@ -595,6 +649,33 @@ void Level::spawnChestsInRoom(int roomIndex)
     {
         qWarning() << "生成宝箱失败:" << error;
     }
+}
+
+Enemy *Level::createEnemyByType(int levelNumber, const QString &enemyType, const QPixmap &pic, double scale)
+{
+    // 根据关卡号和敌人类型创建具体的敌人实例
+    if (levelNumber == 1)
+    {
+        if (enemyType == "clock_normal")
+        {
+            return new ClockEnemy(pic, scale);
+        }
+    }
+    else if (levelNumber == 2)
+    {
+        if (enemyType == "sock_normal")
+        {
+            return new SockNormal(pic, scale);
+        }
+        else if (enemyType == "sock_angrily")
+        {
+            return new SockAngrily(pic, scale);
+        }
+    }
+
+    // 默认返回基础敌人
+    qDebug() << "未知敌人类型，使用默认Enemy:" << enemyType;
+    return new Enemy(pic, scale);
 }
 
 void Level::spawnDoors(const RoomConfig &roomCfg)
