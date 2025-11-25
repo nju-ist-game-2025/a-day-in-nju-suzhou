@@ -2,40 +2,48 @@
 #include <QDebug>
 #include <QFont>
 #include <QGraphicsScene>
+#include <QPainter>
+#include <QRadialGradient>
 #include <QRandomGenerator>
 #include "../core/audiomanager.h"
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 #include "player.h"
 
-NightmareBoss::NightmareBoss(const QPixmap& pic, double scale, QGraphicsScene* /*scene*/)
+NightmareBoss::NightmareBoss(const QPixmap &pic, double scale, QGraphicsScene * /*scene*/)
     : Boss(pic, scale),
       m_phase(1),
       m_isTransitioning(false),
       m_nightmareWrapTimer(nullptr),
       m_nightmareDescentTimer(nullptr),
       m_firstDescentTriggered(false),
+      m_forceDashing(false),
+      m_forceDashTarget(0, 0),
+      m_forceDashTimer(nullptr),
       m_shadowOverlay(nullptr),
       m_shadowText(nullptr),
-      m_shadowTimer(nullptr) {
+      m_shadowTimer(nullptr),
+      m_visionUpdateTimer(nullptr),
+      m_visionRadius(120)
+{
     // 遮罩效果使用QGraphicsItem::scene()方法获取场景
     // 参数scene保留为兼容性参数，但不需要使用
 
     // Nightmare Boss 一阶段属性
-    setHealth(350);           // Boss血量
-    setContactDamage(6);      // 接触伤害
-    setVisionRange(400);      // 视野范围
-    setAttackRange(70);       // 攻击判定范围
-    setAttackCooldown(1200);  // 攻击冷却
-    setSpeed(1.0);            // 移动速度
+    setHealth(250);          // Boss血量
+    setContactDamage(3);     // 接触伤害
+    setVisionRange(400);     // 视野范围
+    setAttackRange(70);      // 攻击判定范围
+    setAttackCooldown(1200); // 攻击冷却
+    setSpeed(1.0);           // 移动速度
 
-    crash_r = 35;       // 实际攻击范围
-    damageScale = 0.7;  // 伤害减免
+    crash_r = 35;      // 实际攻击范围
+    damageScale = 0.7; // 伤害减免
 
     // 一阶段：使用单段冲刺模式
     setMovementPattern(MOVE_DASH);
-    setDashChargeTime(1000);  // 1秒蓄力
-    setDashSpeed(6.0);        // 高速冲刺
+    setDashChargeTime(1000); // 1秒蓄力
+    setDashSpeed(6.0);       // 高速冲刺
 
     // 预加载二阶段图片（使用config中的boss尺寸）
     int bossSize = ConfigManager::instance().getSize("boss");
@@ -44,18 +52,34 @@ NightmareBoss::NightmareBoss(const QPixmap& pic, double scale, QGraphicsScene* /
     qDebug() << "Nightmare Boss创建，一阶段模式，使用单段冲刺";
 }
 
-NightmareBoss::~NightmareBoss() {
-    if (m_nightmareWrapTimer) {
+NightmareBoss::~NightmareBoss()
+{
+    if (m_nightmareWrapTimer)
+    {
         m_nightmareWrapTimer->stop();
         delete m_nightmareWrapTimer;
     }
-    if (m_nightmareDescentTimer) {
+    if (m_nightmareDescentTimer)
+    {
         m_nightmareDescentTimer->stop();
         delete m_nightmareDescentTimer;
     }
+    if (m_forceDashTimer)
+    {
+        m_forceDashTimer->stop();
+        delete m_forceDashTimer;
+        m_forceDashTimer = nullptr;
+    }
+    if (m_visionUpdateTimer)
+    {
+        m_visionUpdateTimer->stop();
+        delete m_visionUpdateTimer;
+        m_visionUpdateTimer = nullptr;
+    }
     // 清理遮罩相关资源
     hideShadowOverlay();
-    if (m_shadowTimer) {
+    if (m_shadowTimer)
+    {
         m_shadowTimer->stop();
         delete m_shadowTimer;
         m_shadowTimer = nullptr;
@@ -63,9 +87,11 @@ NightmareBoss::~NightmareBoss() {
     qDebug() << "Nightmare Boss被摧毁";
 }
 
-void NightmareBoss::takeDamage(int damage) {
-    if (m_isTransitioning) {
-        return;  // 转换期间无敌
+void NightmareBoss::takeDamage(int damage)
+{
+    if (m_isTransitioning)
+    {
+        return; // 转换期间无敌
     }
 
     // 触发闪烁效果
@@ -74,10 +100,11 @@ void NightmareBoss::takeDamage(int damage) {
     // 调用父类的伤害处理
     health -= static_cast<int>(damage * damageScale);
 
-    if (health <= 0 && m_phase == 1) {
+    if (health <= 0 && m_phase == 1)
+    {
         // 一阶段死亡 - 触发亡语
         m_isTransitioning = true;
-        health = 1;  // 保持存活，不触发dying信号
+        health = 1; // 保持存活，不触发dying信号
 
         qDebug() << "Nightmare Boss 一阶段死亡，触发亡语！";
 
@@ -85,7 +112,8 @@ void NightmareBoss::takeDamage(int damage) {
         killAllEnemies();
 
         // 对玩家造成2点伤害
-        if (player) {
+        if (player)
+        {
             player->takeDamage(2);
             qDebug() << "亡语对玩家造成2点伤害";
         }
@@ -94,25 +122,32 @@ void NightmareBoss::takeDamage(int damage) {
         showShadowOverlay("游戏还没有结束！", 3000);
 
         // 3秒后进入二阶段
-        QTimer::singleShot(3000, this, &NightmareBoss::enterPhase2);
-    } else if (health <= 0 && m_phase == 2) {
+        QTimer::singleShot(4000, this, &NightmareBoss::enterPhase2);
+    }
+    else if (health <= 0 && m_phase == 2)
+    {
         // 二阶段死亡 - 真正死亡
         qDebug() << "Nightmare Boss 二阶段被击败！";
 
         // 停止所有定时器
-        if (m_nightmareWrapTimer) {
+        if (m_nightmareWrapTimer)
+        {
             m_nightmareWrapTimer->stop();
         }
-        if (m_nightmareDescentTimer) {
+        if (m_nightmareDescentTimer)
+        {
             m_nightmareDescentTimer->stop();
         }
-        if (aiTimer) {
+        if (aiTimer)
+        {
             aiTimer->stop();
         }
-        if (moveTimer) {
+        if (moveTimer)
+        {
             moveTimer->stop();
         }
-        if (attackTimer) {
+        if (attackTimer)
+        {
             attackTimer->stop();
         }
 
@@ -123,14 +158,16 @@ void NightmareBoss::takeDamage(int damage) {
         emit dying(this);
 
         // 从场景移除并删除
-        if (scene()) {
+        if (scene())
+        {
             scene()->removeItem(this);
         }
         deleteLater();
     }
 }
 
-void NightmareBoss::enterPhase2() {
+void NightmareBoss::enterPhase2()
+{
     m_phase = 2;
     m_isTransitioning = false;
 
@@ -140,13 +177,13 @@ void NightmareBoss::enterPhase2() {
     setPixmap(m_phase2Pixmap);
 
     // 恢复满血
-    setHealth(400);  // 二阶段血量更高
+    setHealth(300); // 二阶段血量更高
 
     // 增强属性 - 仍然是单段dash但更快
-    setContactDamage(8);     // 提高接触伤害
-    setSpeed(1.5);           // 提高移动速度
-    setDashSpeed(8.0);       // 更快的冲刺
-    setDashChargeTime(700);  // 更短的蓄力时间
+    setContactDamage(6);    // 提高接触伤害
+    setSpeed(1.5);          // 提高移动速度
+    setDashSpeed(6.2);      // 更快的冲刺
+    setDashChargeTime(700); // 更短的蓄力时间
 
     // 设置二阶段技能
     setupPhase2Skills();
@@ -154,16 +191,17 @@ void NightmareBoss::enterPhase2() {
     qDebug() << "二阶段属性强化完成，获得新技能";
 }
 
-void NightmareBoss::setupPhase2Skills() {
+void NightmareBoss::setupPhase2Skills()
+{
     // 技能1：噩梦缠绕 - 每20秒自动释放
     m_nightmareWrapTimer = new QTimer(this);
-    m_nightmareWrapTimer->setInterval(20000);  // 20秒
+    m_nightmareWrapTimer->setInterval(20000); // 20秒
     connect(m_nightmareWrapTimer, &QTimer::timeout, this, &NightmareBoss::onNightmareWrapTimeout);
     m_nightmareWrapTimer->start();
 
     // 技能2：噩梦降临 - 每60秒自动释放
     m_nightmareDescentTimer = new QTimer(this);
-    m_nightmareDescentTimer->setInterval(60000);  // 60秒
+    m_nightmareDescentTimer->setInterval(60000); // 60秒
     connect(m_nightmareDescentTimer, &QTimer::timeout, this, &NightmareBoss::onNightmareDescentTimeout);
     m_nightmareDescentTimer->start();
 
@@ -173,38 +211,51 @@ void NightmareBoss::setupPhase2Skills() {
     qDebug() << "二阶段技能已激活：噩梦缠绕（每20秒），噩梦降临（首次技能1后+每60秒）";
 }
 
-void NightmareBoss::killAllEnemies() {
+void NightmareBoss::killAllEnemies()
+{
     if (!scene())
         return;
 
-    QList<QGraphicsItem*> items = scene()->items();
-    for (QGraphicsItem* item : items) {
-        Enemy* enemy = dynamic_cast<Enemy*>(item);
-        if (enemy && enemy != this) {
+    QList<QGraphicsItem *> items = scene()->items();
+    for (QGraphicsItem *item : items)
+    {
+        Enemy *enemy = dynamic_cast<Enemy *>(item);
+        if (enemy && enemy != this)
+        {
             // 直接删除小怪，不触发其dying信号
             enemy->setHealth(0);
-            emit enemy->dying(enemy);  // 确保Level能清理引用
+            emit enemy->dying(enemy); // 确保Level能清理引用
             qDebug() << "亡语击杀小怪";
         }
     }
 }
 
-void NightmareBoss::move() {
+void NightmareBoss::move()
+{
+    // 强制冲刺期间不执行普通移动（由executeForceDash单独处理）
+    if (m_forceDashing)
+    {
+        return;
+    }
+
     // 一阶段和二阶段都使用标准单段dash（二阶段只是更快）
     Enemy::move();
 }
 
-void NightmareBoss::onNightmareWrapTimeout() {
+void NightmareBoss::onNightmareWrapTimeout()
+{
     performNightmareWrap();
 }
 
-void NightmareBoss::onNightmareDescentTimeout() {
+void NightmareBoss::onNightmareDescentTimeout()
+{
     performNightmareDescent();
 }
 
-void NightmareBoss::performNightmareWrap() {
+void NightmareBoss::performNightmareWrap()
+{
     if (!player || m_phase != 2)
-        return;  // 只有二阶段才能释放
+        return; // 只有二阶段才能释放
 
     qDebug() << "释放技能1：噩梦缠绕";
 
@@ -212,7 +263,8 @@ void NightmareBoss::performNightmareWrap() {
     showShadowOverlay("噩梦缠绕！！\n（你已被剥夺视野）", 3000);
 
     // 3秒后瞬移到玩家身边
-    QTimer::singleShot(3000, this, [this]() {
+    QTimer::singleShot(3000, this, [this]()
+                       {
         if (player) {
             QPointF playerPos = player->pos();
             // 在玩家周围随机位置（距离80-150像素，保持一定距离）
@@ -247,13 +299,14 @@ void NightmareBoss::performNightmareWrap() {
         hideShadowOverlay(); });
 }
 
-void NightmareBoss::performNightmareDescent() {
+void NightmareBoss::performNightmareDescent()
+{
     if (m_phase != 2)
-        return;  // 只有二阶段才能释放
+        return; // 只有二阶段才能释放
 
     qDebug() << "释放技能2：噩梦降临";
 
-    // 梦魇暂停移动1秒
+    // 梦魇暂停移动
     pauseTimers();
     xdir = 0;
     ydir = 0;
@@ -268,35 +321,131 @@ void NightmareBoss::performNightmareDescent() {
     // 发送信号请求Level召唤敌人
     emit requestSpawnEnemies(enemiesToSpawn);
 
-    // 1秒后恢复移动
-    QTimer::singleShot(1000, this, [this]() {
+    // 1秒后开始强制冲刺
+    QTimer::singleShot(1000, this, &NightmareBoss::startForceDash);
+
+    // 2秒后恢复移动（强制冲刺会在此期间执行）
+    QTimer::singleShot(2000, this, [this]()
+                       {
         resumeTimers();
         qDebug() << "梦魇恢复移动，召唤完成"; });
 }
 
-void NightmareBoss::pauseTimers() {
+// 开始强制冲刺（噩梦降临后1秒触发）
+void NightmareBoss::startForceDash()
+{
+    if (!player)
+        return;
+
+    m_forceDashing = true;
+    m_forceDashTarget = player->pos(); // 锁定玩家当前位置
+
+    qDebug() << "噩梦降临：开始强制冲刺！目标位置:" << m_forceDashTarget;
+
+    // 创建独立的强制冲刺定时器（不受pauseTimers影响）
+    if (!m_forceDashTimer)
+    {
+        m_forceDashTimer = new QTimer(this);
+        connect(m_forceDashTimer, &QTimer::timeout, this, &NightmareBoss::executeForceDash);
+    }
+    m_forceDashTimer->start(16); // 约60fps的更新频率
+}
+
+// 执行强制冲刺每帧移动
+void NightmareBoss::executeForceDash()
+{
+    if (!m_forceDashing || !scene())
+    {
+        if (m_forceDashTimer)
+        {
+            m_forceDashTimer->stop();
+        }
+        return;
+    }
+
+    QPointF currentPos = pos();
+    double dx = m_forceDashTarget.x() - currentPos.x();
+    double dy = m_forceDashTarget.y() - currentPos.y();
+    double dist = qSqrt(dx * dx + dy * dy);
+
+    // 到达目标或距离很近时停止
+    if (dist < 15)
+    {
+        m_forceDashing = false;
+        if (m_forceDashTimer)
+        {
+            m_forceDashTimer->stop();
+        }
+        qDebug() << "噩梦降临强制冲刺完成，到达目标位置";
+        return;
+    }
+
+    // 计算移动向量（高速冲刺）
+    double dashSpeed = 15.0; // 每帧移动距离
+    double moveX = (dx / dist) * dashSpeed;
+    double moveY = (dy / dist) * dashSpeed;
+
+    // 计算新位置
+    double newX = currentPos.x() + moveX;
+    double newY = currentPos.y() + moveY;
+
+    // 边界检测
+    QRectF pixmapRect = pixmap().rect();
+    if (newX < 0)
+        newX = 0;
+    if (newX + pixmapRect.width() > 800)
+        newX = 800 - pixmapRect.width();
+    if (newY < 0)
+        newY = 0;
+    if (newY + pixmapRect.height() > 600)
+        newY = 600 - pixmapRect.height();
+
+    // 直接设置位置（绕过Entity::setPos的翻转逻辑）
+    QGraphicsItem::setPos(newX, newY);
+
+    // 更新朝向
+    if (qAbs(dx) > qAbs(dy))
+    {
+        curr_xdir = (dx > 0) ? 1 : -1;
+        curr_ydir = 0;
+    }
+    else
+    {
+        curr_xdir = 0;
+        curr_ydir = (dy > 0) ? 1 : -1;
+    }
+}
+
+void NightmareBoss::pauseTimers()
+{
     // 调用父类的暂停方法
     Boss::pauseTimers();
 
     // 暂停二阶段技能定时器
-    if (m_nightmareWrapTimer && m_nightmareWrapTimer->isActive()) {
+    if (m_nightmareWrapTimer && m_nightmareWrapTimer->isActive())
+    {
         m_nightmareWrapTimer->stop();
     }
-    if (m_nightmareDescentTimer && m_nightmareDescentTimer->isActive()) {
+    if (m_nightmareDescentTimer && m_nightmareDescentTimer->isActive())
+    {
         m_nightmareDescentTimer->stop();
     }
 }
 
-void NightmareBoss::resumeTimers() {
+void NightmareBoss::resumeTimers()
+{
     // 调用父类的恢复方法
     Boss::resumeTimers();
 
     // 恢复二阶段技能定时器（只有在二阶段才恢复）
-    if (m_phase == 2) {
-        if (m_nightmareWrapTimer) {
+    if (m_phase == 2)
+    {
+        if (m_nightmareWrapTimer)
+        {
             m_nightmareWrapTimer->start(20000);
         }
-        if (m_nightmareDescentTimer) {
+        if (m_nightmareDescentTimer)
+        {
             m_nightmareDescentTimer->start(60000);
         }
     }
@@ -304,33 +453,65 @@ void NightmareBoss::resumeTimers() {
 
 // ============== 遮罩效果方法 ==============
 
-void NightmareBoss::showShadowOverlay(const QString& text, int duration) {
-    if (!scene())
+// 创建带有玩家视野圆形区域的遮罩（使用shadow.png作为背景）
+QPixmap NightmareBoss::createShadowWithVision(const QPointF &playerPos)
+{
+    // 创建一个带有alpha通道的结果图片
+    QPixmap result(800, 600);
+    result.fill(Qt::transparent); // 先填充透明
+
+    // 加载shadow.png图片作为遮罩背景
+    QPixmap shadowPixmap("assets/boss/Nightmare/shadow.png");
+    if (shadowPixmap.isNull())
+    {
+        qWarning() << "无法加载shadow.png，使用黑色矩形代替";
+        shadowPixmap = QPixmap(800, 600);
+        shadowPixmap.fill(QColor(0, 0, 0, 220));
+    }
+    else
+    {
+        // 缩放到全屏大小
+        shadowPixmap = shadowPixmap.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    }
+
+    // 第一步：将shadow.png绘制到result上
+    QPainter painter(&result);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.drawPixmap(0, 0, shadowPixmap);
+
+    // 第二步：在玩家位置"挖"一个透明的圆形区域
+    // 使用CompositionMode_Clear直接清除该区域为完全透明
+    painter.setCompositionMode(QPainter::CompositionMode_Clear);
+    painter.setBrush(Qt::SolidPattern);
+    painter.setPen(Qt::NoPen);
+    painter.drawEllipse(playerPos, m_visionRadius, m_visionRadius);
+
+    painter.end();
+
+    return result;
+}
+
+void NightmareBoss::showShadowOverlay(const QString &text, int duration)
+{
+    if (!scene() || !player)
         return;
 
     // 如果已有遮罩，先清理
     hideShadowOverlay();
 
-    // 加载shadow.png图片
-    QPixmap shadowPixmap("assets/boss/Nightmare/shadow.png");
-    if (shadowPixmap.isNull()) {
-        qWarning() << "无法加载shadow.png，使用黑色矩形代替";
-        // 创建黑色半透明矩形
-        shadowPixmap = QPixmap(800, 600);
-        shadowPixmap.fill(QColor(0, 0, 0, 200));
-    } else {
-        // 缩放到全屏大小
-        shadowPixmap = shadowPixmap.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-    }
+    // 获取玩家位置并创建带视野的遮罩
+    QPointF playerPos = player->pos() + QPointF(30, 30); // 调整到玩家中心
+    QPixmap shadowPixmap = createShadowWithVision(playerPos);
 
     // 创建遮罩
     m_shadowOverlay = new QGraphicsPixmapItem(shadowPixmap);
     m_shadowOverlay->setPos(0, 0);
-    m_shadowOverlay->setZValue(10000);  // 最高层级
+    m_shadowOverlay->setZValue(10000); // 最高层级
     scene()->addItem(m_shadowOverlay);
 
     // 如果有文字，显示白色文字
-    if (!text.isEmpty()) {
+    if (!text.isEmpty())
+    {
         m_shadowText = new QGraphicsTextItem(text);
         m_shadowText->setDefaultTextColor(Qt::white);
         m_shadowText->setFont(QFont("Arial", 24, QFont::Bold));
@@ -342,11 +523,21 @@ void NightmareBoss::showShadowOverlay(const QString& text, int duration) {
         scene()->addItem(m_shadowText);
     }
 
-    qDebug() << "显示遮罩，文字:" << text << "持续时间:" << duration << "ms";
+    // 启动视野更新定时器（跟随玩家位置）
+    if (!m_visionUpdateTimer)
+    {
+        m_visionUpdateTimer = new QTimer(this);
+        connect(m_visionUpdateTimer, &QTimer::timeout, this, &NightmareBoss::updateShadowVision);
+    }
+    m_visionUpdateTimer->start(50); // 每50ms更新一次视野位置
+
+    qDebug() << "显示遮罩（带玩家视野），文字:" << text << "持续时间:" << duration << "ms";
 
     // 如果指定了持续时间，设置定时器自动隐藏
-    if (duration > 0) {
-        if (!m_shadowTimer) {
+    if (duration > 0)
+    {
+        if (!m_shadowTimer)
+        {
             m_shadowTimer = new QTimer(this);
             m_shadowTimer->setSingleShot(true);
             connect(m_shadowTimer, &QTimer::timeout, this, &NightmareBoss::hideShadowOverlay);
@@ -355,24 +546,48 @@ void NightmareBoss::showShadowOverlay(const QString& text, int duration) {
     }
 }
 
-void NightmareBoss::hideShadowOverlay() {
-    if (m_shadowOverlay) {
-        if (scene()) {
+// 更新玩家视野区域（跟随玩家移动）
+void NightmareBoss::updateShadowVision()
+{
+    if (!m_shadowOverlay || !player || !scene())
+        return;
+
+    // 获取玩家当前位置并重新生成遮罩
+    QPointF playerPos = player->pos() + QPointF(30, 30); // 调整到玩家中心
+    QPixmap newShadow = createShadowWithVision(playerPos);
+    m_shadowOverlay->setPixmap(newShadow);
+}
+
+void NightmareBoss::hideShadowOverlay()
+{
+    // 停止视野更新定时器
+    if (m_visionUpdateTimer)
+    {
+        m_visionUpdateTimer->stop();
+    }
+
+    if (m_shadowOverlay)
+    {
+        if (scene())
+        {
             scene()->removeItem(m_shadowOverlay);
         }
         delete m_shadowOverlay;
         m_shadowOverlay = nullptr;
     }
 
-    if (m_shadowText) {
-        if (scene()) {
+    if (m_shadowText)
+    {
+        if (scene())
+        {
             scene()->removeItem(m_shadowText);
         }
         delete m_shadowText;
         m_shadowText = nullptr;
     }
 
-    if (m_shadowTimer) {
+    if (m_shadowTimer)
+    {
         m_shadowTimer->stop();
     }
 
