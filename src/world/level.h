@@ -72,6 +72,7 @@ private:
     QTimer *checkChange;
     int visited_count;
     QTimer *m_levelTextTimer; // 追踪关卡文字显示的定时器
+    QGraphicsPixmapItem* m_textBackground;  // 新增：渐变文字背景
 
     // galgame相关
     QGraphicsPixmapItem *m_dialogBox;

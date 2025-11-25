@@ -258,29 +258,44 @@ void Level::showStoryDialog(const QStringList &dialogs)
     m_dialogBox->setZValue(10000);
     m_scene->addItem(m_dialogBox);
 
+    QPixmap gradientPixmap(800, 250);
+    gradientPixmap.fill(Qt::transparent);
+
+    QPainter painter(&gradientPixmap);
+    QLinearGradient gradient(0, 0, 0, 250);
+    gradient.setColorAt(0.0, QColor(0, 0, 0, 0));      // 顶部完全透明
+    gradient.setColorAt(0.3, QColor(0, 0, 0, 160));     // 渐变为半透明
+    gradient.setColorAt(0.7, QColor(0, 0, 0, 200));    // 中间更深的半透明
+    gradient.setColorAt(1.0, QColor(0, 0, 0, 250));    // 底部最深的半透明
+
+    painter.fillRect(0, 0, 800, 250, gradient);
+    painter.end();
+
+    m_textBackground = new QGraphicsPixmapItem(gradientPixmap);
+    m_textBackground->setPos(0, 350);
+    m_textBackground->setZValue(10001);
+    m_scene->addItem(m_textBackground);
+
     // 创建对话框文本
     m_dialogText = new QGraphicsTextItem();
-    if (m_levelNumber == 2)
-        m_dialogText->setDefaultTextColor(Qt::black);
-    else
-        m_dialogText->setDefaultTextColor(Qt::white);
-    m_dialogText->setFont(QFont("Microsoft YaHei", 14, QFont::Bold));
+    m_dialogText->setDefaultTextColor(Qt::white);
+    m_dialogText->setFont(QFont("Microsoft YaHei", 16, QFont::Bold));
     m_dialogText->setTextWidth(700);
-    m_dialogText->setPos(50, 420);
-    m_dialogText->setZValue(10001);
+    m_dialogText->setPos(50, 400);
+    m_dialogText->setZValue(10002);
     m_scene->addItem(m_dialogText);
 
     // 创建继续提示
     m_continueHint = new QGraphicsTextItem("点击或按Enter键继续...");
     m_continueHint->setDefaultTextColor(QColor(255, 255, 255, 180));
     m_continueHint->setFont(QFont("Microsoft YaHei", 12, QFont::Light));
-    m_continueHint->setPos(600, 550);
-    m_continueHint->setZValue(10001);
+    m_continueHint->setPos(580, 550);
+    m_continueHint->setZValue(10002);
     m_scene->addItem(m_continueHint);
 
-    // 让对话框可点击
-    m_dialogBox->setFlag(QGraphicsItem::ItemIsFocusable);
-    m_dialogBox->setAcceptHoverEvents(true);
+    // 让渐变背景可点击
+    m_textBackground->setFlag(QGraphicsItem::ItemIsFocusable);
+    m_textBackground->setAcceptHoverEvents(true);
 
     // 先移除旧的事件过滤器（如果存在），再安装新的
     m_scene->removeEventFilter(this);
@@ -308,6 +323,13 @@ void Level::nextDialog()
 void Level::finishStory()
 {
     qDebug() << "剧情播放完毕";
+
+    // 清理渐变背景
+    if (m_textBackground) {
+        m_scene->removeItem(m_textBackground);
+        delete m_textBackground;
+        m_textBackground = nullptr;
+    }
 
     // 移除事件过滤器
     if (m_scene)
@@ -389,12 +411,12 @@ void Level::showLevelStartText(LevelConfig &config)
 {
     QGraphicsTextItem *levelTextItem = new QGraphicsTextItem(QString(config.getLevelName()));
     levelTextItem->setDefaultTextColor(Qt::red);
-    levelTextItem->setFont(QFont("Arial", 28, QFont::Bold));
+    levelTextItem->setFont(QFont("Arial", 36, QFont::Bold));
 
     int sceneWidth = 800;
     int sceneHeight = 600;
-    levelTextItem->setPos(sceneWidth / 2 - 150, sceneHeight / 2 - 30);
-    levelTextItem->setZValue(10000);
+    levelTextItem->setPos(sceneWidth / 2 - 200, sceneHeight / 2 - 60);
+    levelTextItem->setZValue(10010);
     m_scene->addItem(levelTextItem);
     m_scene->update();
     qDebug() << "文字项已添加到场景，Z值:" << levelTextItem->zValue();
@@ -492,94 +514,90 @@ void Level::spawnEnemiesInRoom(int roomIndex)
 
     try
     {
-        bool hasBoss = roomCfg.hasBoss;
-        Room *cur = m_rooms[roomIndex];
-
-        // 计算总敌人数量（用于判断是否打开门）
-        int totalEnemyCount = 0;
-        for (const EnemySpawnConfig &enemyCfg : roomCfg.enemies)
+        // 根据关卡号确定敌人类型
+        QString enemyType;
+        if (m_levelNumber == 1)
         {
-            totalEnemyCount += enemyCfg.count;
+            enemyType = "clock_normal";
+        }
+        else if (m_levelNumber == 2)
+        {
+            enemyType = "sock_normal";
         }
 
+        QPixmap enemyPix = ResourceFactory::createEnemyImage(40, m_levelNumber, enemyType);
+        QPixmap bossPix = ResourceFactory::createBossImage(80);
+        int enemyCount = roomCfg.enemyCount;
+        bool hasBoss = roomCfg.hasBoss;
+
+        Room *cur = m_rooms[roomIndex];
         // 如果没有敌人且不是战斗房间，或者战斗已经结束，则打开门
-        if (totalEnemyCount == 0 && (!cur->isBattleRoom() || cur->isBattleStarted()))
+        if (enemyCount == 0 && (!cur->isBattleRoom() || cur->isBattleStarted()))
         {
             openDoors(cur);
         }
 
-        // 根据配置生成各种类型的敌人
-        for (const EnemySpawnConfig &enemyCfg : roomCfg.enemies)
+        for (int i = 0; i < enemyCount; ++i)
         {
-            QString enemyType = enemyCfg.type;
-            int count = enemyCfg.count;
+            int x = QRandomGenerator::global()->bounded(100, 700);
+            int y = QRandomGenerator::global()->bounded(100, 500);
 
-            // 特殊处理ClockBoom类型
-            if (enemyType == "clock_boom")
+            if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100)
             {
-                QPixmap boomNormalPic = ResourceFactory::createEnemyImage(40, m_levelNumber, "clock_boom");
-
-                for (int i = 0; i < count; ++i)
-                {
-                    int x = QRandomGenerator::global()->bounded(100, 700);
-                    int y = QRandomGenerator::global()->bounded(100, 500);
-
-                    if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100)
-                    {
-                        x += 150;
-                        y += 150;
-                    }
-
-                    ClockBoom *boom = new ClockBoom(boomNormalPic, boomNormalPic, 1.0);
-                    boom->setPos(x, y);
-                    boom->setPlayer(m_player);
-                    m_scene->addItem(boom);
-
-                    QPointer<Enemy> eptr(boom);
-                    m_currentEnemies.append(eptr);
-                    m_rooms[roomIndex]->currentEnemies.append(eptr);
-
-                    connect(boom, &Enemy::dying, this, &Level::onEnemyDying);
-                    qDebug() << "创建ClockBoom，房间" << roomIndex << "，编号" << i << "，位置:" << x << "," << y;
-                }
+                x += 150;
+                y += 150;
             }
-            else
+
+            // 根据关卡号和敌人类型创建具体的敌人实例
+            Enemy *enemy = createEnemyByType(m_levelNumber, enemyType, enemyPix, 1.0);
+            enemy->setPos(x, y);
+            enemy->setPlayer(m_player);
+            m_scene->addItem(enemy);
+
+            // 使用 QPointer 存储
+            QPointer<Enemy> eptr(enemy);
+            m_currentEnemies.append(eptr);
+            m_rooms[roomIndex]->currentEnemies.append(eptr);
+
+            connect(enemy, &Enemy::dying, this, &Level::onEnemyDying);
+            qDebug() << "创建敌人" << enemyType << "位置:" << x << "," << y;
+        }
+
+        // 第一关的战斗房间生成clock_boom（房间k生成k-1个）
+        if (m_levelNumber == 1 && cur->isBattleRoom() && roomIndex > 0)
+        {
+            int boomCount = roomIndex - 1; // room1不生成，room2生成1个，room3生成2个...
+
+            QPixmap boomNormalPic = ResourceFactory::createEnemyImage(40, 1, "clock_boom");
+            // 红色闪烁效果会在ClockBoom构造函数中自动生成（类似Entity的flash效果）
+
+            for (int i = 0; i < boomCount; ++i)
             {
-                // 普通敌人生成
-                QPixmap enemyPix = ResourceFactory::createEnemyImage(40, m_levelNumber, enemyType);
+                int x = QRandomGenerator::global()->bounded(100, 700);
+                int y = QRandomGenerator::global()->bounded(100, 500);
 
-                for (int i = 0; i < count; ++i)
+                if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100)
                 {
-                    int x = QRandomGenerator::global()->bounded(100, 700);
-                    int y = QRandomGenerator::global()->bounded(100, 500);
-
-                    if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100)
-                    {
-                        x += 150;
-                        y += 150;
-                    }
-
-                    // 根据关卡号和敌人类型创建具体的敌人实例
-                    Enemy *enemy = createEnemyByType(m_levelNumber, enemyType, enemyPix, 1.0);
-                    enemy->setPos(x, y);
-                    enemy->setPlayer(m_player);
-                    m_scene->addItem(enemy);
-
-                    // 使用 QPointer 存储
-                    QPointer<Enemy> eptr(enemy);
-                    m_currentEnemies.append(eptr);
-                    m_rooms[roomIndex]->currentEnemies.append(eptr);
-
-                    connect(enemy, &Enemy::dying, this, &Level::onEnemyDying);
-                    qDebug() << "创建敌人" << enemyType << "位置:" << x << "," << y;
+                    x += 150;
+                    y += 150;
                 }
+
+                ClockBoom *boom = new ClockBoom(boomNormalPic, boomNormalPic, 1.0);
+                boom->setPos(x, y);
+                boom->setPlayer(m_player);
+                m_scene->addItem(boom);
+
+                QPointer<Enemy> eptr(boom);
+                m_currentEnemies.append(eptr);
+                m_rooms[roomIndex]->currentEnemies.append(eptr);
+
+                connect(boom, &Enemy::dying, this, &Level::onEnemyDying);
+                qDebug() << "创建ClockBoom，房间" << roomIndex << "，编号" << i << "，位置:" << x << "," << y;
             }
         }
 
         if (hasBoss)
         {
-            QPixmap bossPix = ResourceFactory::createBossImage(80);
-
             int x = QRandomGenerator::global()->bounded(100, 700);
             int y = QRandomGenerator::global()->bounded(100, 500);
 
