@@ -120,7 +120,7 @@ public:
      * @brief 加载Boss图像
      * @param size 图片尺寸
      * @param levelNumber 关卡号
-     * @param bossType Boss类型名称（如 "nightmare", "washmachine"）
+     * @param bossType Boss类型名称（如 "nightmare", "nightmare2", "washmachine"）
      * @throws QString 加载失败时抛出错误信息
      */
     static QPixmap createBossImage(int size, int levelNumber = 1, const QString &bossType = "")
@@ -133,6 +133,10 @@ public:
             if (bossType == "nightmare")
             {
                 imagePath = "assets/boss/Nightmare/Nightmare.png";
+            }
+            else if (bossType == "nightmare2")
+            {
+                imagePath = "assets/boss/Nightmare/Nightmare2.png";
             }
             else if (bossType == "washmachine")
             {

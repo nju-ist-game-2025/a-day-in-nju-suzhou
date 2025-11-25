@@ -7,30 +7,34 @@
 #include "../ui/explosion.h"
 #include "player.h"
 
-ClockBoom::ClockBoom(const QPixmap& normalPic, const QPixmap& redPic, double scale)
-    : Enemy(normalPic, scale), m_triggered(false), m_exploded(false), m_normalPixmap(normalPic.scaled(normalPic.width() * scale, normalPic.height() * scale, Qt::KeepAspectRatio, Qt::SmoothTransformation)), m_redPixmap(redPic.scaled(redPic.width() * scale, redPic.height() * scale, Qt::KeepAspectRatio, Qt::SmoothTransformation)), m_isRed(false) {
+ClockBoom::ClockBoom(const QPixmap &normalPic, const QPixmap &redPic, double scale)
+    : Enemy(normalPic, scale), m_triggered(false), m_exploded(false), m_normalPixmap(normalPic.scaled(normalPic.width() * scale, normalPic.height() * scale, Qt::KeepAspectRatio, Qt::SmoothTransformation)), m_redPixmap(redPic.scaled(redPic.width() * scale, redPic.height() * scale, Qt::KeepAspectRatio, Qt::SmoothTransformation)), m_isRed(false)
+{
     // ClockBoom的特殊属性
-    setHealth(5);         // 5点血，可以被攻击摧毁
-    setContactDamage(0);  // 碰撞不造成伤害
-    setVisionRange(0);    // 无视野
-    setAttackRange(0);    // 无攻击范围
-    setSpeed(0);          // 不移动
+    setHealth(5);        // 5点血，可以被攻击摧毁
+    setContactDamage(0); // 碰撞不造成伤害
+    setVisionRange(0);   // 无视野
+    setAttackRange(0);   // 无攻击范围
+    setSpeed(0);         // 不移动
 
     // 停止所有继承的定时器（因为不需要移动、AI和攻击检测）
-    if (aiTimer) {
+    if (aiTimer)
+    {
         aiTimer->stop();
     }
-    if (moveTimer) {
+    if (moveTimer)
+    {
         moveTimer->stop();
     }
-    if (attackTimer) {
+    if (attackTimer)
+    {
         attackTimer->stop();
     }
 
     // 创建独立的碰撞检测定时器
     m_collisionTimer = new QTimer(this);
     connect(m_collisionTimer, &QTimer::timeout, this, &ClockBoom::onCollisionCheck);
-    m_collisionTimer->start(50);  // 每50ms检测一次碰撞
+    m_collisionTimer->start(50); // 每50ms检测一次碰撞
 
     // 创建闪烁定时器（倒计时闪烁）
     m_blinkTimer = new QTimer(this);
@@ -52,34 +56,41 @@ ClockBoom::ClockBoom(const QPixmap& normalPic, const QPixmap& redPic, double sca
     setFlag(QGraphicsItem::ItemIsSelectable, false);
 }
 
-ClockBoom::~ClockBoom() {
-    if (m_collisionTimer) {
+ClockBoom::~ClockBoom()
+{
+    if (m_collisionTimer)
+    {
         m_collisionTimer->stop();
         delete m_collisionTimer;
         m_collisionTimer = nullptr;
     }
-    if (m_blinkTimer) {
+    if (m_blinkTimer)
+    {
         m_blinkTimer->stop();
         delete m_blinkTimer;
         m_blinkTimer = nullptr;
     }
-    if (m_explodeTimer) {
+    if (m_explodeTimer)
+    {
         m_explodeTimer->stop();
         delete m_explodeTimer;
         m_explodeTimer = nullptr;
     }
 }
 
-void ClockBoom::move() {
+void ClockBoom::move()
+{
     // ClockBoom不移动
     return;
 }
 
-void ClockBoom::onCollisionCheck() {
+void ClockBoom::onCollisionCheck()
+{
     checkCollisionWithPlayer();
 }
 
-void ClockBoom::checkCollisionWithPlayer() {
+void ClockBoom::checkCollisionWithPlayer()
+{
     if (m_triggered || m_exploded)
         return;
 
@@ -87,10 +98,12 @@ void ClockBoom::checkCollisionWithPlayer() {
         return;
 
     // 检测与玩家的碰撞
-    QList<QGraphicsItem*> collisions = collidingItems();
-    for (QGraphicsItem* item : collisions) {
-        Player* p = dynamic_cast<Player*>(item);
-        if (p) {
+    QList<QGraphicsItem *> collisions = collidingItems();
+    for (QGraphicsItem *item : collisions)
+    {
+        Player *p = dynamic_cast<Player *>(item);
+        if (p)
+        {
             // 首次碰撞，触发倒计时
             startCountdown();
             break;
@@ -98,17 +111,28 @@ void ClockBoom::checkCollisionWithPlayer() {
     }
 }
 
-void ClockBoom::attackPlayer() {
+void ClockBoom::attackPlayer()
+{
     // ClockBoom不使用常规攻击系统，使用独立的碰撞检测
     // 此方法为空实现，避免基类调用
     return;
 }
 
-void ClockBoom::startCountdown() {
+void ClockBoom::triggerCountdown()
+{
+    if (!m_triggered)
+    {
+        startCountdown();
+    }
+}
+
+void ClockBoom::startCountdown()
+{
     m_triggered = true;
 
     // 停止碰撞检测定时器（已触发，不需要再检测）
-    if (m_collisionTimer) {
+    if (m_collisionTimer)
+    {
         m_collisionTimer->stop();
     }
 
@@ -119,33 +143,41 @@ void ClockBoom::startCountdown() {
     m_explodeTimer->start(2500);
 }
 
-void ClockBoom::onBlinkTimeout() {
+void ClockBoom::onBlinkTimeout()
+{
     toggleBlink();
 }
 
-void ClockBoom::toggleBlink() {
+void ClockBoom::toggleBlink()
+{
     m_isRed = !m_isRed;
-    if (m_isRed) {
+    if (m_isRed)
+    {
         // 显示红色闪烁版本（类似受击效果）
         QGraphicsPixmapItem::setPixmap(m_redPixmap);
-    } else {
+    }
+    else
+    {
         // 显示普通版本
         QGraphicsPixmapItem::setPixmap(m_normalPixmap);
     }
 }
 
-void ClockBoom::onExplodeTimeout() {
+void ClockBoom::onExplodeTimeout()
+{
     explode();
 }
 
-void ClockBoom::explode() {
+void ClockBoom::explode()
+{
     if (m_exploded)
         return;
 
     m_exploded = true;
 
     // 停止闪烁
-    if (m_blinkTimer) {
+    if (m_blinkTimer)
+    {
         m_blinkTimer->stop();
     }
 
@@ -156,8 +188,9 @@ void ClockBoom::explode() {
     AudioManager::instance().playSound("enemy_death");
 
     // 创建爆炸动画
-    if (scene()) {
-        Explosion* explosion = new Explosion();
+    if (scene())
+    {
+        Explosion *explosion = new Explosion();
         explosion->setPos(this->pos());
         scene()->addItem(explosion);
         explosion->startAnimation();
@@ -166,26 +199,29 @@ void ClockBoom::explode() {
     // 发出dying信号并删除自己
     emit dying(this);
 
-    if (scene()) {
+    if (scene())
+    {
         scene()->removeItem(this);
     }
 
     deleteLater();
 }
 
-void ClockBoom::damageNearbyEntities() {
+void ClockBoom::damageNearbyEntities()
+{
     if (!scene())
         return;
 
-    const double explosionRadius = 200.0;  // 爆炸范围
+    const double explosionRadius = 200.0; // 爆炸范围
     QPointF bombPos = pos();
 
     // 使用空间查询代替遍历所有物品，大幅提升性能
     QRectF searchRect(bombPos.x() - explosionRadius, bombPos.y() - explosionRadius,
                       explosionRadius * 2, explosionRadius * 2);
-    QList<QGraphicsItem*> nearbyItems = scene()->items(searchRect);
+    QList<QGraphicsItem *> nearbyItems = scene()->items(searchRect);
 
-    for (QGraphicsItem* item : nearbyItems) {
+    for (QGraphicsItem *item : nearbyItems)
+    {
         // 跳过自己
         if (item == this)
             continue;
@@ -201,14 +237,16 @@ void ClockBoom::damageNearbyEntities() {
             continue;
 
         // 检查玩家
-        if (Player* p = dynamic_cast<Player*>(item)) {
+        if (Player *p = dynamic_cast<Player *>(item))
+        {
             p->forceTakeDamage(2);
             qDebug() << "ClockBoom对玩家造成2点强制伤害";
             continue;
         }
 
         // 检查其他敌人
-        if (Enemy* enemy = dynamic_cast<Enemy*>(item)) {
+        if (Enemy *enemy = dynamic_cast<Enemy *>(item))
+        {
             enemy->takeDamage(3);
         }
     }

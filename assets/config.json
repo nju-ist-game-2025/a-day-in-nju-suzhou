@@ -17,6 +17,7 @@
     "sizes": {
         "player": 60,
         "enemy": 40,
+        "boss": 150,
         "bullet": 50,
         "chest": 40
     },

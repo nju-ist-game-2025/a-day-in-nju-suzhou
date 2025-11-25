@@ -3,10 +3,16 @@
 
 #include "boss.h"
 #include <QPixmap>
+#include <QTimer>
+
+class QGraphicsPixmapItem;
+class QGraphicsTextItem;
 
 /**
  * @brief Nightmare Boss - 第一关的特殊Boss
- * 暂时使用洗衣机的基础属性以便调试
+ * 一阶段：单段dash
+ * 死亡时：亡语触发进入二阶段
+ * 二阶段：单段dash（更快） + 两个技能
  */
 class NightmareBoss : public Boss
 {
@@ -16,12 +22,38 @@ public:
     explicit NightmareBoss(const QPixmap &pic, double scale = 1.5);
     ~NightmareBoss() override;
 
-    // 可以在这里添加Nightmare特有的行为和属性
-    // 例如：特殊攻击模式、阶段变化等
+    void takeDamage(int damage) override; // 重写伤害处理，实现亡语
+    void move() override;                 // 重写移动
+
+signals:
+    void phase1DeathTriggered();                                           // 一阶段死亡信号
+    void requestShowShadowOverlay(const QString &text, int duration);      // 请求显示遮罩
+    void requestHideShadowOverlay();                                       // 请求隐藏遮罩
+    void requestSpawnEnemies(const QVector<QPair<QString, int>> &enemies); // 请求召唤敌人
 
 private:
-    // Nightmare特有的属性
-    int m_phase; // 战斗阶段（预留用于多阶段boss）
+    // 阶段管理
+    int m_phase;            // 当前阶段（1或2）
+    bool m_isTransitioning; // 是否正在阶段转换中
+    QPixmap m_phase2Pixmap; // 二阶段图片
+
+    // 技能1：噩梦缠绕（每20秒）
+    QTimer *m_nightmareWrapTimer;
+
+    // 技能2：噩梦降临（每60秒）
+    QTimer *m_nightmareDescentTimer;
+    bool m_firstDescentTriggered; // 首次技能2是否已触发
+
+    // 私有方法
+    void enterPhase2();             // 进入二阶段
+    void setupPhase2Skills();       // 设置二阶段技能
+    void performNightmareWrap();    // 执行噩梦缠绕
+    void performNightmareDescent(); // 执行噩梦降临
+    void killAllEnemies();          // 击杀场上所有小怪
+
+private slots:
+    void onNightmareWrapTimeout();    // 噩梦缠绕定时触发
+    void onNightmareDescentTimeout(); // 噩梦降临定时触发
 };
 
 #endif // NIGHTMAREBOSS_H

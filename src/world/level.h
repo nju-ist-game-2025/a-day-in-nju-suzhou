@@ -70,6 +70,13 @@ private:
     // Boss工厂方法：根据关卡号创建对应的Boss实例
     Boss *createBossByLevel(int levelNumber, const QPixmap &pic, double scale);
 
+    // Nightmare Boss 遮罩效果
+    void showShadowOverlay(const QString &text, int duration);
+    void hideShadowOverlay();
+
+    // Nightmare Boss 召唤敌人
+    void spawnEnemiesForBoss(const QVector<QPair<QString, int>> &enemies);
+
     int m_levelNumber;
     QVector<Room *> m_rooms;
     int m_currentRoomIndex;
@@ -98,6 +105,11 @@ private:
     int m_currentDialogIndex;
     bool m_isStoryFinished;
     bool m_isBossDialog; // 标记当前是否为boss对话
+
+    // Nightmare Boss 遮罩效果相关
+    QGraphicsPixmapItem *m_shadowOverlay;
+    QGraphicsTextItem *m_shadowText;
+    QTimer *m_shadowTimer;
 
 public slots:
     void onDialogClicked();

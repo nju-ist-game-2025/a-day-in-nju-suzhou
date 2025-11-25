@@ -3,6 +3,7 @@
 #include <QGraphicsScene>
 #include <QMessageBox>
 #include <QPointer>
+#include <QPropertyAnimation>
 #include <QRandomGenerator>
 #include "../core/audiomanager.h"
 #include "../core/configmanager.h"
@@ -38,7 +39,10 @@ Level::Level(Player *player, QGraphicsScene *scene, QObject *parent)
       m_continueHint(nullptr),
       m_currentDialogIndex(0),
       m_isStoryFinished(false),
-      m_isBossDialog(false)
+      m_isBossDialog(false),
+      m_shadowOverlay(nullptr),
+      m_shadowText(nullptr),
+      m_shadowTimer(nullptr)
 {
 }
 
@@ -83,6 +87,28 @@ Level::~Level()
             m_scene->removeItem(m_continueHint);
         delete m_continueHint;
         m_continueHint = nullptr;
+    }
+
+    // 清理遮罩相关UI
+    if (m_shadowOverlay)
+    {
+        if (m_scene)
+            m_scene->removeItem(m_shadowOverlay);
+        delete m_shadowOverlay;
+        m_shadowOverlay = nullptr;
+    }
+    if (m_shadowText)
+    {
+        if (m_scene)
+            m_scene->removeItem(m_shadowText);
+        delete m_shadowText;
+        m_shadowText = nullptr;
+    }
+    if (m_shadowTimer)
+    {
+        m_shadowTimer->stop();
+        delete m_shadowTimer;
+        m_shadowTimer = nullptr;
     }
 
     if (checkChange)
@@ -709,8 +735,9 @@ void Level::spawnEnemiesInRoom(int roomIndex)
                 bossType = "washmachine";
             }
 
-            // 加载对应的Boss图片
-            QPixmap bossPix = ResourceFactory::createBossImage(80, m_levelNumber, bossType);
+            // 加载对应的Boss图片（使用config中的boss尺寸）
+            int bossSize = ConfigManager::instance().getSize("boss");
+            QPixmap bossPix = ResourceFactory::createBossImage(bossSize, m_levelNumber, bossType);
 
             int x = QRandomGenerator::global()->bounded(100, 700);
             int y = QRandomGenerator::global()->bounded(100, 500);
@@ -817,29 +844,49 @@ Enemy *Level::createEnemyByType(int levelNumber, const QString &enemyType, const
 
 Boss *Level::createBossByLevel(int levelNumber, const QPixmap &pic, double scale)
 {
+    Boss *boss = nullptr;
+
     // 根据关卡号创建对应的Boss
     switch (levelNumber)
     {
     case 1:
+    {
         // 第一关：Nightmare Boss
         qDebug() << "创建Nightmare Boss（第一关）";
-        return new NightmareBoss(pic, scale);
+        NightmareBoss *nightmareBoss = new NightmareBoss(pic, scale);
+
+        // 连接Nightmare Boss的特殊信号
+        connect(nightmareBoss, &NightmareBoss::requestShowShadowOverlay,
+                this, &Level::showShadowOverlay);
+        connect(nightmareBoss, &NightmareBoss::requestHideShadowOverlay,
+                this, &Level::hideShadowOverlay);
+        connect(nightmareBoss, &NightmareBoss::requestSpawnEnemies,
+                this, &Level::spawnEnemiesForBoss);
+
+        boss = nightmareBoss;
+        break;
+    }
 
     case 2:
         // 第二关：WashMachine Boss
         qDebug() << "创建WashMachine Boss（第二关）";
-        return new WashMachineBoss(pic, scale);
+        boss = new WashMachineBoss(pic, scale);
+        break;
 
     case 3:
         // 第三关：WashMachine Boss
         qDebug() << "创建WashMachine Boss（第三关）";
-        return new WashMachineBoss(pic, scale);
+        boss = new WashMachineBoss(pic, scale);
+        break;
 
     default:
         // 默认Boss
         qDebug() << "使用默认Boss";
-        return new Boss(pic, scale);
+        boss = new Boss(pic, scale);
+        break;
     }
+
+    return boss;
 }
 
 void Level::spawnDoors(const RoomConfig &roomCfg)
@@ -1109,13 +1156,19 @@ void Level::clearCurrentRoomEntities()
     {
         m_scene->setBackgroundBrush(QBrush()); // 设置为空画刷
     }
+
+    // 清理遮罩相关UI（如果NightmareBoss正在显示遮罩）
+    hideShadowOverlay();
+
     // Delete all entities completely (used when resetting level)
     for (QPointer<Enemy> enemyPtr : m_currentEnemies)
     {
         Enemy *enemy = enemyPtr.data();
         if (enemy)
         {
+            // 断开所有信号连接
             disconnect(enemy, nullptr, this, nullptr);
+            disconnect(enemy, nullptr, nullptr, nullptr);
         }
         for (Room *r : m_rooms)
         {
@@ -1454,15 +1507,18 @@ void Level::onEnemyDying(Enemy *enemy)
 
     qDebug() << "已从全局敌人列表移除，剩余:" << m_currentEnemies.size();
 
+    // 只有非召唤的敌人才触发bonusEffects
     // 延迟执行bonusEffects，避免在dying信号处理中访问不稳定状态
-    // 使用QPointer防止Level已被删除时访问
-    QPointer<Level> levelPtr(this);
-    QPointer<Player> playerPtr(m_player);
-    QTimer::singleShot(100, this, [levelPtr, playerPtr]()
-                       {
-                           if (levelPtr && playerPtr) {
-                               levelPtr->bonusEffects();
-                           } });
+    if (!enemy->isSummoned())
+    {
+        QPointer<Level> levelPtr(this);
+        QPointer<Player> playerPtr(m_player);
+        QTimer::singleShot(100, this, [levelPtr, playerPtr]()
+                           {
+                               if (levelPtr && playerPtr) {
+                                   levelPtr->bonusEffects();
+                               } });
+    }
 
     for (Room *r : m_rooms)
     {
@@ -2030,4 +2086,204 @@ void Level::bonusEffects()
         effect->applyTo(m_player);
         // effect会在expire()中调用deleteLater()自我销毁
     }
+}
+
+// Nightmare Boss 遮罩显示方法
+void Level::showShadowOverlay(const QString &text, int duration)
+{
+    if (!m_scene)
+        return;
+
+    // 如果已有遮罩，先清理
+    hideShadowOverlay();
+
+    // 加载shadow.png图片
+    QPixmap shadowPixmap("assets/boss/Nightmare/shadow.png");
+    if (shadowPixmap.isNull())
+    {
+        qWarning() << "无法加载shadow.png，使用黑色矩形代替";
+        // 创建黑色半透明矩形
+        shadowPixmap = QPixmap(800, 600);
+        shadowPixmap.fill(QColor(0, 0, 0, 200));
+    }
+    else
+    {
+        // 缩放到全屏大小
+        shadowPixmap = shadowPixmap.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    }
+
+    // 创建遮罩
+    m_shadowOverlay = new QGraphicsPixmapItem(shadowPixmap);
+    m_shadowOverlay->setPos(0, 0);
+    m_shadowOverlay->setZValue(10000); // 最高层级
+    m_scene->addItem(m_shadowOverlay);
+
+    // 如果有文字，显示白色文字
+    if (!text.isEmpty())
+    {
+        m_shadowText = new QGraphicsTextItem(text);
+        m_shadowText->setDefaultTextColor(Qt::white);
+        m_shadowText->setFont(QFont("Arial", 24, QFont::Bold));
+
+        // 居中显示
+        QRectF textRect = m_shadowText->boundingRect();
+        m_shadowText->setPos((800 - textRect.width()) / 2, (600 - textRect.height()) / 2);
+        m_shadowText->setZValue(10001);
+        m_scene->addItem(m_shadowText);
+    }
+
+    qDebug() << "显示遮罩，文字:" << text << "持续时间:" << duration << "ms";
+
+    // 如果指定了持续时间，设置定时器自动隐藏
+    if (duration > 0)
+    {
+        if (!m_shadowTimer)
+        {
+            m_shadowTimer = new QTimer(this);
+            m_shadowTimer->setSingleShot(true);
+            connect(m_shadowTimer, &QTimer::timeout, this, &Level::hideShadowOverlay);
+        }
+        m_shadowTimer->start(duration);
+    }
+}
+
+void Level::hideShadowOverlay()
+{
+    if (m_shadowOverlay)
+    {
+        m_scene->removeItem(m_shadowOverlay);
+        delete m_shadowOverlay;
+        m_shadowOverlay = nullptr;
+    }
+
+    if (m_shadowText)
+    {
+        m_scene->removeItem(m_shadowText);
+        delete m_shadowText;
+        m_shadowText = nullptr;
+    }
+
+    if (m_shadowTimer)
+    {
+        m_shadowTimer->stop();
+    }
+
+    qDebug() << "隐藏遮罩";
+}
+
+// Nightmare Boss 召唤敌人方法
+void Level::spawnEnemiesForBoss(const QVector<QPair<QString, int>> &enemies)
+{
+    if (!m_scene)
+        return;
+
+    qDebug() << "Boss召唤敌人...";
+
+    // 收集所有需要召唤的敌人，用于1秒后的操作
+    QVector<QPointer<Enemy>> spawnedEnemies;
+
+    // 获取config中的敌人尺寸
+    int enemySize = ConfigManager::instance().getSize("enemy");
+
+    for (const auto &enemyPair : enemies)
+    {
+        QString enemyType = enemyPair.first;
+        int count = enemyPair.second;
+
+        qDebug() << "召唤" << count << "个" << enemyType;
+
+        if (enemyType == "clock_boom")
+        {
+            // 召唤clock_boom - 使用正确的图片路径
+            QPixmap boomPic = ResourceFactory::createEnemyImage(enemySize, m_levelNumber, "clock_boom");
+
+            // 如果加载失败，尝试直接加载
+            if (boomPic.isNull())
+            {
+                boomPic = QPixmap("assets/enemy/level_1/clock_boom.png");
+                if (!boomPic.isNull())
+                {
+                    boomPic = boomPic.scaled(enemySize, enemySize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                }
+            }
+
+            for (int i = 0; i < count; ++i)
+            {
+                // 立即随机生成在场景中
+                int x = QRandomGenerator::global()->bounded(100, 700);
+                int y = QRandomGenerator::global()->bounded(100, 500);
+
+                ClockBoom *boom = new ClockBoom(boomPic, boomPic, 1.0);
+                boom->setPos(x, y);
+                boom->setPlayer(m_player);
+                boom->setIsSummoned(true); // 标记为召唤的敌人，不触发bonus
+
+                // 暂停敌人的AI和移动（等待1秒）
+                boom->pauseTimers();
+
+                m_scene->addItem(boom);
+
+                QPointer<Enemy> eptr(boom);
+                m_currentEnemies.append(eptr);
+                spawnedEnemies.append(eptr);
+                if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size())
+                {
+                    m_rooms[m_currentRoomIndex]->currentEnemies.append(eptr);
+                }
+
+                connect(boom, &Enemy::dying, this, &Level::onEnemyDying);
+            }
+        }
+        else if (enemyType == "clock_normal")
+        {
+            // 召唤clock_normal
+            QPixmap normalPic = ResourceFactory::createEnemyImage(enemySize, m_levelNumber, "clock_normal");
+
+            for (int i = 0; i < count; ++i)
+            {
+                // 立即随机生成在场景中
+                int x = QRandomGenerator::global()->bounded(100, 700);
+                int y = QRandomGenerator::global()->bounded(100, 500);
+
+                Enemy *enemy = createEnemyByType(m_levelNumber, "clock_normal", normalPic, 1.0);
+                enemy->setPos(x, y);
+                enemy->setPlayer(m_player);
+                enemy->setIsSummoned(true); // 标记为召唤的敌人，不触发bonus
+
+                // 暂停敌人的AI和移动（等待1秒）
+                enemy->pauseTimers();
+
+                m_scene->addItem(enemy);
+
+                QPointer<Enemy> eptr(enemy);
+                m_currentEnemies.append(eptr);
+                spawnedEnemies.append(eptr);
+                if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size())
+                {
+                    m_rooms[m_currentRoomIndex]->currentEnemies.append(eptr);
+                }
+
+                connect(enemy, &Enemy::dying, this, &Level::onEnemyDying);
+            }
+        }
+    }
+
+    // 1秒后：恢复所有敌人的移动，并让ClockBoom进入引爆动画
+    QTimer::singleShot(1000, this, [spawnedEnemies]()
+                       {
+        for (QPointer<Enemy> ePtr : spawnedEnemies) {
+            if (Enemy *e = ePtr.data()) {
+                // 恢复敌人的AI和移动
+                e->resumeTimers();
+                
+                // 如果是ClockBoom，立即触发倒计时（进入引爆动画）
+                ClockBoom *boom = dynamic_cast<ClockBoom*>(e);
+                if (boom) {
+                    boom->triggerCountdown();
+                }
+            }
+        }
+        qDebug() << "召唤完成，所有敌人开始移动，ClockBoom进入引爆动画"; });
+
+    qDebug() << "Boss召唤敌人完成，当前场上敌人数:" << m_currentEnemies.size();
 }

@@ -1,21 +1,25 @@
 #include "entity.h"
 #include <QPainter>
 #include <QTimer>
+#include <QPointer>
 
 Entity::Entity(QGraphicsPixmapItem *parent)
-    : QGraphicsPixmapItem(parent), crash_r(20), isFlashing(false) {
+    : QGraphicsPixmapItem(parent), crash_r(20), isFlashing(false)
+{
     setTransformationMode(Qt::SmoothTransformation);
     damageScale = 1.0;
     facingRight = true;
     flippingInProgress = false;
 }
 
-void Entity::setPixmap(const QPixmap &pix) {
+void Entity::setPixmap(const QPixmap &pix)
+{
     // 直接使用基类实现；player/enemy 可能直接调用这个接口
     QGraphicsPixmapItem::setPixmap(pix);
 }
 
-void Entity::setPixmapofDirs(QPixmap &downImg, QPixmap &upImg, QPixmap &leftImg, QPixmap &rightImg) {
+void Entity::setPixmapofDirs(QPixmap &downImg, QPixmap &upImg, QPixmap &leftImg, QPixmap &rightImg)
+{
     // 保存传入的四方向图，兼容旧代码
     down = downImg;
     up = upImg;
@@ -23,57 +27,75 @@ void Entity::setPixmapofDirs(QPixmap &downImg, QPixmap &upImg, QPixmap &leftImg,
     left = leftImg;
 
     // 如果 left 未提供但 right 提供，则自动生成 left（水平翻转）
-    if (left.isNull() && !right.isNull()) {
+    if (left.isNull() && !right.isNull())
+    {
         left = right.transformed(QTransform().scale(-1, 1));
     }
 
     // 如果目前没有 pixmap，优先设置为 right（假定资源朝右）
-    if (!right.isNull() && pixmap().isNull()) {
+    if (!right.isNull() && pixmap().isNull())
+    {
         QGraphicsPixmapItem::setPixmap(right);
         facingRight = true;
     }
 }
 
-void Entity::updateFacing() {
+void Entity::updateFacing()
+{
     // 防止在翻转过程中递归触发
-    if (flippingInProgress) return;
+    if (flippingInProgress)
+        return;
 
     // xdir 由 player/enemy 维护；当 xdir < 0 时应面向左，>0 时面向右
-    if (xdir < 0 && facingRight) {
+    if (xdir < 0 && facingRight)
+    {
         // 需要从“当前图”翻转为左向
-        if (!pixmap().isNull()) {
+        if (!pixmap().isNull())
+        {
             flippingInProgress = true;
             QPixmap cur = pixmap();
             QPixmap flipped = cur.transformed(QTransform().scale(-1, 1));
             QGraphicsPixmapItem::setPixmap(flipped);
             facingRight = false;
             flippingInProgress = false;
-        } else {
+        }
+        else
+        {
             // pixmap 为空时，尝试使用 left/right 资源
-            if (!left.isNull()) {
+            if (!left.isNull())
+            {
                 QGraphicsPixmapItem::setPixmap(left);
                 facingRight = false;
-            } else if (!right.isNull()) {
+            }
+            else if (!right.isNull())
+            {
                 QGraphicsPixmapItem::setPixmap(right.transformed(QTransform().scale(-1, 1)));
                 facingRight = false;
             }
         }
     }
-    else if (xdir > 0 && !facingRight) {
+    else if (xdir > 0 && !facingRight)
+    {
         // 需要从“当前图”翻转为右向
-        if (!pixmap().isNull()) {
+        if (!pixmap().isNull())
+        {
             flippingInProgress = true;
             QPixmap cur = pixmap();
             QPixmap flipped = cur.transformed(QTransform().scale(-1, 1));
             QGraphicsPixmapItem::setPixmap(flipped);
             facingRight = true;
             flippingInProgress = false;
-        } else {
+        }
+        else
+        {
             // pixmap 为空时，尝试使用 right/left 资源
-            if (!right.isNull()) {
+            if (!right.isNull())
+            {
                 QGraphicsPixmapItem::setPixmap(right);
                 facingRight = true;
-            } else if (!left.isNull()) {
+            }
+            else if (!left.isNull())
+            {
                 QGraphicsPixmapItem::setPixmap(left.transformed(QTransform().scale(-1, 1)));
                 facingRight = true;
             }
@@ -82,24 +104,28 @@ void Entity::updateFacing() {
     // xdir == 0 不改变面朝（保持当前 facingRight）
 }
 
-void Entity::setPos(qreal x, qreal y) {
+void Entity::setPos(qreal x, qreal y)
+{
     // 在移动之前先更新朝向（这样 player/enemy 不用改）
     updateFacing();
     // 调用基类方法实际移动位置
     QGraphicsItem::setPos(x, y);
 }
 
-void Entity::setPos(const QPointF &pos) {
+void Entity::setPos(const QPointF &pos)
+{
     updateFacing();
     QGraphicsItem::setPos(pos);
 }
 
-void Entity::flash() {
-    if (isFlashing) return;
+void Entity::flash()
+{
+    if (isFlashing)
+        return;
 
     isFlashing = true;
 
-    QPixmap original = pixmap();  // 当前图像（可能已翻转）
+    QPixmap original = pixmap(); // 当前图像（可能已翻转）
     QPixmap flashPixmap = original;
 
     QPainter painter(&flashPixmap);
@@ -109,12 +135,18 @@ void Entity::flash() {
 
     QGraphicsPixmapItem::setPixmap(flashPixmap);
 
-    QTimer::singleShot(120, this, [this, original]() {
-        QGraphicsPixmapItem::setPixmap(original);
-        isFlashing = false;
-    });
+    // 使用QPointer保护this指针，防止在定时器触发前对象被删除
+    QPointer<Entity> self = this;
+    QTimer::singleShot(120, this, [self, original]()
+                       {
+        if (self && self->isFlashing) {
+            // 恢复到捕获时的图片（保持当前尺寸）
+            self->QGraphicsPixmapItem::setPixmap(original);
+            self->isFlashing = false;
+        } });
 }
 
-void Entity::takeDamage(int damage) {
+void Entity::takeDamage(int damage)
+{
     flash();
 }

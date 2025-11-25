@@ -23,7 +23,8 @@ public:
     explicit ClockBoom(const QPixmap &normalPic, const QPixmap &redPic, double scale = 1.0);
     ~ClockBoom() override;
 
-    void move() override; // 重写move，使其不移动
+    void move() override;    // 重写move，使其不移动
+    void triggerCountdown(); // 公开方法：立即触发倒计时（用于Boss召唤）
 
 protected:
     void attackPlayer() override; // 重写攻击，首次碰撞触发倒计时
