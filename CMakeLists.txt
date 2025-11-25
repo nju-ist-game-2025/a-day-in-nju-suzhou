@@ -102,6 +102,8 @@ set(UI_SOURCES
         src/ui/gameview.h
         src/ui/explosion.h
         src/ui/explosion.cpp
+        src/ui/characterselector.h
+        src/ui/characterselector.cpp
         )
 
 

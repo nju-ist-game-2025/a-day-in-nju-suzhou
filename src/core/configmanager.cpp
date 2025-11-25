@@ -5,12 +5,12 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 
-ConfigManager &ConfigManager::instance() {
+ConfigManager& ConfigManager::instance() {
     static ConfigManager instance;
     return instance;
 }
 
-bool ConfigManager::loadConfig(const QString &configPath) {
+bool ConfigManager::loadConfig(const QString& configPath) {
     QFile configFile(configPath);
     if (!configFile.open(QIODevice::ReadOnly)) {
         qWarning() << "无法打开配置文件:" << configPath;
@@ -39,7 +39,7 @@ bool ConfigManager::loadConfig(const QString &configPath) {
     return true;
 }
 
-QString ConfigManager::getAssetPath(const QString &assetName) const {
+QString ConfigManager::getAssetPath(const QString& assetName) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return QString();
@@ -49,7 +49,38 @@ QString ConfigManager::getAssetPath(const QString &assetName) const {
     return assets.value(assetName).toString();
 }
 
-int ConfigManager::getSize(const QString &sizeName) const {
+void ConfigManager::setAssetPath(const QString& assetName, const QString& path) {
+    if (!loaded) {
+        qWarning() << "配置文件未加载";
+        return;
+    }
+
+    QJsonObject assets = configObject.value("assets").toObject();
+    assets[assetName] = path;
+    configObject["assets"] = assets;
+}
+
+bool ConfigManager::saveConfig(const QString& configPath) {
+    if (!loaded) {
+        qWarning() << "配置文件未加载，无法保存";
+        return false;
+    }
+
+    QFile configFile(configPath);
+    if (!configFile.open(QIODevice::WriteOnly)) {
+        qWarning() << "无法打开配置文件进行写入:" << configPath;
+        return false;
+    }
+
+    QJsonDocument configDoc(configObject);
+    configFile.write(configDoc.toJson(QJsonDocument::Indented));
+    configFile.close();
+
+    qDebug() << "配置文件保存成功:" << configPath;
+    return true;
+}
+
+int ConfigManager::getSize(const QString& sizeName) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return 0;
@@ -59,7 +90,7 @@ int ConfigManager::getSize(const QString &sizeName) const {
     return sizes.value(sizeName).toInt();
 }
 
-int ConfigManager::getGameInt(const QString &key) const {
+int ConfigManager::getGameInt(const QString& key) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return 0;
@@ -69,7 +100,7 @@ int ConfigManager::getGameInt(const QString &key) const {
     return game.value(key).toInt();
 }
 
-double ConfigManager::getGameDouble(const QString &key) const {
+double ConfigManager::getGameDouble(const QString& key) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return 0.0;

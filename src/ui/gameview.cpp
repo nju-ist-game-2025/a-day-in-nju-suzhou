@@ -1,6 +1,7 @@
 #include "gameview.h"
 #include <QApplication>
 #include <QCoreApplication>
+#include <QFile>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPixmap>
@@ -9,11 +10,12 @@
 #include <QVBoxLayout>
 #include "../core/GameWindow.cpp"
 #include "../core/audiomanager.h"
+#include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 #include "explosion.h"
 #include "level.h"
 
-GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr), level(nullptr) {
+GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr), level(nullptr), m_playerCharacterPath("assets/player/player.png") {
     // 设置窗口大小
     setFixedSize(scene_bound_x, scene_bound_y);
     setFocusPolicy(Qt::StrongFocus);
@@ -50,6 +52,10 @@ GameView::~GameView() {
     if (scene) {
         delete scene;
     }
+}
+
+void GameView::setPlayerCharacter(const QString& characterPath) {
+    m_playerCharacterPath = characterPath;
 }
 
 void GameView::initGame() {
@@ -94,9 +100,19 @@ void GameView::initGame() {
         // 初始化音频系统
         initAudio();
 
-        // 加载玩家图片
+        // 加载玩家图片（优先使用配置文件中的角色，其次使用选定的角色）
         int playerSize = 60;
-        QPixmap playerPixmap = ResourceFactory::createPlayerImage(playerSize);
+        QPixmap playerPixmap;
+
+        // 从配置文件获取角色路径
+        QString configCharacterPath = ConfigManager::instance().getAssetPath("player");
+        QString characterPath = configCharacterPath.isEmpty() ? m_playerCharacterPath : configCharacterPath;
+
+        if (!characterPath.isEmpty() && QFile::exists(characterPath)) {
+            playerPixmap = QPixmap(characterPath).scaled(playerSize, playerSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        } else {
+            playerPixmap = ResourceFactory::createPlayerImage(playerSize);
+        }
 
         // 创建玩家
         player = new Player(playerPixmap, 1.0);

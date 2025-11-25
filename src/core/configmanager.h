@@ -11,44 +11,54 @@
  * 支持从JSON配置文件读取各种游戏设置
  */
 class ConfigManager {
-public:
+   public:
     /**
      * @brief 获取单例实例
      */
-    static ConfigManager &instance();
+    static ConfigManager& instance();
 
     /**
      * @brief 加载配置文件
      * @param configPath 配置文件路径
      * @return 是否加载成功
      */
-    bool loadConfig(const QString &configPath = "assets/config.json");
+    bool loadConfig(const QString& configPath = "assets/config.json");
 
     /**
      * @brief 获取资产路径
      */
-    [[nodiscard]] QString getAssetPath(const QString &assetName) const;
+    [[nodiscard]] QString getAssetPath(const QString& assetName) const;
+
+    /**
+     * @brief 设置资产路径
+     */
+    void setAssetPath(const QString& assetName, const QString& path);
+
+    /**
+     * @brief 保存配置到文件
+     */
+    bool saveConfig(const QString& configPath = "assets/config.json");
 
     /**
      * @brief 获取尺寸配置
      */
-    int getSize(const QString &sizeName) const;
+    int getSize(const QString& sizeName) const;
 
     /**
      * @brief 获取游戏配置
      */
-    int getGameInt(const QString &key) const;
+    int getGameInt(const QString& key) const;
 
-    double getGameDouble(const QString &key) const;
+    double getGameDouble(const QString& key) const;
 
-private:
+   private:
     ConfigManager() = default;
 
     ~ConfigManager() = default;
 
-    ConfigManager(const ConfigManager &) = delete;
+    ConfigManager(const ConfigManager&) = delete;
 
-    ConfigManager &operator=(const ConfigManager &) = delete;
+    ConfigManager& operator=(const ConfigManager&) = delete;
 
     QJsonObject configObject;
     bool loaded = false;
