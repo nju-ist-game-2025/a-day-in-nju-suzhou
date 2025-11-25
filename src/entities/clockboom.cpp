@@ -224,7 +224,7 @@ void ClockBoom::damageNearbyEntities()
                                     qPow(p->pos().y() - bombPos.y(), 2));
             if (distance <= explosionRadius)
             {
-                p->takeDamage(2);
+                p->forceTakeDamage(2); // 爆炸伤害无视无敌状态
             }
             continue;
         }

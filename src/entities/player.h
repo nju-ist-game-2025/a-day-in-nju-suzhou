@@ -58,6 +58,7 @@ public:
     [[nodiscard]] int getShootCooldown() const { return shootCooldown; };
 
     void takeDamage(int damage) override; // 减血
+    void forceTakeDamage(int damage);     // 强制伤害，无视无敌状态（用于特殊攻击如爆炸）
     [[nodiscard]] double getCurrentHealth() const { return redHearts; }
 
     [[nodiscard]] double getMaxHealth() const { return redContainers; }
