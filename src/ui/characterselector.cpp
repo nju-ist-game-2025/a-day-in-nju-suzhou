@@ -5,12 +5,13 @@
 #include <QMessageBox>
 #include <QPalette>
 #include <QPixmap>
+#include <QResizeEvent>
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 
 CharacterSelector::CharacterSelector(QWidget* parent)
     : QWidget(parent), m_selectedIndex(0) {
-    setFixedSize(800, 600);
+    setMinimumSize(800, 600);
 
     // 设置背景
     try {
@@ -264,4 +265,72 @@ void CharacterSelector::onConfirmClicked() {
 
 void CharacterSelector::onBackClicked() {
     emit backToMenu();
+}
+
+void CharacterSelector::resizeEvent(QResizeEvent* event) {
+    QWidget::resizeEvent(event);
+
+    // 更新背景图片以适应新的窗口大小
+    try {
+        QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage(
+            "background_select_character", event->size().width(), event->size().height());
+        QPalette palette;
+        palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
+        setPalette(palette);
+    } catch (const QString&) {
+        // 保持纯色背景
+    }
+
+    // 等比例缩放UI元素
+    double scaleX = event->size().width() / 800.0;
+    double scaleY = event->size().height() / 600.0;
+    double scale = qMin(scaleX, scaleY);
+
+    // 缩放按钮大小
+    int confirmBtnWidth = static_cast<int>(180 * scale);
+    int confirmBtnHeight = static_cast<int>(50 * scale);
+    m_confirmButton->setFixedSize(confirmBtnWidth, confirmBtnHeight);
+    m_backButton->setFixedSize(confirmBtnWidth, confirmBtnHeight);
+
+    // 缩放角色选择按钮
+    int charBtnSize = static_cast<int>(100 * scale);
+    int charIconSize = static_cast<int>(80 * scale);
+    for (auto& charInfo : m_characters) {
+        charInfo.button->setFixedSize(charBtnSize, charBtnSize);
+        charInfo.button->setIconSize(QSize(charIconSize, charIconSize));
+    }
+
+    // 缩放预览区域
+    int previewSize = static_cast<int>(150 * scale);
+    m_previewLabel->setFixedSize(previewSize, previewSize);
+
+    // 缩放字体
+    QFont titleFont;
+    titleFont.setFamily("Microsoft YaHei");
+    titleFont.setPointSize(static_cast<int>(36 * scale));
+    titleFont.setBold(true);
+    m_titleLabel->setFont(titleFont);
+
+    QFont nameFont;
+    nameFont.setFamily("Microsoft YaHei");
+    nameFont.setPointSize(static_cast<int>(18 * scale));
+    nameFont.setBold(true);
+    m_nameLabel->setFont(nameFont);
+
+    QFont buttonFont;
+    buttonFont.setFamily("Microsoft YaHei");
+    buttonFont.setPointSize(static_cast<int>(14 * scale));
+    buttonFont.setBold(true);
+    m_confirmButton->setFont(buttonFont);
+    m_backButton->setFont(buttonFont);
+
+    // 更新预览图
+    if (m_selectedIndex >= 0 && m_selectedIndex < m_characters.size()) {
+        QPixmap preview(m_selectedCharacter);
+        if (!preview.isNull()) {
+            int previewImgSize = static_cast<int>(120 * scale);
+            preview = preview.scaled(previewImgSize, previewImgSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            m_previewLabel->setPixmap(preview);
+        }
+    }
 }

@@ -22,3 +22,64 @@ Boss::Boss(const QPixmap& pic, double scale)
 Boss::~Boss() {
     // qDebug() <<"Boss被击败！";
 }
+
+QRectF Boss::boundingRect() const {
+    // 扩展边界以包含血条
+    QRectF base = QGraphicsPixmapItem::boundingRect();
+    // 血条在头顶上方15像素，高度8像素
+    return base.adjusted(0, -20, 0, 0);
+}
+
+void Boss::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
+    // 先绘制基础图像
+    QGraphicsPixmapItem::paint(painter, option, widget);
+
+    // 绘制血条
+    drawHealthBar(painter);
+}
+
+void Boss::drawHealthBar(QPainter* painter) {
+    if (!painter)
+        return;
+
+    // 获取当前图像的宽度
+    qreal pixmapWidth = pixmap().width();
+
+    // 血条参数
+    qreal barWidth = pixmapWidth;  // 血条宽度与boss图像同宽
+    qreal barHeight = 8.0;
+    qreal barY = -15.0;  // 血条在boss头顶上方15像素
+    qreal barX = 0.0;
+
+    // 计算血量百分比
+    qreal healthPercent = (maxHealth > 0) ? static_cast<qreal>(health) / maxHealth : 0.0;
+    healthPercent = qBound(0.0, healthPercent, 1.0);
+
+    // 保存画笔状态
+    painter->save();
+
+    // 绘制血条背景（深灰色）
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(QColor(50, 50, 50, 200));
+    painter->drawRect(QRectF(barX, barY, barWidth, barHeight));
+
+    // 绘制当前血量（根据血量百分比变色）
+    QColor healthColor;
+    if (healthPercent > 0.5) {
+        healthColor = QColor(50, 200, 50, 220);  // 绿色
+    } else if (healthPercent > 0.25) {
+        healthColor = QColor(255, 165, 0, 220);  // 橙色
+    } else {
+        healthColor = QColor(220, 50, 50, 220);  // 红色
+    }
+    painter->setBrush(healthColor);
+    painter->drawRect(QRectF(barX, barY, barWidth * healthPercent, barHeight));
+
+    // 绘制边框
+    painter->setPen(QPen(QColor(30, 30, 30), 1));
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRect(QRectF(barX, barY, barWidth, barHeight));
+
+    // 恢复画笔状态
+    painter->restore();
+}

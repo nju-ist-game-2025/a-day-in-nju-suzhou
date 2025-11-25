@@ -104,6 +104,8 @@ set(UI_SOURCES
         src/ui/explosion.cpp
         src/ui/characterselector.h
         src/ui/characterselector.cpp
+        src/ui/pausemenu.h
+        src/ui/pausemenu.cpp
         )
 
 

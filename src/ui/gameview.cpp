@@ -7,6 +7,9 @@
 #include <QPixmap>
 #include <QPushButton>
 #include <QRandomGenerator>
+#include <QResizeEvent>
+#include <QShowEvent>
+#include <QSizePolicy>
 #include <QVBoxLayout>
 #include "../core/GameWindow.cpp"
 #include "../core/audiomanager.h"
@@ -14,19 +17,22 @@
 #include "../core/resourcefactory.h"
 #include "explosion.h"
 #include "level.h"
+#include "pausemenu.h"
 
-GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr), level(nullptr), m_playerCharacterPath("assets/player/player.png") {
-    // 设置窗口大小
-    setFixedSize(scene_bound_x, scene_bound_y);
+GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr), level(nullptr), m_pauseMenu(nullptr), m_isPaused(false), m_playerCharacterPath("assets/player/player.png") {
+    // 维持基础可玩尺寸，同时允许继续放大
+    setMinimumSize(scene_bound_x, scene_bound_y);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setFocusPolicy(Qt::StrongFocus);
 
-    // 创建场景
+    // 创建场景（保持原始逻辑大小）
     scene = new QGraphicsScene(this);
     scene->setSceneRect(0, 0, scene_bound_x, scene_bound_y);
 
     // 创建视图
     view = new QGraphicsView(scene, this);
-    view->setFixedSize(scene_bound_x, scene_bound_y);
+    view->setMinimumSize(scene_bound_x, scene_bound_y);
+    view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setRenderHint(QPainter::Antialiasing);
@@ -35,6 +41,12 @@ GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr), level(nu
     // 设置视图更新模式，避免留下轨迹
     view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     view->setCacheMode(QGraphicsView::CacheNone);
+
+    // 设置视图背景为黑色（用于填充等比例缩放时的边缘区域）
+    view->setBackgroundBrush(QBrush(Qt::black));
+
+    // 设置场景的默认背景为透明，让view的黑色背景透出来
+    scene->setBackgroundBrush(Qt::NoBrush);
 
     // 设置布局
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -60,6 +72,17 @@ void GameView::setPlayerCharacter(const QString& characterPath) {
 
 void GameView::initGame() {
     try {
+        // ===== 重置暂停状态 =====
+        m_isPaused = false;
+
+        // 清理暂停菜单（它的元素在scene->clear()时会被删除，所以需要重新创建）
+        if (m_pauseMenu) {
+            // 断开信号连接
+            disconnect(m_pauseMenu, nullptr, this, nullptr);
+            delete m_pauseMenu;
+            m_pauseMenu = nullptr;
+        }
+
         // ===== 第一步：删除旧Level（让Level自己清理场景对象） =====
         if (level) {
             // 断开所有与 level 相关的信号连接
@@ -168,6 +191,9 @@ void GameView::initGame() {
             hud->updateMinimap(0, QVector<int>());
 
         connect(level, &Level::storyFinished, this, &GameView::onStoryFinished);
+
+        // 确保初始化后视图立即拉伸到当前窗口大小
+        adjustViewToWindow();
     } catch (const QString& error) {
         QMessageBox::critical(this, "资源加载失败", error);
         emit backToMenu();
@@ -298,9 +324,14 @@ void GameView::keyPressEvent(QKeyEvent* event) {
     if (!event)
         return;
 
-    // ESC键返回主菜单（在任何模式下都有效）
+    // ESC键切换暂停状态
     if (event->key() == Qt::Key_Escape) {
-        emit backToMenu();
+        togglePause();
+        return;
+    }
+
+    // 如果游戏暂停，不处理其他按键
+    if (m_isPaused) {
         return;
     }
 
@@ -467,4 +498,93 @@ void GameView::onBossDoorsOpened() {
             scene->removeItem(hint);
             delete hint;
         } });
+}
+
+void GameView::togglePause() {
+    if (m_isPaused) {
+        resumeGame();
+    } else {
+        pauseGame();
+    }
+}
+
+void GameView::pauseGame() {
+    if (m_isPaused)
+        return;
+
+    m_isPaused = true;
+
+    // 创建暂停菜单（如果还没有）
+    if (!m_pauseMenu) {
+        m_pauseMenu = new PauseMenu(scene, this);
+        connect(m_pauseMenu, &PauseMenu::resumeGame, this, &GameView::resumeGame);
+        connect(m_pauseMenu, &PauseMenu::returnToMenu, this, [this]() {
+            // 返回主菜单前，重置暂停状态
+            m_isPaused = false;
+            if (m_pauseMenu) {
+                m_pauseMenu->hide();
+            }
+            emit backToMenu();
+        });
+    }
+
+    // 暂停玩家
+    if (player) {
+        player->setPaused(true);
+    }
+
+    // 暂停关卡（敌人等）
+    if (level) {
+        level->setPaused(true);
+    }
+
+    // 显示暂停菜单
+    m_pauseMenu->show();
+}
+
+void GameView::resumeGame() {
+    if (!m_isPaused)
+        return;
+
+    m_isPaused = false;
+
+    // 隐藏暂停菜单
+    if (m_pauseMenu) {
+        m_pauseMenu->hide();
+    }
+
+    // 恢复玩家
+    if (player) {
+        player->setPaused(false);
+    }
+
+    // 恢复关卡（敌人等）
+    if (level) {
+        level->setPaused(false);
+    }
+
+    // 确保游戏视图获得焦点
+    setFocus();
+}
+
+void GameView::showEvent(QShowEvent* event) {
+    QWidget::showEvent(event);
+    adjustViewToWindow();
+}
+
+void GameView::resizeEvent(QResizeEvent* event) {
+    QWidget::resizeEvent(event);
+    adjustViewToWindow();
+}
+
+void GameView::adjustViewToWindow() {
+    if (!view || !scene)
+        return;
+
+    QRectF rect = scene->sceneRect();
+    if (rect.isNull())
+        return;
+
+    view->fitInView(rect, Qt::KeepAspectRatio);
+    view->centerOn(rect.center());
 }

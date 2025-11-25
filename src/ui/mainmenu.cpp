@@ -5,11 +5,13 @@
 #include <QMessageBox>
 #include <QPalette>
 #include <QPixmap>
+#include <QResizeEvent>
+#include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 
 MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
-    // 设置窗口大小
-    setFixedSize(800, 600);
+    // 设置最小窗口大小，允许调整
+    setMinimumSize(800, 600);
 
     // 创建主布局
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
@@ -141,6 +143,11 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
     mainLayout->addStretch();
 
     // 加载主菜单背景图片
+    m_backgroundPath = ConfigManager::instance().getAssetPath("background_main");
+    if (m_backgroundPath.isEmpty()) {
+        m_backgroundPath = "assets/background/main.png";
+    }
+
     try {
         QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("background_main", 800, 600);
         QPalette palette;
@@ -158,4 +165,50 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
     connect(characterButton, &QPushButton::clicked, this, &MainMenu::selectCharacterClicked);  // 角色选择连接
     connect(codexButton, &QPushButton::clicked, this, &MainMenu::codexClicked);                // 新增连接
     connect(exitButton, &QPushButton::clicked, this, &MainMenu::exitGameClicked);
+}
+
+void MainMenu::resizeEvent(QResizeEvent* event) {
+    QWidget::resizeEvent(event);
+
+    // 重新加载并缩放背景图片
+    try {
+        QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("background_main", 800, 600);
+        if (!backgroundPixmap.isNull()) {
+            QPalette palette;
+            palette.setBrush(QPalette::Window, QBrush(backgroundPixmap.scaled(event->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
+            setPalette(palette);
+        }
+    } catch (const QString&) {
+        // 背景加载失败，保持当前样式
+    }
+
+    // 等比例缩放按钮和字体
+    double scaleX = event->size().width() / 800.0;
+    double scaleY = event->size().height() / 600.0;
+    double scale = qMin(scaleX, scaleY);
+
+    // 缩放按钮大小
+    int buttonWidth = static_cast<int>(220 * scale);
+    int buttonHeight = static_cast<int>(60 * scale);
+    startButton->setFixedSize(buttonWidth, buttonHeight);
+    characterButton->setFixedSize(buttonWidth, buttonHeight);
+    codexButton->setFixedSize(buttonWidth, buttonHeight);
+    exitButton->setFixedSize(buttonWidth, buttonHeight);
+
+    // 缩放按钮字体
+    QFont buttonFont;
+    buttonFont.setFamily("Microsoft YaHei");
+    buttonFont.setPointSize(static_cast<int>(16 * scale));
+    buttonFont.setBold(true);
+    startButton->setFont(buttonFont);
+    characterButton->setFont(buttonFont);
+    codexButton->setFont(buttonFont);
+    exitButton->setFont(buttonFont);
+
+    // 缩放标题字体
+    QFont titleFont;
+    titleFont.setFamily("Microsoft YaHei");
+    titleFont.setPointSize(static_cast<int>(48 * scale));
+    titleFont.setBold(true);
+    titleLabel->setFont(titleFont);
 }

@@ -5,7 +5,7 @@
 #include "statuseffect.h"
 
 Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap& pic_bullet, double scale)
-    : mode(_mode), isDestroying(false) {
+    : mode(_mode), isDestroying(false), m_isPaused(false) {
     setTransformationMode(Qt::SmoothTransformation);
 
     // 禁用缓存以避免留下轨迹
@@ -56,8 +56,8 @@ Projectile::~Projectile() {
 }
 
 void Projectile::move() {
-    // 如果正在销毁，不再执行任何操作
-    if (isDestroying) {
+    // 如果正在销毁或暂停，不再执行任何操作
+    if (isDestroying || m_isPaused) {
         return;
     }
 
@@ -115,8 +115,8 @@ void geteffects(Enemy* enemy) {
 }
 
 void Projectile::checkCrash() {
-    // 如果正在销毁，不再执行任何操作
-    if (isDestroying) {
+    // 如果正在销毁或暂停，不再执行任何操作
+    if (isDestroying || m_isPaused) {
         return;
     }
 
@@ -185,4 +185,8 @@ void Projectile::destroy() {
 
     // 这是唯一调用deleteLater的地方
     deleteLater();
+}
+
+void Projectile::setPaused(bool paused) {
+    m_isPaused = paused;
 }

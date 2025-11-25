@@ -7,7 +7,10 @@ GameWindow::GameWindow(QWidget* parent)
     : QMainWindow(parent), m_selectedCharacter("assets/player/player.png") {
     // 设置窗口属性
     setWindowTitle("智科er的一天");
-    setFixedSize(800, 600);
+
+    // 设置最小窗口大小和默认大小，允许调整大小和全屏
+    setMinimumSize(800, 600);
+    resize(800, 600);
 
     // 创建堆叠窗口部件
     stackedWidget = new QStackedWidget(this);

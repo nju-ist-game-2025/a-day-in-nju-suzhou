@@ -56,6 +56,9 @@ class CharacterSelector : public QWidget {
     QPushButton* m_confirmButton;
     QPushButton* m_backButton;
     QHBoxLayout* m_characterLayout;
+
+   protected:
+    void resizeEvent(QResizeEvent* event) override;
 };
 
 #endif  // CHARACTERSELECTOR_H

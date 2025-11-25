@@ -1,11 +1,11 @@
 #include <QObject>
-#include <QTimer>
-#include <QVector>
 #include <QPointer>
 #include <QPropertyAnimation>
-#include "room.h"
-#include "levelconfig.h"
+#include <QTimer>
+#include <QVector>
 #include "door.h"
+#include "levelconfig.h"
+#include "room.h"
 
 class Player;
 class Enemy;
@@ -13,111 +13,119 @@ class Boss;
 class Chest;
 class QGraphicsScene;
 
-class Level : public QObject
-{
+class Level : public QObject {
     Q_OBJECT
 
-public:
-    explicit Level(Player *player, QGraphicsScene *scene, QObject *parent = nullptr);
+   public:
+    explicit Level(Player* player, QGraphicsScene* scene, QObject* parent = nullptr);
     ~Level() override;
 
     void init(int levelNumber);
     int currentLevel() const { return m_levelNumber; }
     bool isAllRoomsCompleted() const;
     bool enterNextRoom();
-    Room *currentRoom() const;
+    Room* currentRoom() const;
     void loadRoom(int roomIndex);
     void onPlayerDied();
     void bonusEffects();
     void clearCurrentRoomEntities();
     void clearSceneEntities();
 
-    void showLevelStartText(LevelConfig &config);
-    void openDoors(Room *cur);
+    void showLevelStartText(LevelConfig& config);
+    void openDoors(Room* cur);
 
-    void showCredits(const QStringList &desc);
+    void showCredits(const QStringList& desc);
 
-    void showStoryDialog(const QStringList &dialogs, bool isBossDialog = false, const QString &customBackground = QString());
+    void showStoryDialog(const QStringList& dialogs, bool isBossDialog = false, const QString& customBackground = QString());
 
-    bool canOpenBossDoor() const; // 检查是否所有非boss房间都已访问且怪物清空
-    void openBossDoors();         // 打开所有通往boss房间的门
+    bool canOpenBossDoor() const;  // 检查是否所有非boss房间都已访问且怪物清空
+    void openBossDoors();          // 打开所有通往boss房间的门
 
-protected:
-    bool eventFilter(QObject *watched, QEvent *event) override;
+    // 暂停控制
+    void setPaused(bool paused);
+    bool isPaused() const { return m_isPaused; }
 
-signals:
+   protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
+
+   signals:
     void levelCompleted(int levelNumber);
     void roomEntered(int roomIndex);
-    void enemiesCleared(int roomIndex, bool up = false, bool down = false,
-                        bool left = false, bool right = false);
-    void bossDoorsOpened(); // boss房间的门被打开
+    void enemiesCleared(int roomIndex, bool up = false, bool down = false, bool left = false, bool right = false);
+    void bossDoorsOpened();  // boss房间的门被打开
 
     void storyFinished();
-    void dialogStarted();  // 对话开始（包括关卡开始和boss对话）
-    void dialogFinished(); // 对话结束
+    void dialogStarted();   // 对话开始（包括关卡开始和boss对话）
+    void dialogFinished();  // 对话结束
     void levelInitialized();
 
-private:
-    void initCurrentRoom(Room *room);
+   private:
+    void initCurrentRoom(Room* room);
     void spawnEnemiesInRoom(int roomIndex);
     void spawnChestsInRoom(int roomIndex);
-    void spawnDoors(const RoomConfig &roomCfg);
-    void buildMinimapData(); // New method
+    void spawnDoors(const RoomConfig& roomCfg);
+    void buildMinimapData();  // New method
 
     // 敌人工厂方法：根据类型创建具体的敌人实例
-    Enemy *createEnemyByType(int levelNumber, const QString &enemyType, const QPixmap &pic, double scale);
+    Enemy* createEnemyByType(int levelNumber, const QString& enemyType, const QPixmap& pic, double scale);
 
     // Boss工厂方法：根据关卡号创建对应的Boss实例
-    Boss *createBossByLevel(int levelNumber, const QPixmap &pic, double scale);
+    Boss* createBossByLevel(int levelNumber, const QPixmap& pic, double scale);
 
     // Nightmare Boss 遮罩效果
-    void showShadowOverlay(const QString &text, int duration);
+    void showShadowOverlay(const QString& text, int duration);
     void hideShadowOverlay();
 
     // Nightmare Boss 召唤敌人
-    void spawnEnemiesForBoss(const QVector<QPair<QString, int>> &enemies);
+    void spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemies);
 
     int m_levelNumber;
-    QVector<Room *> m_rooms;
+    QVector<Room*> m_rooms;
     int m_currentRoomIndex;
-    Player *m_player;
-    QGraphicsScene *m_scene;
+    Player* m_player;
+    QGraphicsScene* m_scene;
     QVector<QPointer<Enemy>> m_currentEnemies;
     QVector<QPointer<Chest>> m_currentChests;
-    QVector<QGraphicsItem *> m_doorItems;
-    QVector<Door *> m_currentDoors;         // 当前房间的门对象
-    QMap<int, QVector<Door *>> m_roomDoors; // 每个房间的门（roomIndex -> doors）
+    QVector<QGraphicsItem*> m_doorItems;
+    QVector<Door*> m_currentDoors;          // 当前房间的门对象
+    QMap<int, QVector<Door*>> m_roomDoors;  // 每个房间的门（roomIndex -> doors）
     QVector<bool> visited;
-    QTimer *checkChange;
+    QTimer* checkChange;
     int visited_count;
-    QTimer *m_levelTextTimer;              // 追踪关卡文字显示的定时器
-    QGraphicsPixmapItem *m_textBackground; // 新增：渐变文字背景
+    QTimer* m_levelTextTimer;               // 追踪关卡文字显示的定时器
+    QGraphicsPixmapItem* m_textBackground;  // 新增：渐变文字背景
 
     // boss门相关
-    bool m_hasEncounteredBossDoor; // 是否已经遇到过boss门
-    bool m_bossDoorsAlreadyOpened; // boss门是否已经打开过
+    bool m_hasEncounteredBossDoor;  // 是否已经遇到过boss门
+    bool m_bossDoorsAlreadyOpened;  // boss门是否已经打开过
 
     // galgame相关
-    QGraphicsPixmapItem *m_dialogBox;
-    QGraphicsTextItem *m_dialogText;
-    QGraphicsTextItem *m_continueHint;
+    QGraphicsPixmapItem* m_dialogBox;
+    QGraphicsTextItem* m_dialogText;
+    QGraphicsTextItem* m_continueHint;
     QStringList m_currentDialogs;
     int m_currentDialogIndex;
     bool m_isStoryFinished;
-    bool m_isBossDialog; // 标记当前是否为boss对话
+    bool m_isBossDialog;  // 标记当前是否为boss对话
 
     // Nightmare Boss 遮罩效果相关
-    QGraphicsPixmapItem *m_shadowOverlay;
-    QGraphicsTextItem *m_shadowText;
-    QTimer *m_shadowTimer;
+    QGraphicsPixmapItem* m_shadowOverlay;
+    QGraphicsTextItem* m_shadowText;
+    QTimer* m_shadowTimer;
 
-public slots:
+    // 背景图片项
+    QGraphicsPixmapItem* m_backgroundItem = nullptr;
+
+    // 暂停状态
+    bool m_isPaused = false;
+
+   public slots:
     void onDialogClicked();
     void nextDialog();
 
-private slots:
-    void onEnemyDying(Enemy *enemy);
+   private slots:
+    void onEnemyDying(Enemy* enemy);
 
     void finishStory();
-    void initializeLevelAfterStory(const LevelConfig &config);
+    void initializeLevelAfterStory(const LevelConfig& config);
 };

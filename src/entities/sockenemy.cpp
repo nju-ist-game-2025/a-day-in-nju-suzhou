@@ -14,6 +14,10 @@ void SockEnemy::attackPlayer() {
     if (!player)
         return;
 
+    // 暂停状态下不攻击
+    if (m_isPaused)
+        return;
+
     // 近战攻击：检测碰撞
     QList<QGraphicsItem*> collisions = collidingItems();
     for (QGraphicsItem* item : collisions) {

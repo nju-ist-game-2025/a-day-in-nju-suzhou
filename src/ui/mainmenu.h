@@ -15,9 +15,13 @@ class MainMenu : public QWidget {
     QPushButton* codexButton;
     QPushButton* exitButton;
     QLabel* titleLabel;
+    QString m_backgroundPath;  // 背景图片路径
 
    public:
     explicit MainMenu(QWidget* parent = nullptr);
+
+   protected:
+    void resizeEvent(QResizeEvent* event) override;
 
    signals:
 

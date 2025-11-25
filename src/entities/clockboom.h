@@ -1,8 +1,8 @@
 #ifndef CLOCKBOOM_H
 #define CLOCKBOOM_H
 
-#include "enemy.h"
 #include <QTimer>
+#include "enemy.h"
 
 class Player;
 
@@ -15,40 +15,43 @@ class Player;
  * - 倒计时期间每0.5秒切换闪烁（普通/深红色）
  * - 倒计时结束后爆炸，对范围内玩家造成1点伤害，敌人造成3点伤害
  */
-class ClockBoom : public Enemy
-{
+class ClockBoom : public Enemy {
     Q_OBJECT
 
-public:
-    explicit ClockBoom(const QPixmap &normalPic, const QPixmap &redPic, double scale = 1.0);
+   public:
+    explicit ClockBoom(const QPixmap& normalPic, const QPixmap& redPic, double scale = 1.0);
     ~ClockBoom() override;
 
-    void move() override;    // 重写move，使其不移动
-    void triggerCountdown(); // 公开方法：立即触发倒计时（用于Boss召唤）
+    void move() override;     // 重写move，使其不移动
+    void triggerCountdown();  // 公开方法：立即触发倒计时（用于Boss召唤）
 
-protected:
-    void attackPlayer() override; // 重写攻击，首次碰撞触发倒计时
+    // 重写暂停/恢复方法
+    void pauseTimers() override;
+    void resumeTimers() override;
 
-private:
-    bool m_triggered;         // 是否已触发倒计时
-    bool m_exploded;          // 是否已爆炸
-    QTimer *m_collisionTimer; // 碰撞检测定时器
-    QTimer *m_blinkTimer;     // 闪烁定时器
-    QTimer *m_explodeTimer;   // 爆炸定时器
-    QPixmap m_normalPixmap;   // 普通图片
-    QPixmap m_redPixmap;      // 深红色图片
-    bool m_isRed;             // 当前是否显示红色
+   protected:
+    void attackPlayer() override;  // 重写攻击，首次碰撞触发倒计时
 
-    void checkCollisionWithPlayer(); // 检测与玩家的碰撞
-    void startCountdown();           // 开始倒计时
-    void toggleBlink();              // 切换闪烁状态
-    void explode();                  // 触发爆炸
-    void damageNearbyEntities();     // 对范围内实体造成伤害
+   private:
+    bool m_triggered;          // 是否已触发倒计时
+    bool m_exploded;           // 是否已爆炸
+    QTimer* m_collisionTimer;  // 碰撞检测定时器
+    QTimer* m_blinkTimer;      // 闪烁定时器
+    QTimer* m_explodeTimer;    // 爆炸定时器
+    QPixmap m_normalPixmap;    // 普通图片
+    QPixmap m_redPixmap;       // 深红色图片
+    bool m_isRed;              // 当前是否显示红色
 
-private slots:
+    void checkCollisionWithPlayer();  // 检测与玩家的碰撞
+    void startCountdown();            // 开始倒计时
+    void toggleBlink();               // 切换闪烁状态
+    void explode();                   // 触发爆炸
+    void damageNearbyEntities();      // 对范围内实体造成伤害
+
+   private slots:
     void onCollisionCheck();
     void onBlinkTimeout();
     void onExplodeTimeout();
 };
 
-#endif // CLOCKBOOM_H
+#endif  // CLOCKBOOM_H
