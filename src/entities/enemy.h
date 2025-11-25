@@ -29,7 +29,6 @@ class Enemy : public Entity {
         MOVE_CIRCLE,         // 绕圈接近（螺旋式靠近玩家）
         MOVE_DASH,           // 冲刺模式（蓄力后快速冲向玩家）
         MOVE_KEEP_DISTANCE,  // 保持距离（远程敌人用，保持一定距离）
-        MOVE_FLANK,          // 包抄模式（尝试绕到玩家侧面）
         MOVE_DIAGONAL        // 斜向接近（斜着靠近以躲避玩家直线子弹）
     };
 
@@ -125,8 +124,6 @@ class Enemy : public Entity {
     QPointF m_dashTarget;           // 冲刺目标位置
     int m_dashDuration;             // 冲刺持续时间计数器
     double m_preferredDistance;     // 保持距离模式的目标距离
-    double m_flankAngle;            // 包抄角度
-    int m_diagonalDirection;        // 斜向方向 (1 或 -1)
 
     // AI方法 - protected 允许子类访问和重写
     void updateState();
@@ -149,7 +146,6 @@ class Enemy : public Entity {
     void moveCircle();        // 绕圈移动
     void moveDash();          // 冲刺移动
     void moveKeepDistance();  // 保持距离移动
-    void moveFlank();         // 包抄移动
     void moveDiagonal();      // 斜向移动
 };
 

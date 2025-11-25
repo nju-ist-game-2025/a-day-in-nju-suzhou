@@ -381,9 +381,6 @@ void Enemy::executeMovement() {
         case MOVE_KEEP_DISTANCE:
             moveKeepDistance();
             break;
-        case MOVE_FLANK:
-            moveFlank();
-            break;
         case MOVE_DIAGONAL:
             moveDiagonal();
             break;
@@ -581,64 +578,6 @@ void Enemy::moveKeepDistance() {
     }
 
     // 更新朝向（始终面向玩家）
-    if (qAbs(dx) > qAbs(dy)) {
-        curr_xdir = (dx > 0) ? 1 : -1;
-        curr_ydir = 0;
-    } else {
-        curr_xdir = 0;
-        curr_ydir = (dy > 0) ? 1 : -1;
-    }
-}
-
-void Enemy::moveFlank() {
-    if (!player)
-        return;
-
-    QPointF enemyPos = pos();
-    QPointF playerPos = player->pos();
-
-    double dx = playerPos.x() - enemyPos.x();
-    double dy = playerPos.y() - enemyPos.y();
-    double dist = qSqrt(dx * dx + dy * dy);
-
-    if (dist < 0.1)
-        return;
-
-    // 计算侧向方向（垂直于敌人到玩家的方向）
-    double dirX = dx / dist;
-    double dirY = dy / dist;
-    double perpX = -dirY;
-    double perpY = dirX;
-
-    // 逐渐增加包抄角度
-    m_flankAngle += 0.03;
-    if (m_flankAngle > M_PI / 3)  // 最大包抄角度60度
-        m_flankAngle = M_PI / 3;
-
-    // 计算包抄方向：主方向 + 侧向偏移
-    double flankFactor = qSin(m_flankAngle);
-    double approachFactor = qCos(m_flankAngle);
-
-    double finalDirX = dirX * approachFactor + perpX * flankFactor * m_diagonalDirection;
-    double finalDirY = dirY * approachFactor + perpY * flankFactor * m_diagonalDirection;
-
-    // 归一化
-    double finalDist = qSqrt(finalDirX * finalDirX + finalDirY * finalDirY);
-    if (finalDist > 0.1) {
-        xdir = static_cast<int>(qRound((finalDirX / finalDist) * 10));
-        ydir = static_cast<int>(qRound((finalDirY / finalDist) * 10));
-    }
-
-    // 如果接近玩家，重置包抄角度准备下一次
-    if (dist < attackRange * 1.5) {
-        m_flankAngle = 0;
-        // 随机切换包抄方向
-        if (QRandomGenerator::global()->bounded(100) < 30) {
-            m_diagonalDirection = -m_diagonalDirection;
-        }
-    }
-
-    // 更新朝向
     if (qAbs(dx) > qAbs(dy)) {
         curr_xdir = (dx > 0) ? 1 : -1;
         curr_ydir = 0;
