@@ -39,11 +39,15 @@ public:
 
     void showStoryDialog(const QStringList &dialogs);
 
+    bool canOpenBossDoor() const; // 检查是否所有非boss房间都已访问且怪物清空
+    void openBossDoors();         // 打开所有通往boss房间的门
+
 signals:
     void levelCompleted(int levelNumber);
     void roomEntered(int roomIndex);
     void enemiesCleared(int roomIndex, bool up = false, bool down = false,
                         bool left = false, bool right = false);
+    void bossDoorsOpened(); // boss房间的门被打开
 
     void storyFinished();
     void levelInitialized();
@@ -71,8 +75,8 @@ private:
     QVector<bool> visited;
     QTimer *checkChange;
     int visited_count;
-    QTimer *m_levelTextTimer; // 追踪关卡文字显示的定时器
-    QGraphicsPixmapItem* m_textBackground;  // 新增：渐变文字背景
+    QTimer *m_levelTextTimer;              // 追踪关卡文字显示的定时器
+    QGraphicsPixmapItem *m_textBackground; // 新增：渐变文字背景
 
     // galgame相关
     QGraphicsPixmapItem *m_dialogBox;

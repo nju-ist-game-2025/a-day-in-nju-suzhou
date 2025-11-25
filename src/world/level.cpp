@@ -263,10 +263,10 @@ void Level::showStoryDialog(const QStringList &dialogs)
 
     QPainter painter(&gradientPixmap);
     QLinearGradient gradient(0, 0, 0, 250);
-    gradient.setColorAt(0.0, QColor(0, 0, 0, 0));      // 顶部完全透明
-    gradient.setColorAt(0.3, QColor(0, 0, 0, 160));     // 渐变为半透明
-    gradient.setColorAt(0.7, QColor(0, 0, 0, 200));    // 中间更深的半透明
-    gradient.setColorAt(1.0, QColor(0, 0, 0, 250));    // 底部最深的半透明
+    gradient.setColorAt(0.0, QColor(0, 0, 0, 0));   // 顶部完全透明
+    gradient.setColorAt(0.3, QColor(0, 0, 0, 160)); // 渐变为半透明
+    gradient.setColorAt(0.7, QColor(0, 0, 0, 200)); // 中间更深的半透明
+    gradient.setColorAt(1.0, QColor(0, 0, 0, 250)); // 底部最深的半透明
 
     painter.fillRect(0, 0, 800, 250, gradient);
     painter.end();
@@ -325,7 +325,8 @@ void Level::finishStory()
     qDebug() << "剧情播放完毕";
 
     // 清理渐变背景
-    if (m_textBackground) {
+    if (m_textBackground)
+    {
         m_scene->removeItem(m_textBackground);
         delete m_textBackground;
         m_textBackground = nullptr;
@@ -848,7 +849,8 @@ void Level::buildMinimapData()
         hudNode.id = current.id;
         hudNode.x = current.x;
         hudNode.y = current.y;
-        hudNode.visited = false; // Will be updated by HUD
+        hudNode.visited = false;       // Will be updated by HUD
+        hudNode.hasBoss = cfg.hasBoss; // 标记boss房间
         hudNode.up = cfg.doorUp;
         hudNode.down = cfg.doorDown;
         hudNode.left = cfg.doorLeft;
@@ -1278,6 +1280,13 @@ void Level::onEnemyDying(Enemy *enemy)
     if (cur && cur->currentEnemies.isEmpty())
     {
         openDoors(cur);
+
+        // 检查是否所有非boss房间都已清空，如果是则打开通往boss房间的门
+        if (canOpenBossDoor())
+        {
+            qDebug() << "所有非boss房间已清空，检查并开启通往boss房间的门";
+            openBossDoors();
+        }
     }
 }
 
@@ -1285,111 +1294,344 @@ void Level::openDoors(Room *cur)
 {
     LevelConfig config;
     bool up = false, down = false, left = false, right = false;
+    bool anyDoorOpened = false; // 追踪是否有门被打开
+
     if (config.loadFromFile(m_levelNumber))
     {
         const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
-
-        AudioManager::instance().playSound("door_open");
-        qDebug() << "敌人清空，播放门打开音效和动画";
 
         int doorIndex = 0;
 
         if (roomCfg.doorUp >= 0)
         {
-            cur->setDoorOpenUp(true);
-            up = true;
-            // 播放开门动画
-            if (doorIndex < m_currentDoors.size())
-            {
-                m_currentDoors[doorIndex]->open();
-            }
-            doorIndex++;
-            qDebug() << "打开上门，通往房间" << roomCfg.doorUp;
-
-            // 设置邻房间的对应门为打开状态（除非邻居是未访问的战斗房间）
             int neighborRoom = roomCfg.doorUp;
-            if (neighborRoom >= 0 && neighborRoom < m_rooms.size())
+            const RoomConfig &neighborCfg = config.getRoom(neighborRoom);
+
+            // 最高优先级：如果邻居是boss房间，必须所有非boss房间都已访问才能开门
+            if (neighborCfg.hasBoss && !canOpenBossDoor())
             {
-                Room *neighbor = m_rooms[neighborRoom];
-                bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
-                if (shouldOpenNeighborDoor)
+                qDebug() << "上门通往boss房间" << neighborRoom << "，但还有房间未探索，保持关闭";
+                doorIndex++;
+            }
+            else
+            {
+                cur->setDoorOpenUp(true);
+                up = true;
+                anyDoorOpened = true;
+                // 播放开门动画
+                if (doorIndex < m_currentDoors.size())
                 {
-                    neighbor->setDoorOpenDown(true);
+                    m_currentDoors[doorIndex]->open();
+                }
+                doorIndex++;
+                qDebug() << "打开上门，通往房间" << neighborRoom;
+
+                // 设置邻房间的对应门为打开状态（除非邻居是未访问的战斗房间）
+                if (neighborRoom >= 0 && neighborRoom < m_rooms.size())
+                {
+                    Room *neighbor = m_rooms[neighborRoom];
+                    bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
+                    if (shouldOpenNeighborDoor)
+                    {
+                        neighbor->setDoorOpenDown(true);
+                    }
                 }
             }
         }
         if (roomCfg.doorDown >= 0)
         {
-            cur->setDoorOpenDown(true);
-            down = true;
-            if (doorIndex < m_currentDoors.size())
-            {
-                m_currentDoors[doorIndex]->open();
-            }
-            doorIndex++;
-            qDebug() << "打开下门，通往房间" << roomCfg.doorDown;
-
             int neighborRoom = roomCfg.doorDown;
-            if (neighborRoom >= 0 && neighborRoom < m_rooms.size())
+            const RoomConfig &neighborCfg = config.getRoom(neighborRoom);
+
+            // 最高优先级：如果邻居是boss房间，必须所有非boss房间都已访问才能开门
+            if (neighborCfg.hasBoss && !canOpenBossDoor())
             {
-                Room *neighbor = m_rooms[neighborRoom];
-                bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
-                if (shouldOpenNeighborDoor)
+                qDebug() << "下门通往boss房间" << neighborRoom << "，但还有房间未探索，保持关闭";
+                doorIndex++;
+            }
+            else
+            {
+                cur->setDoorOpenDown(true);
+                down = true;
+                anyDoorOpened = true;
+                if (doorIndex < m_currentDoors.size())
                 {
-                    neighbor->setDoorOpenUp(true);
+                    m_currentDoors[doorIndex]->open();
+                }
+                doorIndex++;
+                qDebug() << "打开下门，通往房间" << neighborRoom;
+
+                if (neighborRoom >= 0 && neighborRoom < m_rooms.size())
+                {
+                    Room *neighbor = m_rooms[neighborRoom];
+                    bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
+                    if (shouldOpenNeighborDoor)
+                    {
+                        neighbor->setDoorOpenUp(true);
+                    }
                 }
             }
         }
         if (roomCfg.doorLeft >= 0)
         {
-            cur->setDoorOpenLeft(true);
-            left = true;
-            if (doorIndex < m_currentDoors.size())
-            {
-                m_currentDoors[doorIndex]->open();
-            }
-            doorIndex++;
-            qDebug() << "打开左门，通往房间" << roomCfg.doorLeft;
-
             int neighborRoom = roomCfg.doorLeft;
-            if (neighborRoom >= 0 && neighborRoom < m_rooms.size())
+            const RoomConfig &neighborCfg = config.getRoom(neighborRoom);
+
+            // 最高优先级：如果邻居是boss房间，必须所有非boss房间都已访问才能开门
+            if (neighborCfg.hasBoss && !canOpenBossDoor())
             {
-                Room *neighbor = m_rooms[neighborRoom];
-                bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
-                if (shouldOpenNeighborDoor)
+                qDebug() << "左门通往boss房间" << neighborRoom << "，但还有房间未探索，保持关闭";
+                doorIndex++;
+            }
+            else
+            {
+                cur->setDoorOpenLeft(true);
+                left = true;
+                anyDoorOpened = true;
+                if (doorIndex < m_currentDoors.size())
                 {
-                    neighbor->setDoorOpenRight(true);
+                    m_currentDoors[doorIndex]->open();
+                }
+                doorIndex++;
+                qDebug() << "打开左门，通往房间" << neighborRoom;
+
+                if (neighborRoom >= 0 && neighborRoom < m_rooms.size())
+                {
+                    Room *neighbor = m_rooms[neighborRoom];
+                    bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
+                    if (shouldOpenNeighborDoor)
+                    {
+                        neighbor->setDoorOpenRight(true);
+                    }
                 }
             }
         }
         if (roomCfg.doorRight >= 0)
         {
-            cur->setDoorOpenRight(true);
-            right = true;
-            if (doorIndex < m_currentDoors.size())
-            {
-                m_currentDoors[doorIndex]->open();
-            }
-            doorIndex++;
-            qDebug() << "打开右门，通往房间" << roomCfg.doorRight;
-
             int neighborRoom = roomCfg.doorRight;
-            if (neighborRoom >= 0 && neighborRoom < m_rooms.size())
+            const RoomConfig &neighborCfg = config.getRoom(neighborRoom);
+
+            // 最高优先级：如果邻居是boss房间，必须所有非boss房间都已访问才能开门
+            if (neighborCfg.hasBoss && !canOpenBossDoor())
             {
-                Room *neighbor = m_rooms[neighborRoom];
-                bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
-                if (shouldOpenNeighborDoor)
+                qDebug() << "右门通往boss房间" << neighborRoom << "，但还有房间未探索，保持关闭";
+                doorIndex++;
+            }
+            else
+            {
+                cur->setDoorOpenRight(true);
+                right = true;
+                anyDoorOpened = true;
+                if (doorIndex < m_currentDoors.size())
                 {
-                    neighbor->setDoorOpenLeft(true);
+                    m_currentDoors[doorIndex]->open();
+                }
+                doorIndex++;
+                qDebug() << "打开右门，通往房间" << neighborRoom;
+
+                if (neighborRoom >= 0 && neighborRoom < m_rooms.size())
+                {
+                    Room *neighbor = m_rooms[neighborRoom];
+                    bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
+                    if (shouldOpenNeighborDoor)
+                    {
+                        neighbor->setDoorOpenLeft(true);
+                    }
                 }
             }
         }
     }
 
-    qDebug() << "房间" << m_currentRoomIndex << "敌人全部清空，门已打开";
+    // 只有在实际打开了门时才播放音效和记录日志
+    if (anyDoorOpened)
+    {
+        AudioManager::instance().playSound("door_open");
+        qDebug() << "房间" << m_currentRoomIndex << "敌人全部清空，门已打开";
+    }
+    else
+    {
+        qDebug() << "房间" << m_currentRoomIndex << "敌人已清空，但所有门都通往boss房间且条件不满足";
+    }
+
     if (m_currentRoomIndex == m_rooms.size() - 1)
         emit levelCompleted(m_levelNumber);
-    emit enemiesCleared(m_currentRoomIndex, up, down, left, right);
+
+    // 只有战斗房间才发射敌人清空信号
+    if (cur && cur->isBattleRoom())
+    {
+        emit enemiesCleared(m_currentRoomIndex, up, down, left, right);
+    }
+}
+
+bool Level::canOpenBossDoor() const
+{
+    LevelConfig config;
+    if (!config.loadFromFile(m_levelNumber))
+        return false;
+
+    // 遍历所有房间，检查非boss房间是否都已访问且怪物已清空
+    for (int i = 0; i < config.getRoomCount(); ++i)
+    {
+        const RoomConfig &roomCfg = config.getRoom(i);
+        // 如果是非boss房间
+        if (!roomCfg.hasBoss)
+        {
+            // 必须已访问
+            if (!visited[i])
+            {
+                return false;
+            }
+            // 必须怪物已清空（通过检查房间的战斗完成状态）
+            if (i < m_rooms.size() && m_rooms[i])
+            {
+                Room *room = m_rooms[i];
+                // 如果是战斗房间且战斗未开始，说明怪物还在
+                if (room->isBattleRoom() && !room->isBattleStarted())
+                {
+                    return false;
+                }
+                // 如果房间还有敌人
+                if (!room->currentEnemies.isEmpty())
+                {
+                    bool hasAliveEnemy = false;
+                    for (const QPointer<Enemy> &ePtr : room->currentEnemies)
+                    {
+                        if (ePtr)
+                        {
+                            hasAliveEnemy = true;
+                            break;
+                        }
+                    }
+                    if (hasAliveEnemy)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
+    // 所有非boss房间都已访问且怪物清空
+    return true;
+}
+
+void Level::openBossDoors()
+{
+    LevelConfig config;
+    if (!config.loadFromFile(m_levelNumber))
+        return;
+
+    // 遍历所有房间，找到所有通往boss房间的门并打开
+    for (int roomIndex = 0; roomIndex < config.getRoomCount(); ++roomIndex)
+    {
+        const RoomConfig &roomCfg = config.getRoom(roomIndex);
+
+        // 跳过boss房间本身
+        if (roomCfg.hasBoss)
+            continue;
+
+        if (roomIndex >= m_rooms.size() || !m_rooms[roomIndex])
+            continue;
+
+        Room *room = m_rooms[roomIndex];
+
+        // 检查该房间的每个门是否通往boss房间
+        if (roomCfg.doorUp >= 0)
+        {
+            const RoomConfig &neighborCfg = config.getRoom(roomCfg.doorUp);
+            if (neighborCfg.hasBoss && !room->isDoorOpenUp())
+            {
+                qDebug() << "开启房间" << roomIndex << "通往boss房间的上门";
+                room->setDoorOpenUp(true);
+
+                // 找到并播放该门的开门动画
+                if (m_roomDoors.contains(roomIndex))
+                {
+                    const QVector<Door *> &doors = m_roomDoors[roomIndex];
+                    for (Door *door : doors)
+                    {
+                        if (door && door->direction() == Door::Up)
+                        {
+                            door->open();
+                            AudioManager::instance().playSound("door_open");
+                        }
+                    }
+                }
+            }
+        }
+
+        if (roomCfg.doorDown >= 0)
+        {
+            const RoomConfig &neighborCfg = config.getRoom(roomCfg.doorDown);
+            if (neighborCfg.hasBoss && !room->isDoorOpenDown())
+            {
+                qDebug() << "开启房间" << roomIndex << "通往boss房间的下门";
+                room->setDoorOpenDown(true);
+
+                if (m_roomDoors.contains(roomIndex))
+                {
+                    const QVector<Door *> &doors = m_roomDoors[roomIndex];
+                    for (Door *door : doors)
+                    {
+                        if (door && door->direction() == Door::Down)
+                        {
+                            door->open();
+                            AudioManager::instance().playSound("door_open");
+                        }
+                    }
+                }
+            }
+        }
+
+        if (roomCfg.doorLeft >= 0)
+        {
+            const RoomConfig &neighborCfg = config.getRoom(roomCfg.doorLeft);
+            if (neighborCfg.hasBoss && !room->isDoorOpenLeft())
+            {
+                qDebug() << "开启房间" << roomIndex << "通往boss房间的左门";
+                room->setDoorOpenLeft(true);
+
+                if (m_roomDoors.contains(roomIndex))
+                {
+                    const QVector<Door *> &doors = m_roomDoors[roomIndex];
+                    for (Door *door : doors)
+                    {
+                        if (door && door->direction() == Door::Left)
+                        {
+                            door->open();
+                            AudioManager::instance().playSound("door_open");
+                        }
+                    }
+                }
+            }
+        }
+
+        if (roomCfg.doorRight >= 0)
+        {
+            const RoomConfig &neighborCfg = config.getRoom(roomCfg.doorRight);
+            if (neighborCfg.hasBoss && !room->isDoorOpenRight())
+            {
+                qDebug() << "开启房间" << roomIndex << "通往boss房间的右门";
+                room->setDoorOpenRight(true);
+
+                if (m_roomDoors.contains(roomIndex))
+                {
+                    const QVector<Door *> &doors = m_roomDoors[roomIndex];
+                    for (Door *door : doors)
+                    {
+                        if (door && door->direction() == Door::Right)
+                        {
+                            door->open();
+                            AudioManager::instance().playSound("door_open");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 发射boss门开启信号
+    emit bossDoorsOpened();
 }
 
 void Level::onPlayerDied()

@@ -51,6 +51,7 @@ private slots:
     void quitGame();          // 退出游戏（槽）
     void onEnemiesCleared(int roomIndex, bool up = false, bool down = false,
                           bool left = false, bool right = false); // 房间敌人清空提示
+    void onBossDoorsOpened();                                     // boss门开启提示
 
     void advanceToNextLevel();
     void onLevelCompleted(); // 关卡完成时的处理

@@ -214,7 +214,7 @@ void ClockBoom::damageNearbyEntities()
     if (!scene())
         return;
 
-    const double explosionRadius = 500.0; // 爆炸范围（增加到两倍）
+    const double explosionRadius = 200.0; // 爆炸范围
     QPointF bombPos = pos();
 
     // 获取场景中的所有物品

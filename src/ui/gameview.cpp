@@ -135,6 +135,7 @@ void GameView::initGame()
 
         // 连接信号
         connect(level, &Level::enemiesCleared, this, &GameView::onEnemiesCleared);
+        connect(level, &Level::bossDoorsOpened, this, &GameView::onBossDoorsOpened);
         connect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);
         connect(player, &Player::playerDamaged, hud, &HUD::triggerDamageFlash);
 
@@ -239,6 +240,7 @@ void GameView::advanceToNextLevel()
         // 断开连接，避免重复信号
         disconnect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);
         disconnect(level, &Level::enemiesCleared, this, &GameView::onEnemiesCleared);
+        disconnect(level, &Level::bossDoorsOpened, this, &GameView::onBossDoorsOpened);
 
         // 清理关卡特定的敌人和物品，但保留玩家
         level->clearCurrentRoomEntities();
@@ -262,6 +264,7 @@ void GameView::advanceToNextLevel()
         // 重新连接信号
         connect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);
         connect(level, &Level::enemiesCleared, this, &GameView::onEnemiesCleared);
+        connect(level, &Level::bossDoorsOpened, this, &GameView::onBossDoorsOpened);
     }
 
     // 更新HUD显示当前关卡
@@ -461,6 +464,28 @@ void GameView::onEnemiesCleared(int roomIndex, bool up, bool down, bool left, bo
     hint->setFont(QFont("Arial", 16, QFont::Bold));
     hint->setPos(150, 250);
     hint->setZValue(1000); // 确保在最上层
+    scene->addItem(hint);
+
+    // 3秒后自动消失
+    QTimer::singleShot(3000, [this, hint]()
+                       {
+        if (scene && hint->scene() == scene) {
+            scene->removeItem(hint);
+            delete hint;
+        } });
+}
+
+void GameView::onBossDoorsOpened()
+{
+    qDebug() << "GameView::onBossDoorsOpened 被调用";
+
+    // 在战斗房间文案下一行显示boss门开启提示（深紫色）
+    QString text = "所有普通房间已肃清！boss房间开启，祝你好运";
+    QGraphicsTextItem *hint = new QGraphicsTextItem(text);
+    hint->setDefaultTextColor(QColor(75, 0, 130)); // 深紫色
+    hint->setFont(QFont("Arial", 16, QFont::Bold));
+    hint->setPos(150, 280); // 在战斗文案（y=250）下方30像素
+    hint->setZValue(1000);  // 确保在最上层
     scene->addItem(hint);
 
     // 3秒后自动消失
