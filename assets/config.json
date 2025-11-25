@@ -6,7 +6,7 @@
         "startRoom": "assets/background/startRoom.png",
         "classRoom": "assets/background/classRoom.png",
         "map2": "assets/background/map2.png",
-        "player": "assets/player/player.png",
+        "player": "assets/player/njuFish.png",
         "bullet": "assets/items/bullet.png",
         "enemy": "assets/enemy/enemy.png",
         "boss": "assets/boss/WashMachine/WashMachineAngrily.png",
