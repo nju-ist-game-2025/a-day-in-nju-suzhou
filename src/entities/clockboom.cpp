@@ -86,23 +86,20 @@ void ClockBoom::move()
     return;
 }
 
-void ClockBoom::takeDamage(int damage)
-{
-    // ClockBoom被攻击时的特殊处理：
-    // - 不创建额外的Explosion动画（因为explode()已经会创建）
-    // - 直接减血并检查死亡
-    flash();
-    int realDamage = qMax(1, damage);
-    health -= realDamage;
+void ClockBoom::takeDamage(int damage) {
+    // ClockBoom被攻击时的特殊处理
+    // 避免走父类Enemy::takeDamage的死亡流程（会重复创建爆炸效果）
 
-    if (health <= 0)
-    {
-        // 如果还没爆炸，触发爆炸（爆炸会处理dying信号和清理）
-        if (!m_exploded)
-        {
-            explode();
-        }
-        // 如果已经爆炸了，不需要做任何事（已经在explode()中处理了）
+    if (m_exploded)
+        return;  // 已经爆炸了，不再处理
+
+    flash();  // 显示受击闪烁
+    health -= qMax(1, damage);
+
+    if (health <= 0) {
+        // ClockBoom被打死时，显示死亡特效但不造成范围伤害
+        // dealDamage=false 表示只是被动死亡，不触发爆炸伤害
+        explode(false);
     }
 }
 
@@ -194,8 +191,7 @@ void ClockBoom::onExplodeTimeout()
     explode();
 }
 
-void ClockBoom::explode()
-{
+void ClockBoom::explode(bool dealDamage) {
     if (m_exploded)
         return;
 
@@ -207,25 +203,21 @@ void ClockBoom::explode()
         m_blinkTimer->stop();
     }
 
-    // 先对范围内的实体造成伤害（在场景状态改变前）
-    damageNearbyEntities();
+    // 只有主动爆炸（倒计时结束）才对范围内实体造成伤害
+    // 被打死时不触发范围伤害，避免连锁反应导致卡顿
+    if (dealDamage) {
+        damageNearbyEntities();
+    }
 
     // 播放爆炸音效（不阻塞）
     AudioManager::instance().playSound("enemy_death");
 
-    // 创建爆炸动画 - 延迟创建以分散性能负载
-    if (scene())
-    {
-        // 使用延迟计时器随机分散爆炸动画创建，避免同时创建大量动画对象
-        int delayMs = QRandomGenerator::global()->bounded(0, 100); // 0-100ms随机延迟
-        QTimer::singleShot(delayMs, this, [this]()
-                           {
-            if (scene()) {
-                Explosion* explosion = new Explosion();
-                explosion->setPos(this->pos());
-                scene()->addItem(explosion);
-                explosion->startAnimation();
-            } });
+    // 创建爆炸动画 - 立即创建以确保显示
+    if (scene()) {
+        Explosion* explosion = new Explosion();
+        explosion->setPos(this->pos());
+        scene()->addItem(explosion);
+        explosion->startAnimation();
     }
 
     // 发出dying信号并删除自己

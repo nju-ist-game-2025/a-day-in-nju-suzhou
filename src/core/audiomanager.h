@@ -5,12 +5,20 @@
 #include <QMediaPlayer>
 #include <QObject>
 #include <QSoundEffect>
+#include <QVector>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QAudioOutput>
 #else
 #include <QMediaPlaylist>
 #endif
+
+// 音效池 - 每种音效预创建多个实例，支持同时播放
+struct SoundPool {
+    QVector<QSoundEffect*> effects;
+    int nextIndex = 0;
+    QString filePath;
+};
 
 class AudioManager : public QObject {
     Q_OBJECT
@@ -35,7 +43,9 @@ class AudioManager : public QObject {
     AudioManager(QObject* parent = nullptr);
     ~AudioManager();
 
-    QMap<QString, QSoundEffect*> m_soundEffects;
+    QMap<QString, SoundPool> m_soundPools;  // 音效池
+    static const int POOL_SIZE = 8;         // 每种音效的池大小
+
     QMediaPlayer* m_musicPlayer;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     QAudioOutput* m_audioOutput;
