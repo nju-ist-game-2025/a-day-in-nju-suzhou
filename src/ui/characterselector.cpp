@@ -155,7 +155,7 @@ CharacterSelector::CharacterSelector(QWidget* parent)
 void CharacterSelector::loadCharacters() {
     // 角色配置：名称和对应的图片文件名
     QList<QPair<QString, QString>> characterConfigs = {
-        {"默认角色", "player.png"},
+        {"美少女", "beautifulGirl.png"},
         {"高雅人士", "HighGracePeople.png"},
         {"小蓝鲸", "njuFish.png"},
         {"权服侠", "quanfuxia.png"}};

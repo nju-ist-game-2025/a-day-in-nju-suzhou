@@ -568,7 +568,10 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
 
             // 特殊处理ClockBoom类型
             if (enemyType == "clock_boom") {
-                QPixmap boomNormalPic = ResourceFactory::createEnemyImage(40, m_levelNumber, "clock_boom");
+                int enemySize = ConfigManager::instance().getSize("enemy");
+                if (enemySize <= 0)
+                    enemySize = 40;  // 默认值
+                QPixmap boomNormalPic = ResourceFactory::createEnemyImage(enemySize, m_levelNumber, "clock_boom");
 
                 for (int i = 0; i < count; ++i) {
                     int x = QRandomGenerator::global()->bounded(100, 700);
@@ -593,7 +596,10 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
                 }
             } else {
                 // 普通敌人生成
-                QPixmap enemyPix = ResourceFactory::createEnemyImage(40, m_levelNumber, enemyType);
+                int enemySize = ConfigManager::instance().getSize("enemy");
+                if (enemySize <= 0)
+                    enemySize = 40;  // 默认值
+                QPixmap enemyPix = ResourceFactory::createEnemyImage(enemySize, m_levelNumber, enemyType);
 
                 for (int i = 0; i < count; ++i) {
                     int x = QRandomGenerator::global()->bounded(100, 700);

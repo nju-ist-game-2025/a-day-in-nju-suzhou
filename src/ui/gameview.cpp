@@ -124,7 +124,9 @@ void GameView::initGame() {
         initAudio();
 
         // 加载玩家图片（优先使用配置文件中的角色，其次使用选定的角色）
-        int playerSize = 60;
+        int playerSize = ConfigManager::instance().getSize("player");
+        if (playerSize <= 0)
+            playerSize = 60;  // 默认值
         QPixmap playerPixmap;
 
         // 从配置文件获取角色路径
@@ -147,7 +149,10 @@ void GameView::initGame() {
         setupMap(scene);
 
         // 加载子弹图片
-        QPixmap bulletPixmap = ResourceFactory::createBulletImage(50);
+        int bulletSize = ConfigManager::instance().getSize("bullet");
+        if (bulletSize <= 0)
+            bulletSize = 50;  // 默认值
+        QPixmap bulletPixmap = ResourceFactory::createBulletImage(bulletSize);
         player->setBulletPic(bulletPixmap);
 
         // 连接玩家死亡信号
