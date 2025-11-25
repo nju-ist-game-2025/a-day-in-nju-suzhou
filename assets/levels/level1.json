@@ -42,7 +42,7 @@
     {
       "id": 1,
       "name": "Room 2 - Combat",
-      "background": "map1",
+      "background": "bed",
       "enemyCount": 3,
       "hasBoss": false,
       "hasChest": false,
@@ -72,7 +72,7 @@
     {
       "id": 3,
       "name": "Room 4 - Combat",
-      "background": "map1",
+      "background": "bed",
       "enemyCount": 4,
       "hasBoss": false,
       "hasChest": false,
