@@ -514,90 +514,94 @@ void Level::spawnEnemiesInRoom(int roomIndex)
 
     try
     {
-        // 根据关卡号确定敌人类型
-        QString enemyType;
-        if (m_levelNumber == 1)
-        {
-            enemyType = "clock_normal";
-        }
-        else if (m_levelNumber == 2)
-        {
-            enemyType = "sock_normal";
-        }
-
-        QPixmap enemyPix = ResourceFactory::createEnemyImage(40, m_levelNumber, enemyType);
-        QPixmap bossPix = ResourceFactory::createBossImage(80);
-        int enemyCount = roomCfg.enemyCount;
         bool hasBoss = roomCfg.hasBoss;
-
         Room *cur = m_rooms[roomIndex];
+
+        // 计算总敌人数量（用于判断是否打开门）
+        int totalEnemyCount = 0;
+        for (const EnemySpawnConfig &enemyCfg : roomCfg.enemies)
+        {
+            totalEnemyCount += enemyCfg.count;
+        }
+
         // 如果没有敌人且不是战斗房间，或者战斗已经结束，则打开门
-        if (enemyCount == 0 && (!cur->isBattleRoom() || cur->isBattleStarted()))
+        if (totalEnemyCount == 0 && (!cur->isBattleRoom() || cur->isBattleStarted()))
         {
             openDoors(cur);
         }
 
-        for (int i = 0; i < enemyCount; ++i)
+        // 根据配置生成各种类型的敌人
+        for (const EnemySpawnConfig &enemyCfg : roomCfg.enemies)
         {
-            int x = QRandomGenerator::global()->bounded(100, 700);
-            int y = QRandomGenerator::global()->bounded(100, 500);
+            QString enemyType = enemyCfg.type;
+            int count = enemyCfg.count;
 
-            if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100)
+            // 特殊处理ClockBoom类型
+            if (enemyType == "clock_boom")
             {
-                x += 150;
-                y += 150;
-            }
+                QPixmap boomNormalPic = ResourceFactory::createEnemyImage(40, m_levelNumber, "clock_boom");
 
-            // 根据关卡号和敌人类型创建具体的敌人实例
-            Enemy *enemy = createEnemyByType(m_levelNumber, enemyType, enemyPix, 1.0);
-            enemy->setPos(x, y);
-            enemy->setPlayer(m_player);
-            m_scene->addItem(enemy);
-
-            // 使用 QPointer 存储
-            QPointer<Enemy> eptr(enemy);
-            m_currentEnemies.append(eptr);
-            m_rooms[roomIndex]->currentEnemies.append(eptr);
-
-            connect(enemy, &Enemy::dying, this, &Level::onEnemyDying);
-            qDebug() << "创建敌人" << enemyType << "位置:" << x << "," << y;
-        }
-
-        // 第一关的战斗房间生成clock_boom（房间k生成k-1个）
-        if (m_levelNumber == 1 && cur->isBattleRoom() && roomIndex > 0)
-        {
-            int boomCount = roomIndex - 1; // room1不生成，room2生成1个，room3生成2个...
-
-            QPixmap boomNormalPic = ResourceFactory::createEnemyImage(40, 1, "clock_boom");
-            // 红色闪烁效果会在ClockBoom构造函数中自动生成（类似Entity的flash效果）
-
-            for (int i = 0; i < boomCount; ++i)
-            {
-                int x = QRandomGenerator::global()->bounded(100, 700);
-                int y = QRandomGenerator::global()->bounded(100, 500);
-
-                if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100)
+                for (int i = 0; i < count; ++i)
                 {
-                    x += 150;
-                    y += 150;
+                    int x = QRandomGenerator::global()->bounded(100, 700);
+                    int y = QRandomGenerator::global()->bounded(100, 500);
+
+                    if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100)
+                    {
+                        x += 150;
+                        y += 150;
+                    }
+
+                    ClockBoom *boom = new ClockBoom(boomNormalPic, boomNormalPic, 1.0);
+                    boom->setPos(x, y);
+                    boom->setPlayer(m_player);
+                    m_scene->addItem(boom);
+
+                    QPointer<Enemy> eptr(boom);
+                    m_currentEnemies.append(eptr);
+                    m_rooms[roomIndex]->currentEnemies.append(eptr);
+
+                    connect(boom, &Enemy::dying, this, &Level::onEnemyDying);
+                    qDebug() << "创建ClockBoom，房间" << roomIndex << "，编号" << i << "，位置:" << x << "," << y;
                 }
+            }
+            else
+            {
+                // 普通敌人生成
+                QPixmap enemyPix = ResourceFactory::createEnemyImage(40, m_levelNumber, enemyType);
 
-                ClockBoom *boom = new ClockBoom(boomNormalPic, boomNormalPic, 1.0);
-                boom->setPos(x, y);
-                boom->setPlayer(m_player);
-                m_scene->addItem(boom);
+                for (int i = 0; i < count; ++i)
+                {
+                    int x = QRandomGenerator::global()->bounded(100, 700);
+                    int y = QRandomGenerator::global()->bounded(100, 500);
 
-                QPointer<Enemy> eptr(boom);
-                m_currentEnemies.append(eptr);
-                m_rooms[roomIndex]->currentEnemies.append(eptr);
+                    if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100)
+                    {
+                        x += 150;
+                        y += 150;
+                    }
 
-                connect(boom, &Enemy::dying, this, &Level::onEnemyDying);
-                qDebug() << "创建ClockBoom，房间" << roomIndex << "，编号" << i << "，位置:" << x << "," << y;
+                    // 根据关卡号和敌人类型创建具体的敌人实例
+                    Enemy *enemy = createEnemyByType(m_levelNumber, enemyType, enemyPix, 1.0);
+                    enemy->setPos(x, y);
+                    enemy->setPlayer(m_player);
+                    m_scene->addItem(enemy);
+
+                    // 使用 QPointer 存储
+                    QPointer<Enemy> eptr(enemy);
+                    m_currentEnemies.append(eptr);
+                    m_rooms[roomIndex]->currentEnemies.append(eptr);
+
+                    connect(enemy, &Enemy::dying, this, &Level::onEnemyDying);
+                    qDebug() << "创建敌人" << enemyType << "位置:" << x << "," << y;
+                }
             }
         }
 
         if (hasBoss)
         {
+            QPixmap bossPix = ResourceFactory::createBossImage(80);
+
             int x = QRandomGenerator::global()->bounded(100, 700);
             int y = QRandomGenerator::global()->bounded(100, 500);
 
@@ -1261,9 +1265,9 @@ void Level::onEnemyDying(Enemy *enemy)
     QPointer<Player> playerPtr(m_player);
     QTimer::singleShot(100, this, [levelPtr, playerPtr]()
                        {
-        if (levelPtr && playerPtr) {
-            levelPtr->bonusEffects();
-        } });
+                           if (levelPtr && playerPtr) {
+                               levelPtr->bonusEffects();
+                           } });
 
     for (Room *r : m_rooms)
     {
