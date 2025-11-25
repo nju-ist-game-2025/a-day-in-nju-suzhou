@@ -10,29 +10,32 @@
 
 class Player;
 
-class Enemy : public Entity {
+class Enemy : public Entity
+{
     Q_OBJECT
 
-   public:
+public:
     // 敌人状态枚举
-    enum State {
-        IDLE,    // 空闲/巡逻
-        CHASE,   // 追击
-        ATTACK,  // 攻击
-        WANDER   // 漫游
+    enum State
+    {
+        IDLE,   // 空闲/巡逻
+        CHASE,  // 追击
+        ATTACK, // 攻击
+        WANDER  // 漫游
     };
 
     // 移动模式枚举
-    enum MovementPattern {
-        MOVE_DIRECT,         // 直线追击（默认行为）
-        MOVE_ZIGZAG,         // Z字形追击（左右蛇形接近）
-        MOVE_CIRCLE,         // 绕圈接近（螺旋式靠近玩家）
-        MOVE_DASH,           // 冲刺模式（蓄力后快速冲向玩家）
-        MOVE_KEEP_DISTANCE,  // 保持距离（远程敌人用，保持一定距离）
-        MOVE_DIAGONAL        // 斜向接近（斜着靠近以躲避玩家直线子弹）
+    enum MovementPattern
+    {
+        MOVE_DIRECT,        // 直线追击（默认行为）
+        MOVE_ZIGZAG,        // Z字形追击（左右蛇形接近）
+        MOVE_CIRCLE,        // 绕圈接近（螺旋式靠近玩家）
+        MOVE_DASH,          // 冲刺模式（蓄力后快速冲向玩家）
+        MOVE_KEEP_DISTANCE, // 保持距离（远程敌人用，保持一定距离）
+        MOVE_DIAGONAL       // 斜向接近（斜着靠近以躲避玩家直线子弹）
     };
 
-    Enemy(const QPixmap& pic, double scale = 1.0);
+    Enemy(const QPixmap &pic, double scale = 1.0);
 
     ~Enemy();
 
@@ -40,7 +43,7 @@ class Enemy : public Entity {
 
     void takeDamage(int damage) override;
 
-    void setPlayer(Player* p) { player = p; }
+    void setPlayer(Player *p) { player = p; }
 
     // 配置参数
     void setVisionRange(double range) { visionRange = range; }
@@ -49,7 +52,8 @@ class Enemy : public Entity {
 
     void setAttackCooldown(int ms) { attackCooldown = ms; }
 
-    void setHealth(int hp) {
+    void setHealth(int hp)
+    {
         health = hp;
         maxHealth = hp;
     }
@@ -79,51 +83,51 @@ class Enemy : public Entity {
     void pauseTimers();
     void resumeTimers();
 
-   signals:
+signals:
 
-    void dying(Enemy* enemy);  // 敌人即将死亡信号（在deleteLater之前发出）
+    void dying(Enemy *enemy); // 敌人即将死亡信号（在deleteLater之前发出）
 
-   private slots:
+private slots:
 
     void updateAI();
 
     void tryAttack();
 
-   protected:
+protected:
     // AI相关 - protected 允许子类访问
     State currentState;
-    Player* player;
-    QTimer* aiTimer;
-    QTimer* moveTimer;
-    QTimer* attackTimer;
+    Player *player;
+    QTimer *aiTimer;
+    QTimer *moveTimer;
+    QTimer *attackTimer;
 
     // 属性 - protected 允许子类访问
     int health;
     int maxHealth;
-    int contactDamage;      // 接触伤害
-    double visionRange;     // 视野范围
-    double attackRange;     // 攻击范围
-    int attackCooldown;     // 攻击冷却
-    qint64 lastAttackTime;  // 上次攻击时间
+    int contactDamage;     // 接触伤害
+    double visionRange;    // 视野范围
+    double attackRange;    // 攻击范围
+    int attackCooldown;    // 攻击冷却
+    qint64 lastAttackTime; // 上次攻击时间
     bool firstBonus;
 
     // 漫游相关
-    QPointF wanderTarget;  // 漫游目标点
-    int wanderCooldown;    // 漫游冷却
+    QPointF wanderTarget; // 漫游目标点
+    int wanderCooldown;   // 漫游冷却
 
     // 移动模式相关
-    MovementPattern m_movePattern;  // 当前移动模式
-    double m_zigzagPhase;           // Z字形相位（用于正弦波动）
-    double m_zigzagAmplitude;       // Z字形振幅
-    double m_circleAngle;           // 绕圈当前角度
-    double m_circleRadius;          // 绕圈半径
-    bool m_isDashing;               // 是否正在冲刺
-    int m_dashChargeCounter;        // 冲刺蓄力计数器
-    int m_dashChargeMs;             // 冲刺蓄力时间（毫秒）
-    double m_dashSpeed;             // 冲刺速度倍率
-    QPointF m_dashTarget;           // 冲刺目标位置
-    int m_dashDuration;             // 冲刺持续时间计数器
-    double m_preferredDistance;     // 保持距离模式的目标距离
+    MovementPattern m_movePattern; // 当前移动模式
+    double m_zigzagPhase;          // Z字形相位（用于正弦波动）
+    double m_zigzagAmplitude;      // Z字形振幅
+    double m_circleAngle;          // 绕圈当前角度
+    double m_circleRadius;         // 绕圈半径
+    bool m_isDashing;              // 是否正在冲刺
+    int m_dashChargeCounter;       // 冲刺蓄力计数器
+    int m_dashChargeMs;            // 冲刺蓄力时间（毫秒）
+    double m_dashSpeed;            // 冲刺速度倍率
+    QPointF m_dashTarget;          // 冲刺目标位置
+    int m_dashDuration;            // 冲刺持续时间计数器
+    double m_preferredDistance;    // 保持距离模式的目标距离
 
     // AI方法 - protected 允许子类访问和重写
     void updateState();
@@ -141,12 +145,12 @@ class Enemy : public Entity {
     QPointF getRandomWanderPoint();
 
     // 移动模式实现方法
-    void executeMovement();   // 根据当前模式执行移动
-    void moveZigzag();        // Z字形移动
-    void moveCircle();        // 绕圈移动
-    void moveDash();          // 冲刺移动
-    void moveKeepDistance();  // 保持距离移动
-    void moveDiagonal();      // 斜向移动
+    void executeMovement();  // 根据当前模式执行移动
+    void moveZigzag();       // Z字形移动
+    void moveCircle();       // 绕圈移动
+    void moveDash();         // 冲刺移动
+    void moveKeepDistance(); // 保持距离移动
+    void moveDiagonal();     // 斜向移动
 };
 
-#endif  // ENEMY_H
+#endif // ENEMY_H
