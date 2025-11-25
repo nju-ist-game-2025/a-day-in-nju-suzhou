@@ -5,7 +5,7 @@
 #include "enemy.h"
 
 Player::Player(const QPixmap& pic_player, double scale)
-    : redContainers(3), redHearts(999.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(200), isDead(false), keys(0) {  // 默认150毫秒射击冷却，子弹伤害默认2
+    : redContainers(3), redHearts(5.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(2), isDead(false), keys(0) {  // 默认150毫秒射击冷却，子弹伤害默认2
     setTransformationMode(Qt::SmoothTransformation);
 
     // 如果scale是1.0，直接使用原始pixmap，否则按比例缩放
