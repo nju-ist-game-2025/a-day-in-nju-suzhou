@@ -23,7 +23,7 @@ class ClockBoom : public Enemy {
     ~ClockBoom() override;
 
     void move() override;                  // 重写move，使其不移动
-    void takeDamage(int damage) override;  // 重写takeDamage，死亡时不创建额外爆炸动画
+    void takeDamage(int damage) override;  // 重写受伤，避免重复死亡处理
     void triggerCountdown();               // 公开方法：立即触发倒计时（用于Boss召唤）
 
     // 重写暂停/恢复方法
@@ -43,11 +43,11 @@ class ClockBoom : public Enemy {
     QPixmap m_redPixmap;       // 深红色图片
     bool m_isRed;              // 当前是否显示红色
 
-    void checkCollisionWithPlayer();  // 检测与玩家的碰撞
-    void startCountdown();            // 开始倒计时
-    void toggleBlink();               // 切换闪烁状态
-    void explode();                   // 触发爆炸
-    void damageNearbyEntities();      // 对范围内实体造成伤害
+    void checkCollisionWithPlayer();       // 检测与玩家的碰撞
+    void startCountdown();                 // 开始倒计时
+    void toggleBlink();                    // 切换闪烁状态
+    void explode(bool dealDamage = true);  // 触发爆炸，dealDamage控制是否造成范围伤害
+    void damageNearbyEntities();           // 对范围内实体造成伤害
 
    private slots:
     void onCollisionCheck();
