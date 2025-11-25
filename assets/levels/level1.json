@@ -43,7 +43,7 @@
     {
       "id": 1,
       "name": "Room 2 - Combat",
-      "background": "map1",
+      "background": "bed",
       "enemyCount": 3,
       "enemies": [
         {
@@ -80,7 +80,7 @@
     {
       "id": 3,
       "name": "Room 4 - Combat",
-      "background": "map1",
+      "background": "bed",
       "enemyCount": 4,
       "enemies": [
         {

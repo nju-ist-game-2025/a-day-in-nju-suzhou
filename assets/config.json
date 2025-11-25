@@ -1,6 +1,7 @@
 {
     "assets": {
         "background_main": "assets/background/main.png",
+        "bed": "assets/background/bed.png",
         "map1": "assets/background/map1.png",
         "map2": "assets/background/map2.png",
         "player": "assets/player/player.png",
