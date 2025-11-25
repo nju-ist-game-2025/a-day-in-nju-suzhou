@@ -86,6 +86,10 @@ private:
     QTimer *m_levelTextTimer;              // 追踪关卡文字显示的定时器
     QGraphicsPixmapItem *m_textBackground; // 新增：渐变文字背景
 
+    // boss门相关
+    bool m_hasEncounteredBossDoor; // 是否已经遇到过boss门
+    bool m_bossDoorsAlreadyOpened; // boss门是否已经打开过
+
     // galgame相关
     QGraphicsPixmapItem *m_dialogBox;
     QGraphicsTextItem *m_dialogText;

@@ -31,12 +31,15 @@ Level::Level(Player *player, QGraphicsScene *scene, QObject *parent)
       checkChange(nullptr),
       visited_count(0),
       m_levelTextTimer(nullptr),
+      m_hasEncounteredBossDoor(false),
+      m_bossDoorsAlreadyOpened(false),
       m_dialogBox(nullptr),
       m_dialogText(nullptr),
       m_continueHint(nullptr),
       m_currentDialogIndex(0),
       m_isStoryFinished(false),
-      m_isBossDialog(false) {
+      m_isBossDialog(false)
+{
 }
 
 Level::~Level()
@@ -133,6 +136,8 @@ void Level::init(int levelNumber)
     m_currentChests.clear();
 
     m_levelNumber = levelNumber;
+    m_hasEncounteredBossDoor = false;
+    m_bossDoorsAlreadyOpened = false;
 
     LevelConfig config;
     if (!config.loadFromFile(levelNumber))
@@ -218,19 +223,26 @@ void Level::initializeLevelAfterStory(const LevelConfig &config)
 }
 
 // 事件过滤器：处理对话框的点击和键盘事件
-bool Level::eventFilter(QObject* watched, QEvent* event) {
-    if (watched == m_scene && m_dialogBox && !m_isStoryFinished) {
+bool Level::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == m_scene && m_dialogBox && !m_isStoryFinished)
+    {
         if (event->type() == QEvent::GraphicsSceneMousePress ||
-            event->type() == QEvent::KeyPress) {
-            if (event->type() == QEvent::KeyPress) {
-                QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-                if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Space) {
+            event->type() == QEvent::KeyPress)
+        {
+            if (event->type() == QEvent::KeyPress)
+            {
+                QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+                if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Space)
+                {
                     onDialogClicked();
-                    return true;  // 阻止事件继续传播
+                    return true; // 阻止事件继续传播
                 }
-            } else if (event->type() == QEvent::GraphicsSceneMousePress) {
+            }
+            else if (event->type() == QEvent::GraphicsSceneMousePress)
+            {
                 onDialogClicked();
-                return true;  // 阻止事件继续传播
+                return true; // 阻止事件继续传播
             }
         }
     }
@@ -246,7 +258,8 @@ void Level::onDialogClicked()
     }
 }
 
-void Level::showStoryDialog(const QStringList& dialogs, bool isBossDialog, const QString& customBackground) {
+void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const QString &customBackground)
+{
     m_currentDialogs = dialogs;
     m_currentDialogIndex = 0;
     m_isBossDialog = isBossDialog;
@@ -257,9 +270,12 @@ void Level::showStoryDialog(const QStringList& dialogs, bool isBossDialog, const
 
     QString imagePath;
     // 如果指定了自定义背景，使用自定义背景
-    if (!customBackground.isEmpty()) {
+    if (!customBackground.isEmpty())
+    {
         imagePath = customBackground;
-    } else {
+    }
+    else
+    {
         // 使用默认背景
         if (m_levelNumber == 1)
             imagePath = "assets/galgame/l1.png";
@@ -335,15 +351,20 @@ void Level::showStoryDialog(const QStringList& dialogs, bool isBossDialog, const
     m_scene->installEventFilter(this);
 
     // 暂停所有房间的定时器（防止对话期间玩家被攻击）
-    if (isBossDialog) {
-        for (Room* room : m_rooms) {
-            if (room) {
+    if (isBossDialog)
+    {
+        for (Room *room : m_rooms)
+        {
+            if (room)
+            {
                 room->stopChangeTimer();
             }
         }
         // 暂停所有敌人的AI和攻击
-        for (const QPointer<Enemy>& enemyPtr : m_currentEnemies) {
-            if (enemyPtr) {
+        for (const QPointer<Enemy> &enemyPtr : m_currentEnemies)
+        {
+            if (enemyPtr)
+            {
                 enemyPtr->pauseTimers();
             }
         }
@@ -412,21 +433,27 @@ void Level::finishStory()
     emit dialogFinished();
 
     // 如果是boss对话结束，初始化当前房间
-    if (m_isBossDialog) {
+    if (m_isBossDialog)
+    {
         m_isBossDialog = false;
 
         // 恢复所有敌人的定时器
-        for (const QPointer<Enemy>& enemyPtr : m_currentEnemies) {
-            if (enemyPtr) {
+        for (const QPointer<Enemy> &enemyPtr : m_currentEnemies)
+        {
+            if (enemyPtr)
+            {
                 enemyPtr->resumeTimers();
             }
         }
 
-        if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size()) {
+        if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size())
+        {
             qDebug() << "Boss对话结束，初始化boss房间" << m_currentRoomIndex;
             initCurrentRoom(m_rooms[m_currentRoomIndex]);
         }
-    } else {
+    }
+    else
+    {
         // 关卡开始对话结束
         emit storyFinished();
     }
@@ -669,12 +696,16 @@ void Level::spawnEnemiesInRoom(int roomIndex)
             }
         }
 
-        if (hasBoss) {
+        if (hasBoss)
+        {
             // 根据关卡号确定Boss类型
             QString bossType;
-            if (m_levelNumber == 1) {
+            if (m_levelNumber == 1)
+            {
                 bossType = "nightmare";
-            } else {
+            }
+            else
+            {
                 bossType = "washmachine";
             }
 
@@ -691,7 +722,7 @@ void Level::spawnEnemiesInRoom(int roomIndex)
             }
 
             // 使用工厂方法创建对应的Boss
-            Boss* boss = createBossByLevel(m_levelNumber, bossPix, 1.0);
+            Boss *boss = createBossByLevel(m_levelNumber, bossPix, 1.0);
             boss->setPos(x, y);
             boss->setPlayer(m_player);
             m_scene->addItem(boss);
@@ -784,33 +815,37 @@ Enemy *Level::createEnemyByType(int levelNumber, const QString &enemyType, const
     return new Enemy(pic, scale);
 }
 
-Boss* Level::createBossByLevel(int levelNumber, const QPixmap& pic, double scale) {
+Boss *Level::createBossByLevel(int levelNumber, const QPixmap &pic, double scale)
+{
     // 根据关卡号创建对应的Boss
-    switch (levelNumber) {
-        case 1:
-            // 第一关：Nightmare Boss
-            qDebug() << "创建Nightmare Boss（第一关）";
-            return new NightmareBoss(pic, scale);
+    switch (levelNumber)
+    {
+    case 1:
+        // 第一关：Nightmare Boss
+        qDebug() << "创建Nightmare Boss（第一关）";
+        return new NightmareBoss(pic, scale);
 
-        case 2:
-            // 第二关：WashMachine Boss
-            qDebug() << "创建WashMachine Boss（第二关）";
-            return new WashMachineBoss(pic, scale);
+    case 2:
+        // 第二关：WashMachine Boss
+        qDebug() << "创建WashMachine Boss（第二关）";
+        return new WashMachineBoss(pic, scale);
 
-        case 3:
-            // 第三关：WashMachine Boss
-            qDebug() << "创建WashMachine Boss（第三关）";
-            return new WashMachineBoss(pic, scale);
+    case 3:
+        // 第三关：WashMachine Boss
+        qDebug() << "创建WashMachine Boss（第三关）";
+        return new WashMachineBoss(pic, scale);
 
-        default:
-            // 默认Boss
-            qDebug() << "使用默认Boss";
-            return new Boss(pic, scale);
+    default:
+        // 默认Boss
+        qDebug() << "使用默认Boss";
+        return new Boss(pic, scale);
     }
 }
 
-void Level::spawnDoors(const RoomConfig& roomCfg) {
-    try {
+void Level::spawnDoors(const RoomConfig &roomCfg)
+{
+    try
+    {
         // 检查是否已有该房间的门对象（复用逻辑）
         if (m_roomDoors.contains(m_currentRoomIndex))
         {
@@ -1218,25 +1253,55 @@ bool Level::enterNextRoom()
     bool isFirstEnterBattleRoom = !visited[m_currentRoomIndex] && nextRoom->isBattleRoom();
 
     // 检测是否首次进入boss房间（使用之前已声明的currentRoomCfg）
-    const RoomConfig& newRoomCfg = config.getRoom(m_currentRoomIndex);
+    const RoomConfig &newRoomCfg = config.getRoom(m_currentRoomIndex);
     bool isFirstEnterBossRoom = !visited[m_currentRoomIndex] && newRoomCfg.hasBoss;
 
-    if (!visited[m_currentRoomIndex]) {
+    if (!visited[m_currentRoomIndex])
+    {
         visited[m_currentRoomIndex] = true;
         visited_count++;
 
+        // 检查是否遇到通往boss房间的门
+        if (!m_hasEncounteredBossDoor && !newRoomCfg.hasBoss)
+        {
+            if ((newRoomCfg.doorUp >= 0 && config.getRoom(newRoomCfg.doorUp).hasBoss) ||
+                (newRoomCfg.doorDown >= 0 && config.getRoom(newRoomCfg.doorDown).hasBoss) ||
+                (newRoomCfg.doorLeft >= 0 && config.getRoom(newRoomCfg.doorLeft).hasBoss) ||
+                (newRoomCfg.doorRight >= 0 && config.getRoom(newRoomCfg.doorRight).hasBoss))
+            {
+                m_hasEncounteredBossDoor = true;
+                qDebug() << "首次遇到boss门，标记状态";
+            }
+        }
+
         // 如果是首次进入boss房间且有对话配置，显示对话
-        if (isFirstEnterBossRoom && !newRoomCfg.bossDialog.isEmpty()) {
+        if (isFirstEnterBossRoom && !newRoomCfg.bossDialog.isEmpty())
+        {
             qDebug() << "首次进入boss房间" << m_currentRoomIndex << "，显示boss对话";
             // 传递boss对话标志和自定义背景（如果有）
             showStoryDialog(newRoomCfg.bossDialog, true, newRoomCfg.bossDialogBackground);
             // 等待对话结束后再初始化房间，通过finishStory处理
             // initCurrentRoom会在对话结束后由finishStory调用
-        } else {
+        }
+        else
+        {
             initCurrentRoom(m_rooms[m_currentRoomIndex]);
         }
-    } else {
+    }
+    else
+    {
         loadRoom(m_currentRoomIndex);
+    }
+
+    // 在进入非boss房间后，检查是否满足打开boss门的条件
+    if (!newRoomCfg.hasBoss && m_hasEncounteredBossDoor && !m_bossDoorsAlreadyOpened)
+    {
+        if (canOpenBossDoor())
+        {
+            qDebug() << "进入房间后检测到满足boss门开启条件，立即打开boss门";
+            m_bossDoorsAlreadyOpened = true;
+            openBossDoors();
+        }
     }
 
     // 单向门逻辑：如果是首次进入战斗房间，不打开返回的门
@@ -1347,6 +1412,21 @@ void Level::loadRoom(int roomIndex)
 
     if (targetRoom)
         targetRoom->startChangeTimer();
+
+    // 在重新加载非boss房间后，检查是否满足打开boss门的条件
+    if (config.loadFromFile(m_levelNumber))
+    {
+        const RoomConfig &roomCfg = config.getRoom(roomIndex);
+        if (!roomCfg.hasBoss && m_hasEncounteredBossDoor && !m_bossDoorsAlreadyOpened)
+        {
+            if (canOpenBossDoor())
+            {
+                qDebug() << "重新加载房间后检测到满足boss门开启条件，立即打开boss门";
+                m_bossDoorsAlreadyOpened = true;
+                openBossDoors();
+            }
+        }
+    }
 }
 
 Room *Level::currentRoom() const
@@ -1398,11 +1478,20 @@ void Level::onEnemyDying(Enemy *enemy)
     {
         openDoors(cur);
 
-        // 检查是否所有非boss房间都已清空，如果是则打开通往boss房间的门
-        if (canOpenBossDoor())
+        // 在战斗房间清空敌人后，检查是否满足打开boss门的条件
+        LevelConfig config;
+        if (config.loadFromFile(m_levelNumber))
         {
-            qDebug() << "所有非boss房间已清空，检查并开启通往boss房间的门";
-            openBossDoors();
+            const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
+            if (!roomCfg.hasBoss && m_hasEncounteredBossDoor && !m_bossDoorsAlreadyOpened)
+            {
+                if (canOpenBossDoor())
+                {
+                    qDebug() << "战斗房间清空后检测到满足boss门开启条件，立即打开boss门";
+                    m_bossDoorsAlreadyOpened = true;
+                    openBossDoors();
+                }
+            }
         }
     }
 }
@@ -1596,18 +1685,14 @@ bool Level::canOpenBossDoor() const
             // 必须已访问
             if (!visited[i])
             {
+                qDebug() << "房间" << i << "尚未访问，boss门保持关闭";
                 return false;
             }
-            // 必须怪物已清空（通过检查房间的战斗完成状态）
+            // 必须怪物已清空（检查房间是否还有存活的敌人）
             if (i < m_rooms.size() && m_rooms[i])
             {
                 Room *room = m_rooms[i];
-                // 如果是战斗房间且战斗未开始，说明怪物还在
-                if (room->isBattleRoom() && !room->isBattleStarted())
-                {
-                    return false;
-                }
-                // 如果房间还有敌人
+                // 如果房间还有存活的敌人
                 if (!room->currentEnemies.isEmpty())
                 {
                     bool hasAliveEnemy = false;
@@ -1621,12 +1706,15 @@ bool Level::canOpenBossDoor() const
                     }
                     if (hasAliveEnemy)
                     {
+                        qDebug() << "房间" << i << "还有存活敌人，boss门保持关闭";
                         return false;
                     }
                 }
             }
         }
     }
+
+    qDebug() << "所有非boss房间已访问并清空，可以打开boss门";
 
     // 所有非boss房间都已访问且怪物清空
     return true;
@@ -1637,6 +1725,10 @@ void Level::openBossDoors()
     LevelConfig config;
     if (!config.loadFromFile(m_levelNumber))
         return;
+
+    qDebug() << "=== 开始打开所有通往boss房间的门 ===";
+
+    bool shouldReloadCurrentRoom = false;
 
     // 遍历所有房间，找到所有通往boss房间的门并打开
     for (int roomIndex = 0; roomIndex < config.getRoomCount(); ++roomIndex)
@@ -1652,23 +1744,56 @@ void Level::openBossDoors()
 
         Room *room = m_rooms[roomIndex];
 
+        qDebug() << "检查房间" << roomIndex << "的门（上:" << roomCfg.doorUp << "，下:" << roomCfg.doorDown
+                 << "，左:" << roomCfg.doorLeft << "，右:" << roomCfg.doorRight << "）";
+
+        // 检查当前房间的相邻房间是否有通往boss的门
+        bool isAdjacentToBoss = false;
+        if ((roomCfg.doorUp >= 0 && config.getRoom(roomCfg.doorUp).hasBoss) ||
+            (roomCfg.doorDown >= 0 && config.getRoom(roomCfg.doorDown).hasBoss) ||
+            (roomCfg.doorLeft >= 0 && config.getRoom(roomCfg.doorLeft).hasBoss) ||
+            (roomCfg.doorRight >= 0 && config.getRoom(roomCfg.doorRight).hasBoss))
+        {
+            isAdjacentToBoss = true;
+        }
+
+        // 如果当前房间邻接boss房间，且是正在显示的房间，标记需要重新加载
+        if (isAdjacentToBoss && roomIndex == m_currentRoomIndex)
+        {
+            shouldReloadCurrentRoom = true;
+        }
+
         // 检查该房间的每个门是否通往boss房间
         if (roomCfg.doorUp >= 0)
         {
             const RoomConfig &neighborCfg = config.getRoom(roomCfg.doorUp);
             if (neighborCfg.hasBoss && !room->isDoorOpenUp())
             {
-                qDebug() << "开启房间" << roomIndex << "通往boss房间的上门";
+                qDebug() << "开启房间" << roomIndex << "通往boss房间" << roomCfg.doorUp << "的上门";
                 room->setDoorOpenUp(true);
 
                 // 找到并播放该门的开门动画
-                if (m_roomDoors.contains(roomIndex))
+                // 如果是当前房间，使用 m_currentDoors
+                if (roomIndex == m_currentRoomIndex && !m_currentDoors.isEmpty())
+                {
+                    for (Door *door : m_currentDoors)
+                    {
+                        if (door && door->direction() == Door::Up)
+                        {
+                            qDebug() << "  -> 在当前房间的 m_currentDoors 中找到上门并打开";
+                            door->open();
+                            AudioManager::instance().playSound("door_open");
+                        }
+                    }
+                }
+                else if (m_roomDoors.contains(roomIndex))
                 {
                     const QVector<Door *> &doors = m_roomDoors[roomIndex];
                     for (Door *door : doors)
                     {
                         if (door && door->direction() == Door::Up)
                         {
+                            qDebug() << "  -> 在 m_roomDoors 中找到房间" << roomIndex << "的上门并打开";
                             door->open();
                             AudioManager::instance().playSound("door_open");
                         }
@@ -1682,16 +1807,29 @@ void Level::openBossDoors()
             const RoomConfig &neighborCfg = config.getRoom(roomCfg.doorDown);
             if (neighborCfg.hasBoss && !room->isDoorOpenDown())
             {
-                qDebug() << "开启房间" << roomIndex << "通往boss房间的下门";
+                qDebug() << "开启房间" << roomIndex << "通往boss房间" << roomCfg.doorDown << "的下门";
                 room->setDoorOpenDown(true);
 
-                if (m_roomDoors.contains(roomIndex))
+                if (roomIndex == m_currentRoomIndex && !m_currentDoors.isEmpty())
+                {
+                    for (Door *door : m_currentDoors)
+                    {
+                        if (door && door->direction() == Door::Down)
+                        {
+                            qDebug() << "  -> 在当前房间的 m_currentDoors 中找到下门并打开";
+                            door->open();
+                            AudioManager::instance().playSound("door_open");
+                        }
+                    }
+                }
+                else if (m_roomDoors.contains(roomIndex))
                 {
                     const QVector<Door *> &doors = m_roomDoors[roomIndex];
                     for (Door *door : doors)
                     {
                         if (door && door->direction() == Door::Down)
                         {
+                            qDebug() << "  -> 在 m_roomDoors 中找到房间" << roomIndex << "的下门并打开";
                             door->open();
                             AudioManager::instance().playSound("door_open");
                         }
@@ -1705,16 +1843,29 @@ void Level::openBossDoors()
             const RoomConfig &neighborCfg = config.getRoom(roomCfg.doorLeft);
             if (neighborCfg.hasBoss && !room->isDoorOpenLeft())
             {
-                qDebug() << "开启房间" << roomIndex << "通往boss房间的左门";
+                qDebug() << "开启房间" << roomIndex << "通往boss房间" << roomCfg.doorLeft << "的左门";
                 room->setDoorOpenLeft(true);
 
-                if (m_roomDoors.contains(roomIndex))
+                if (roomIndex == m_currentRoomIndex && !m_currentDoors.isEmpty())
+                {
+                    for (Door *door : m_currentDoors)
+                    {
+                        if (door && door->direction() == Door::Left)
+                        {
+                            qDebug() << "  -> 在当前房间的 m_currentDoors 中找到左门并打开";
+                            door->open();
+                            AudioManager::instance().playSound("door_open");
+                        }
+                    }
+                }
+                else if (m_roomDoors.contains(roomIndex))
                 {
                     const QVector<Door *> &doors = m_roomDoors[roomIndex];
                     for (Door *door : doors)
                     {
                         if (door && door->direction() == Door::Left)
                         {
+                            qDebug() << "  -> 在 m_roomDoors 中找到房间" << roomIndex << "的左门并打开";
                             door->open();
                             AudioManager::instance().playSound("door_open");
                         }
@@ -1728,16 +1879,29 @@ void Level::openBossDoors()
             const RoomConfig &neighborCfg = config.getRoom(roomCfg.doorRight);
             if (neighborCfg.hasBoss && !room->isDoorOpenRight())
             {
-                qDebug() << "开启房间" << roomIndex << "通往boss房间的右门";
+                qDebug() << "开启房间" << roomIndex << "通往boss房间" << roomCfg.doorRight << "的右门";
                 room->setDoorOpenRight(true);
 
-                if (m_roomDoors.contains(roomIndex))
+                if (roomIndex == m_currentRoomIndex && !m_currentDoors.isEmpty())
+                {
+                    for (Door *door : m_currentDoors)
+                    {
+                        if (door && door->direction() == Door::Right)
+                        {
+                            qDebug() << "  -> 在当前房间的 m_currentDoors 中找到右门并打开";
+                            door->open();
+                            AudioManager::instance().playSound("door_open");
+                        }
+                    }
+                }
+                else if (m_roomDoors.contains(roomIndex))
                 {
                     const QVector<Door *> &doors = m_roomDoors[roomIndex];
                     for (Door *door : doors)
                     {
                         if (door && door->direction() == Door::Right)
                         {
+                            qDebug() << "  -> 在 m_roomDoors 中找到房间" << roomIndex << "的右门并打开";
                             door->open();
                             AudioManager::instance().playSound("door_open");
                         }
@@ -1749,6 +1913,32 @@ void Level::openBossDoors()
 
     // 发射boss门开启信号
     emit bossDoorsOpened();
+
+    // 如果当前房间邻接boss房间，需要重新加载门以显示打开状态
+    if (shouldReloadCurrentRoom)
+    {
+        qDebug() << "当前房间" << m_currentRoomIndex << "邻接boss房间，重新加载门以显示打开状态";
+
+        // 清除当前所有门
+        for (Door *door : m_currentDoors)
+        {
+            if (m_scene && door)
+            {
+                m_scene->removeItem(door);
+            }
+            delete door;
+        }
+        m_currentDoors.clear();
+
+        // 从缓存中移除
+        m_roomDoors.remove(m_currentRoomIndex);
+
+        // 重新生成门（会读取房间状态，boss门已经被设置为打开）
+        const RoomConfig &currentRoomCfg = config.getRoom(m_currentRoomIndex);
+        spawnDoors(currentRoomCfg);
+
+        qDebug() << "已重新加载当前房间的所有门";
+    }
 }
 
 void Level::onPlayerDied()
