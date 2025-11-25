@@ -37,10 +37,13 @@ public:
 
     void showCredits(const QStringList &desc);
 
-    void showStoryDialog(const QStringList &dialogs);
+    void showStoryDialog(const QStringList &dialogs, bool isBossDialog = false, const QString &customBackground = QString());
 
     bool canOpenBossDoor() const; // 检查是否所有非boss房间都已访问且怪物清空
     void openBossDoors();         // 打开所有通往boss房间的门
+
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:
     void levelCompleted(int levelNumber);
@@ -50,6 +53,8 @@ signals:
     void bossDoorsOpened(); // boss房间的门被打开
 
     void storyFinished();
+    void dialogStarted();  // 对话开始（包括关卡开始和boss对话）
+    void dialogFinished(); // 对话结束
     void levelInitialized();
 
 private:
@@ -61,6 +66,9 @@ private:
 
     // 敌人工厂方法：根据类型创建具体的敌人实例
     Enemy *createEnemyByType(int levelNumber, const QString &enemyType, const QPixmap &pic, double scale);
+
+    // Boss工厂方法：根据关卡号创建对应的Boss实例
+    Boss *createBossByLevel(int levelNumber, const QPixmap &pic, double scale);
 
     int m_levelNumber;
     QVector<Room *> m_rooms;
@@ -85,6 +93,7 @@ private:
     QStringList m_currentDialogs;
     int m_currentDialogIndex;
     bool m_isStoryFinished;
+    bool m_isBossDialog; // 标记当前是否为boss对话
 
 public slots:
     void onDialogClicked();

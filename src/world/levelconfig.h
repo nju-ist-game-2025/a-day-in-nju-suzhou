@@ -29,6 +29,8 @@ struct RoomConfig
     bool hasChest;                     // 是否有宝箱
     bool isChestLocked;                // 宝箱是否锁定
     bool hasBoss;                      // 是否有 Boss
+    QStringList bossDialog;            // Boss房间的对话文案
+    QString bossDialogBackground;      // Boss对话背景图片路径（可选，为空则使用默认图片）
 
     // 门的连接信息：-1 表示无门，>= 0 表示连接到的房间索引
     int doorUp;    // 上门连接到的房间索引
@@ -38,13 +40,13 @@ struct RoomConfig
 
     RoomConfig()
         : enemyCount(0),
-        hasChest(false),
-        isChestLocked(false),
-        hasBoss(false),
-        doorUp(-1),
-        doorDown(-1),
-        doorLeft(-1),
-        doorRight(-1) {}
+          hasChest(false),
+          isChestLocked(false),
+          hasBoss(false),
+          doorUp(-1),
+          doorDown(-1),
+          doorLeft(-1),
+          doorRight(-1) {}
 };
 
 /**

@@ -8,6 +8,10 @@
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 #include "../entities/boss.h"
+#include "../entities/nightmareboss.h"
+#include "../entities/washmachineboss.h"
+#include "../entities/enemy.h"
+#include "../entities/clockenemy.h"
 #include "../entities/clockboom.h"
 #include "../entities/clockenemy.h"
 #include "../entities/enemy.h"
@@ -33,7 +37,9 @@ Level::Level(Player* player, QGraphicsScene* scene, QObject* parent)
       m_dialogText(nullptr),
       m_continueHint(nullptr),
       m_currentDialogIndex(0),
-      m_isStoryFinished(false) {
+      m_isStoryFinished(false),
+      m_isBossDialog(false)
+{
 }
 
 Level::~Level() {
@@ -190,6 +196,60 @@ void Level::initializeLevelAfterStory(const LevelConfig& config) {
     buildMinimapData();
 }
 
+// 事件过滤器：处理对话框的点击和键盘事件
+bool Level::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == m_scene && m_dialogBox && !m_isStoryFinished)
+    {
+        if (event->type() == QEvent::GraphicsSceneMousePress ||
+            event->type() == QEvent::KeyPress)
+        {
+            if (event->type() == QEvent::KeyPress)
+            {
+                QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+                if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Space)
+                {
+                    onDialogClicked();
+                    return true; // 阻止事件继续传播
+                }
+            }
+            else if (event->type() == QEvent::GraphicsSceneMousePress)
+            {
+                onDialogClicked();
+                return true; // 阻止事件继续传播
+            }
+        }
+    }
+    return QObject::eventFilter(watched, event);
+}
+
+// 事件过滤器：处理对话框的点击和键盘事件
+bool Level::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == m_scene && m_dialogBox && !m_isStoryFinished)
+    {
+        if (event->type() == QEvent::GraphicsSceneMousePress ||
+            event->type() == QEvent::KeyPress)
+        {
+            if (event->type() == QEvent::KeyPress)
+            {
+                QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+                if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Space)
+                {
+                    onDialogClicked();
+                    return true; // 阻止事件继续传播
+                }
+            }
+            else if (event->type() == QEvent::GraphicsSceneMousePress)
+            {
+                onDialogClicked();
+                return true; // 阻止事件继续传播
+            }
+        }
+    }
+    return QObject::eventFilter(watched, event);
+}
+
 // 处理鼠标点击继续对话
 void Level::onDialogClicked() {
     if (!m_isStoryFinished) {
@@ -197,16 +257,32 @@ void Level::onDialogClicked() {
     }
 }
 
-void Level::showStoryDialog(const QStringList& dialogs) {
+void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const QString &customBackground)
+{
     m_currentDialogs = dialogs;
     m_currentDialogIndex = 0;
+    m_isBossDialog = isBossDialog;
+    m_isStoryFinished = false;
+
+    // 发送对话开始信号
+    emit dialogStarted();
+
     QString imagePath;
-    if (m_levelNumber == 1)
-        imagePath = "assets/galgame/l1.png";
-    else if (m_levelNumber == 2)
-        imagePath = "assets/galgame/l2.png";
+    // 如果指定了自定义背景，使用自定义背景
+    if (!customBackground.isEmpty())
+    {
+        imagePath = customBackground;
+    }
     else
-        imagePath = "assets/galgame/l3.png";
+    {
+        // 使用默认背景
+        if (m_levelNumber == 1)
+            imagePath = "assets/galgame/l1.png";
+        else if (m_levelNumber == 2)
+            imagePath = "assets/galgame/l2.png";
+        else
+            imagePath = "assets/galgame/l3.png";
+    }
 
     // 检查文件是否存在
     QFile file(imagePath);
@@ -271,6 +347,26 @@ void Level::showStoryDialog(const QStringList& dialogs) {
     m_scene->removeEventFilter(this);
     m_scene->installEventFilter(this);
 
+    // 暂停所有房间的定时器（防止对话期间玩家被攻击）
+    if (isBossDialog)
+    {
+        for (Room *room : m_rooms)
+        {
+            if (room)
+            {
+                room->stopChangeTimer();
+            }
+        }
+        // 暂停所有敌人的AI和攻击
+        for (const QPointer<Enemy> &enemyPtr : m_currentEnemies)
+        {
+            if (enemyPtr)
+            {
+                enemyPtr->pauseTimers();
+            }
+        }
+    }
+
     // 显示第一句对话
     nextDialog();
 }
@@ -321,7 +417,35 @@ void Level::finishStory() {
     }
 
     m_isStoryFinished = true;
-    emit storyFinished();
+
+    // 发送对话结束信号
+    emit dialogFinished();
+
+    // 如果是boss对话结束，初始化当前房间
+    if (m_isBossDialog)
+    {
+        m_isBossDialog = false;
+
+        // 恢复所有敌人的定时器
+        for (const QPointer<Enemy> &enemyPtr : m_currentEnemies)
+        {
+            if (enemyPtr)
+            {
+                enemyPtr->resumeTimers();
+            }
+        }
+
+        if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size())
+        {
+            qDebug() << "Boss对话结束，初始化boss房间" << m_currentRoomIndex;
+            initCurrentRoom(m_rooms[m_currentRoomIndex]);
+        }
+    }
+    else
+    {
+        // 关卡开始对话结束
+        emit storyFinished();
+    }
 }
 
 // 文本滚动——暂时搁置
@@ -534,8 +658,21 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
             }
         }
 
-        if (hasBoss) {
-            QPixmap bossPix = ResourceFactory::createBossImage(80);
+        if (hasBoss)
+        {
+            // 根据关卡号确定Boss类型
+            QString bossType;
+            if (m_levelNumber == 1)
+            {
+                bossType = "nightmare";
+            }
+            else
+            {
+                bossType = "washmachine";
+            }
+
+            // 加载对应的Boss图片
+            QPixmap bossPix = ResourceFactory::createBossImage(80, m_levelNumber, bossType);
 
             int x = QRandomGenerator::global()->bounded(100, 700);
             int y = QRandomGenerator::global()->bounded(100, 500);
@@ -545,7 +682,8 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
                 y += 150;
             }
 
-            Boss* boss = new Boss(bossPix, 1.0);
+            // 使用工厂方法创建对应的Boss
+            Boss *boss = createBossByLevel(m_levelNumber, bossPix, 1.0);
             boss->setPos(x, y);
             boss->setPlayer(m_player);
             m_scene->addItem(boss);
@@ -557,7 +695,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
             m_rooms[roomIndex]->currentEnemies.append(eptr);
 
             connect(boss, &Boss::dying, this, &Level::onEnemyDying);
-            qDebug() << "创建boss" << "位置:" << x << "," << y << "已连接dying信号";
+            qDebug() << "创建boss类型:" << bossType << "位置:" << x << "," << y << "已连接dying信号";
         }
     } catch (const QString& error) {
         qWarning() << "生成敌人失败:" << error;
@@ -619,8 +757,37 @@ Enemy* Level::createEnemyByType(int levelNumber, const QString& enemyType, const
     return new Enemy(pic, scale);
 }
 
-void Level::spawnDoors(const RoomConfig& roomCfg) {
-    try {
+Boss *Level::createBossByLevel(int levelNumber, const QPixmap &pic, double scale)
+{
+    // 根据关卡号创建对应的Boss
+    switch (levelNumber)
+    {
+    case 1:
+        // 第一关：Nightmare Boss
+        qDebug() << "创建Nightmare Boss（第一关）";
+        return new NightmareBoss(pic, scale);
+
+    case 2:
+        // 第二关：WashMachine Boss
+        qDebug() << "创建WashMachine Boss（第二关）";
+        return new WashMachineBoss(pic, scale);
+
+    case 3:
+        // 第三关：WashMachine Boss
+        qDebug() << "创建WashMachine Boss（第三关）";
+        return new WashMachineBoss(pic, scale);
+
+    default:
+        // 默认Boss
+        qDebug() << "使用默认Boss";
+        return new Boss(pic, scale);
+    }
+}
+
+void Level::spawnDoors(const RoomConfig &roomCfg)
+{
+    try
+    {
         // 检查是否已有该房间的门对象（复用逻辑）
         if (m_roomDoors.contains(m_currentRoomIndex)) {
             // 复用已存在的门对象
@@ -957,11 +1124,31 @@ bool Level::enterNextRoom() {
     // 判断是否是首次进入战斗房间（在visited标记之前判断）
     bool isFirstEnterBattleRoom = !visited[m_currentRoomIndex] && nextRoom->isBattleRoom();
 
-    if (!visited[m_currentRoomIndex]) {
+    // 检测是否首次进入boss房间（使用之前已声明的currentRoomCfg）
+    const RoomConfig &newRoomCfg = config.getRoom(m_currentRoomIndex);
+    bool isFirstEnterBossRoom = !visited[m_currentRoomIndex] && newRoomCfg.hasBoss;
+
+    if (!visited[m_currentRoomIndex])
+    {
         visited[m_currentRoomIndex] = true;
         visited_count++;
-        initCurrentRoom(m_rooms[m_currentRoomIndex]);
-    } else {
+
+        // 如果是首次进入boss房间且有对话配置，显示对话
+        if (isFirstEnterBossRoom && !newRoomCfg.bossDialog.isEmpty())
+        {
+            qDebug() << "首次进入boss房间" << m_currentRoomIndex << "，显示boss对话";
+            // 传递boss对话标志和自定义背景（如果有）
+            showStoryDialog(newRoomCfg.bossDialog, true, newRoomCfg.bossDialogBackground);
+            // 等待对话结束后再初始化房间，通过finishStory处理
+            // initCurrentRoom会在对话结束后由finishStory调用
+        }
+        else
+        {
+            initCurrentRoom(m_rooms[m_currentRoomIndex]);
+        }
+    }
+    else
+    {
         loadRoom(m_currentRoomIndex);
     }
 

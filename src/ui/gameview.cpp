@@ -137,6 +137,10 @@ void GameView::initGame()
         connect(level, &Level::enemiesCleared, this, &GameView::onEnemiesCleared);
         connect(level, &Level::bossDoorsOpened, this, &GameView::onBossDoorsOpened);
         connect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);
+        connect(level, &Level::dialogStarted, this, [this]()
+                { m_isInStoryMode = true; });
+        connect(level, &Level::dialogFinished, this, [this]()
+                { m_isInStoryMode = false; });
         connect(player, &Player::playerDamaged, hud, &HUD::triggerDamageFlash);
 
         // 连接房间进入信号到HUD小地图更新 - 必须在创建level之后
@@ -153,11 +157,7 @@ void GameView::initGame()
         if (hud)
             hud->updateMinimap(0, QVector<int>());
 
-        m_isInStoryMode = true;
-        connect(level, &Level::storyFinished, this, [this]()
-                {
-            m_isInStoryMode = false;
-            onStoryFinished(); });
+        connect(level, &Level::storyFinished, this, &GameView::onStoryFinished);
     }
     catch (const QString &error)
     {
@@ -255,16 +255,16 @@ void GameView::advanceToNextLevel()
         player->setPos(1000, 800);
         level->init(currentLevel);
 
-        m_isInStoryMode = true;
-        connect(level, &Level::storyFinished, this, [this]()
-                {
-            m_isInStoryMode = false;
-            onStoryFinished(); });
+        connect(level, &Level::storyFinished, this, &GameView::onStoryFinished);
 
         // 重新连接信号
         connect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);
         connect(level, &Level::enemiesCleared, this, &GameView::onEnemiesCleared);
         connect(level, &Level::bossDoorsOpened, this, &GameView::onBossDoorsOpened);
+        connect(level, &Level::dialogStarted, this, [this]()
+                { m_isInStoryMode = true; });
+        connect(level, &Level::dialogFinished, this, [this]()
+                { m_isInStoryMode = false; });
     }
 
     // 更新HUD显示当前关卡

@@ -707,5 +707,34 @@ void Enemy::moveDiagonal() {
     } else {
         curr_xdir = 0;
         curr_ydir = (dy > 0) ? 1 : -1;
+void Enemy::pauseTimers()
+{
+    if (aiTimer && aiTimer->isActive())
+    {
+        aiTimer->stop();
+    }
+    if (moveTimer && moveTimer->isActive())
+    {
+        moveTimer->stop();
+    }
+    if (attackTimer && attackTimer->isActive())
+    {
+        attackTimer->stop();
+    }
+}
+
+void Enemy::resumeTimers()
+{
+    if (aiTimer)
+    {
+        aiTimer->start(200);
+    }
+    if (moveTimer)
+    {
+        moveTimer->start(20);
+    }
+    if (attackTimer)
+    {
+        attackTimer->start(100);
     }
 }

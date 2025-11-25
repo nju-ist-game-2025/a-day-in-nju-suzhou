@@ -68,6 +68,11 @@ class Enemy : public Entity {
     // 移动模式配置
     void setMovementPattern(MovementPattern pattern) { m_movePattern = pattern; }
     MovementPattern getMovementPattern() const { return m_movePattern; }
+    // 暂停/恢复所有定时器（用于对话期间）
+    void pauseTimers();
+    void resumeTimers();
+
+signals:
 
     // 移动模式参数配置
     void setPreferredDistance(double dist) { m_preferredDistance = dist; }

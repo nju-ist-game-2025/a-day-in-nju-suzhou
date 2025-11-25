@@ -9,10 +9,10 @@
 
 ClockBoom::ClockBoom(const QPixmap &normalPic, const QPixmap &redPic, double scale)
     : Enemy(normalPic, scale), m_triggered(false), m_exploded(false), m_normalPixmap(normalPic.scaled(normalPic.width() * scale, normalPic.height() * scale,
-                                      Qt::KeepAspectRatio, Qt::SmoothTransformation)),
-    m_redPixmap(redPic.scaled(redPic.width() * scale, redPic.height() * scale,
-                              Qt::KeepAspectRatio, Qt::SmoothTransformation)),
-    m_isRed(false)
+                                                                                                      Qt::KeepAspectRatio, Qt::SmoothTransformation)),
+      m_redPixmap(redPic.scaled(redPic.width() * scale, redPic.height() * scale,
+                                Qt::KeepAspectRatio, Qt::SmoothTransformation)),
+      m_isRed(false)
 {
     // ClockBoom的特殊属性
     setHealth(5);        // 5点血，可以被攻击摧毁
@@ -224,7 +224,8 @@ void ClockBoom::damageNearbyEntities()
                                     qPow(p->pos().y() - bombPos.y(), 2));
             if (distance <= explosionRadius)
             {
-                p->takeDamage(2);
+                p->forceTakeDamage(2); // 使用forceTakeDamage确保伤害生效
+                qDebug() << "ClockBoom对玩家造成2点强制伤害";
             }
             continue;
         }

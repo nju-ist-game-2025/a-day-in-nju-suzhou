@@ -55,6 +55,10 @@ set(ENTITY_SOURCES
         src/entities/enemy.h
         src/entities/boss.cpp
         src/entities/boss.h
+        src/entities/nightmareboss.cpp
+        src/entities/nightmareboss.h
+        src/entities/washmachineboss.cpp
+        src/entities/washmachineboss.h
         src/entities/clockenemy.cpp
         src/entities/clockenemy.h
         src/entities/clockboom.cpp
