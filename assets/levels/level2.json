@@ -23,6 +23,7 @@
     {
       "background": "map2",
       "enemyCount": 0,
+      "enemies": [],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": false,
@@ -36,6 +37,16 @@
     {
       "background": "map2",
       "enemyCount": 4,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 3
+        },
+        {
+          "type": "sock_angrily",
+          "count": 1
+        }
+      ],
       "hasBoss": false,
       "hasChest": false,
       "isChestLocked": false,
@@ -49,6 +60,16 @@
     {
       "background": "map2",
       "enemyCount": 3,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 2
+        },
+        {
+          "type": "sock_angrily",
+          "count": 1
+        }
+      ],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": true,
@@ -62,6 +83,16 @@
     {
       "background": "map2",
       "enemyCount": 5,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 3
+        },
+        {
+          "type": "sock_angrily",
+          "count": 2
+        }
+      ],
       "hasBoss": false,
       "hasChest": false,
       "isChestLocked": false,
@@ -75,6 +106,16 @@
     {
       "background": "map2",
       "enemyCount": 4,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 2
+        },
+        {
+          "type": "sock_angrily",
+          "count": 2
+        }
+      ],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": false,
@@ -88,6 +129,16 @@
     {
       "background": "map2",
       "enemyCount": 6,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 3
+        },
+        {
+          "type": "sock_angrily",
+          "count": 3
+        }
+      ],
       "hasBoss": false,
       "hasChest": false,
       "isChestLocked": false,
@@ -101,6 +152,16 @@
     {
       "background": "map2",
       "enemyCount": 4,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 2
+        },
+        {
+          "type": "sock_angrily",
+          "count": 2
+        }
+      ],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": true,
@@ -114,6 +175,16 @@
     {
       "background": "map2",
       "enemyCount": 8,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 4
+        },
+        {
+          "type": "sock_angrily",
+          "count": 4
+        }
+      ],
       "hasBoss": true,
       "hasChest": true,
       "isChestLocked": false,

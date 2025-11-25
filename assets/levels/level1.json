@@ -29,6 +29,7 @@
       "name": "Room 1 - Initial",
       "background": "map1",
       "enemyCount": 0,
+      "enemies": [],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": false,
@@ -44,6 +45,12 @@
       "name": "Room 2 - Combat",
       "background": "map1",
       "enemyCount": 3,
+      "enemies": [
+        {
+          "type": "clock_normal",
+          "count": 3
+        }
+      ],
       "hasBoss": false,
       "hasChest": false,
       "isChestLocked": false,
@@ -59,6 +66,7 @@
       "name": "Room 3 - Special",
       "background": "map1",
       "enemyCount": 0,
+      "enemies": [],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": true,
@@ -74,6 +82,16 @@
       "name": "Room 4 - Combat",
       "background": "map1",
       "enemyCount": 4,
+      "enemies": [
+        {
+          "type": "clock_normal",
+          "count": 4
+        },
+        {
+          "type": "clock_boom",
+          "count": 2
+        }
+      ],
       "hasBoss": false,
       "hasChest": false,
       "isChestLocked": false,
@@ -89,6 +107,7 @@
       "name": "Room 5 - Item",
       "background": "map1",
       "enemyCount": 0,
+      "enemies": [],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": false,
@@ -104,6 +123,16 @@
       "name": "Room 6 - Combat",
       "background": "map1",
       "enemyCount": 5,
+      "enemies": [
+        {
+          "type": "clock_normal",
+          "count": 5
+        },
+        {
+          "type": "clock_boom",
+          "count": 4
+        }
+      ],
       "hasBoss": false,
       "hasChest": false,
       "isChestLocked": false,
@@ -119,6 +148,16 @@
       "name": "Room 7 - Combat",
       "background": "map1",
       "enemyCount": 6,
+      "enemies": [
+        {
+          "type": "clock_normal",
+          "count": 6
+        },
+        {
+          "type": "clock_boom",
+          "count": 5
+        }
+      ],
       "hasBoss": false,
       "hasChest": false,
       "isChestLocked": false,
@@ -134,6 +173,7 @@
       "name": "Room 8 - Item",
       "background": "map1",
       "enemyCount": 0,
+      "enemies": [],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": false,
@@ -149,6 +189,16 @@
       "name": "Room 9 - Special (Boss)",
       "background": "map1",
       "enemyCount": 7,
+      "enemies": [
+        {
+          "type": "clock_normal",
+          "count": 7
+        },
+        {
+          "type": "clock_boom",
+          "count": 7
+        }
+      ],
       "hasBoss": true,
       "hasChest": true,
       "isChestLocked": false,
