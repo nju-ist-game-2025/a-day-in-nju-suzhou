@@ -9,10 +9,10 @@
 
 ClockBoom::ClockBoom(const QPixmap &normalPic, const QPixmap &redPic, double scale)
     : Enemy(normalPic, scale), m_triggered(false), m_exploded(false), m_normalPixmap(normalPic.scaled(normalPic.width() * scale, normalPic.height() * scale,
-                                                                                                      Qt::KeepAspectRatio, Qt::SmoothTransformation)),
-      m_redPixmap(redPic.scaled(redPic.width() * scale, redPic.height() * scale,
-                                Qt::KeepAspectRatio, Qt::SmoothTransformation)),
-      m_isRed(false)
+                                      Qt::KeepAspectRatio, Qt::SmoothTransformation)),
+    m_redPixmap(redPic.scaled(redPic.width() * scale, redPic.height() * scale,
+                              Qt::KeepAspectRatio, Qt::SmoothTransformation)),
+    m_isRed(false)
 {
     // ClockBoom的特殊属性
     setHealth(5);        // 5点血，可以被攻击摧毁
@@ -58,8 +58,6 @@ ClockBoom::ClockBoom(const QPixmap &normalPic, const QPixmap &redPic, double sca
 
     // 禁用与其他物体的碰撞检测，完全避免基类碰撞机制
     setFlag(QGraphicsItem::ItemIsSelectable, false);
-
-    qDebug() << "ClockBoom创建完成";
 }
 
 ClockBoom::~ClockBoom()
@@ -111,7 +109,6 @@ void ClockBoom::checkCollisionWithPlayer()
         if (p)
         {
             // 首次碰撞，触发倒计时
-            qDebug() << "ClockBoom被玩家触发！开始倒计时2.5秒";
             startCountdown();
             break;
         }
@@ -160,7 +157,6 @@ void ClockBoom::toggleBlink()
         // 显示普通版本
         QGraphicsPixmapItem::setPixmap(m_normalPixmap);
     }
-    qDebug() << "ClockBoom闪烁切换，当前状态:" << (m_isRed ? "红色" : "普通");
 }
 
 void ClockBoom::onExplodeTimeout()
@@ -181,7 +177,8 @@ void ClockBoom::explode()
         m_blinkTimer->stop();
     }
 
-    qDebug() << "ClockBoom爆炸！";
+    // 先对范围内的实体造成伤害（在场景状态改变前）
+    damageNearbyEntities();
 
     // 播放爆炸音效
     AudioManager::instance().playSound("enemy_death");
@@ -194,9 +191,6 @@ void ClockBoom::explode()
         scene()->addItem(explosion);
         explosion->startAnimation();
     }
-
-    // 对范围内的实体造成伤害
-    damageNearbyEntities();
 
     // 发出dying信号并删除自己
     emit dying(this);
@@ -214,7 +208,7 @@ void ClockBoom::damageNearbyEntities()
     if (!scene())
         return;
 
-    const double explosionRadius = 500.0; // 爆炸范围（增加到两倍）
+    const double explosionRadius = 200.0; // 爆炸范围
     QPointF bombPos = pos();
 
     // 获取场景中的所有物品
@@ -230,8 +224,7 @@ void ClockBoom::damageNearbyEntities()
                                     qPow(p->pos().y() - bombPos.y(), 2));
             if (distance <= explosionRadius)
             {
-                qDebug() << "爆炸对玩家造成1点伤害";
-                p->takeDamage(1.5);
+                p->takeDamage(2);
             }
             continue;
         }
@@ -244,7 +237,6 @@ void ClockBoom::damageNearbyEntities()
                                     qPow(enemy->pos().y() - bombPos.y(), 2));
             if (distance <= explosionRadius)
             {
-                qDebug() << "爆炸对敌人造成3点伤害";
                 enemy->takeDamage(3);
             }
         }

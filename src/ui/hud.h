@@ -31,6 +31,7 @@ public:
         int id;
         int x, y; // Grid coordinates relative to start (0,0)
         bool visited;
+        bool hasBoss; // 是否为boss房间
         int up, down, left, right;
     };
 

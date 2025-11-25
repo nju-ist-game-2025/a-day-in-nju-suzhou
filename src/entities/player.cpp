@@ -342,6 +342,47 @@ void Player::takeDamage(int damage)
         setInvincible();
 }
 
+void Player::forceTakeDamage(int damage)
+{
+    if (isDead) // 已死亡则不受伤，但无视无敌状态
+        return;
+
+    if (damage <= 0) // 0伤害或负伤害直接返回
+        return;
+
+    flash();
+    double oldHealth = redHearts;
+    damage *= damageScale;
+
+    while (damage > 0 && soulHearts > 0)
+    {
+        soulHearts--;
+        damage -= 2;
+    }
+    while (damage > 0 && blackHearts > 0)
+    {
+        blackHearts--;
+        damage -= 2;
+    }
+    while (damage > 0 && redHearts > 0.0)
+    {
+        redHearts -= 0.5;
+        damage--;
+    }
+    if (redHearts != oldHealth)
+    {
+        emit healthChanged(redHearts, getMaxHealth());
+        if (redHearts < oldHealth)
+        {
+            emit playerDamaged();
+        }
+    }
+    if (redHearts <= 0.0)
+        die();
+    else
+        setInvincible();
+}
+
 // 死亡效果
 void Player::die()
 {

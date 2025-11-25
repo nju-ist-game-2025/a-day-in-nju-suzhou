@@ -308,7 +308,11 @@ void HUD::paintMinimap(QPainter *painter)
         if (drawX < startX || drawX > startX + mapSize || drawY < startY || drawY > startY + mapSize)
             continue;
 
-        if (node.id == currentRoomIndex)
+        if (node.hasBoss)
+        {
+            painter->setBrush(QColor(75, 0, 130)); // Boss房间恒为深紫色 (Indigo)
+        }
+        else if (node.id == currentRoomIndex)
         {
             painter->setBrush(Qt::red); // Current room
         }

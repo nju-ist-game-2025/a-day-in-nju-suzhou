@@ -2,27 +2,32 @@
   "name": "第二关 - 洗衣房奇遇",
   "startRoom": 0,
   "description": [
-    "（洗衣房弥漫着柔和的洗衣液香气，阳光透过百叶窗在地面投下斑马纹）",
-    "**少女** \n（蹲在洗衣机前）",
-    "**少女** \n 第三次了...这位把内裤和袜子殉情的勇士...",
-    "（某台洗衣机突然响起《致爱丽丝》的旋律，门自动弹开）",
-    "【神秘声音】（带着电流杂音）\n 检测到优质故事载体——要听听三号机的《白大褂与草莓渍》吗？",
-    "**少女** \n（警惕地后退半步）",
-    "**少女** \n 我们南苏的智能家电已经进化到会搭讪了？",
-    "（所有洗衣机内筒突然开始同步旋转，投映出流动的光影）",
-    "【四号机】\n（闪烁着暖黄灯光）",
-    "【四号机】\n 我见证过二十九次表白信在滚筒里融化。",
-    "【七号机】\n（涌出柠檬香波气泡）",
-    "【七号机】\n 有颗纽扣在这里轮回洗涤了七学期。",
-    "**少女** \n（从背包掏出笔记本）",
-    "**少女** \n 等等...这说不定能写成课程论文...",
-    "**少女** \n（突然被五颜六色的泡沫温柔包裹）",
-    "【所有洗衣机】（合声）\n 欢迎来到——织物褶皱里的世界。"
+    "（洗衣房的日光灯投下安静的白光）",
+    "【公告栏】\n「请勿在公共洗衣机清洗袜子和内衣」",
+    "（智科er盯着滚筒里翻滚的袜子，内心挣扎）",
+    "**智科er** \n（捏着那双三天没洗的袜子）",
+    "**智科er** \n 可是手洗真的好麻烦...",
+    "（看到旁边同学投来的目光，脸颊发烫）",
+    "最终道德感战胜了懒惰，默默收起袜子\n（认命地拿出洗衣盆）",
+    "（看着自己红肿的手叹了口气）",
+    "**智科er** \n（拧开水龙头）",
+    "**智科er** \n 这就是成年人的自律吗...",
+    "（冰冷的水流冲刷着袜子）",
+    "**智科er** \n（用力搓洗着）",
+    "**智科er** \n 比解偏微分方程还痛苦...",
+    "（手机弹出提醒：今晚要完成最优化方法作业）",
+    "（洗衣盆旁放着明早要交的编程作业）",
+    "**智科er** \n（甩了甩酸痛的手腕）",
+    "夜幕下的洗衣房啊，这就是成长的代价——",
+    "（窗外其他寝室的灯光渐次亮起）",
+    "**智科er** \n（晾起洗净的袜子，无奈地笑了笑）",
+    "**智科er** \n 那么，该去面对更可怕的数学题了"
   ],
   "rooms": [
     {
       "background": "map2",
       "enemyCount": 0,
+      "enemies": [],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": false,
@@ -36,6 +41,16 @@
     {
       "background": "classRoom",
       "enemyCount": 4,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 3
+        },
+        {
+          "type": "sock_angrily",
+          "count": 1
+        }
+      ],
       "hasBoss": false,
       "hasChest": false,
       "isChestLocked": false,
@@ -49,6 +64,16 @@
     {
       "background": "map2",
       "enemyCount": 3,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 2
+        },
+        {
+          "type": "sock_angrily",
+          "count": 1
+        }
+      ],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": true,
@@ -62,6 +87,16 @@
     {
       "background": "map2",
       "enemyCount": 5,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 3
+        },
+        {
+          "type": "sock_angrily",
+          "count": 2
+        }
+      ],
       "hasBoss": false,
       "hasChest": false,
       "isChestLocked": false,
@@ -75,6 +110,16 @@
     {
       "background": "map2",
       "enemyCount": 4,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 2
+        },
+        {
+          "type": "sock_angrily",
+          "count": 2
+        }
+      ],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": false,
@@ -88,6 +133,16 @@
     {
       "background": "map2",
       "enemyCount": 6,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 3
+        },
+        {
+          "type": "sock_angrily",
+          "count": 3
+        }
+      ],
       "hasBoss": false,
       "hasChest": false,
       "isChestLocked": false,
@@ -101,6 +156,16 @@
     {
       "background": "map2",
       "enemyCount": 4,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 2
+        },
+        {
+          "type": "sock_angrily",
+          "count": 2
+        }
+      ],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": true,
@@ -114,6 +179,16 @@
     {
       "background": "map2",
       "enemyCount": 8,
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 4
+        },
+        {
+          "type": "sock_angrily",
+          "count": 4
+        }
+      ],
       "hasBoss": true,
       "hasChest": true,
       "isChestLocked": false,
