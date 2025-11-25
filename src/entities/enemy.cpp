@@ -31,7 +31,6 @@ Enemy::Enemy(const QPixmap& pic, double scale)
       m_dashSpeed(4.0),
       m_dashDuration(0),
       m_preferredDistance(150.0),
-      m_flankAngle(0.0),
       m_diagonalDirection(1) {
     // 设置图像
     setPixmap(pic.scaled(pic.width() * scale, pic.height() * scale,
@@ -649,34 +648,26 @@ void Enemy::moveDiagonal() {
     }
 }
 
-void Enemy::pauseTimers()
-{
-    if (aiTimer && aiTimer->isActive())
-    {
+void Enemy::pauseTimers() {
+    if (aiTimer && aiTimer->isActive()) {
         aiTimer->stop();
     }
-    if (moveTimer && moveTimer->isActive())
-    {
+    if (moveTimer && moveTimer->isActive()) {
         moveTimer->stop();
     }
-    if (attackTimer && attackTimer->isActive())
-    {
+    if (attackTimer && attackTimer->isActive()) {
         attackTimer->stop();
     }
 }
 
-void Enemy::resumeTimers()
-{
-    if (aiTimer)
-    {
+void Enemy::resumeTimers() {
+    if (aiTimer) {
         aiTimer->start(200);
     }
-    if (moveTimer)
-    {
+    if (moveTimer) {
         moveTimer->start(20);
     }
-    if (attackTimer)
-    {
+    if (attackTimer) {
         attackTimer->start(100);
     }
 }

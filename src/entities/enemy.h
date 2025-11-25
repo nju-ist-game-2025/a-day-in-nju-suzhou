@@ -124,6 +124,7 @@ class Enemy : public Entity {
     QPointF m_dashTarget;           // 冲刺目标位置
     int m_dashDuration;             // 冲刺持续时间计数器
     double m_preferredDistance;     // 保持距离模式的目标距离
+    int m_diagonalDirection;        // 斜向方向 (1 或 -1)，用于斜向移动和保持距离模式
 
     // AI方法 - protected 允许子类访问和重写
     void updateState();
