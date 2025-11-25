@@ -27,7 +27,7 @@
     {
       "id": 0,
       "name": "Room 1 - Initial",
-      "background": "map1",
+      "background": "startRoom",
       "enemyCount": 0,
       "hasBoss": false,
       "hasChest": true,
@@ -57,7 +57,7 @@
     {
       "id": 2,
       "name": "Room 3 - Special",
-      "background": "map1",
+      "background": "startRoom",
       "enemyCount": 0,
       "hasBoss": false,
       "hasChest": true,
@@ -87,7 +87,7 @@
     {
       "id": 4,
       "name": "Room 5 - Item",
-      "background": "map1",
+      "background": "startRoom",
       "enemyCount": 0,
       "hasBoss": false,
       "hasChest": true,
@@ -102,7 +102,7 @@
     {
       "id": 5,
       "name": "Room 6 - Combat",
-      "background": "map1",
+      "background": "cloudDream",
       "enemyCount": 5,
       "hasBoss": false,
       "hasChest": false,
@@ -117,7 +117,7 @@
     {
       "id": 6,
       "name": "Room 7 - Combat",
-      "background": "map1",
+      "background": "cloudDream",
       "enemyCount": 6,
       "hasBoss": false,
       "hasChest": false,
@@ -132,7 +132,7 @@
     {
       "id": 7,
       "name": "Room 8 - Item",
-      "background": "map1",
+      "background": "startRoom",
       "enemyCount": 0,
       "hasBoss": false,
       "hasChest": true,
@@ -147,7 +147,7 @@
     {
       "id": 8,
       "name": "Room 9 - Special (Boss)",
-      "background": "map1",
+      "background": "startRoom",
       "enemyCount": 7,
       "hasBoss": true,
       "hasChest": true,

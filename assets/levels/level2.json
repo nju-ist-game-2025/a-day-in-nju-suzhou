@@ -34,7 +34,7 @@
       }
     },
     {
-      "background": "map2",
+      "background": "classRoom",
       "enemyCount": 4,
       "hasBoss": false,
       "hasChest": false,
