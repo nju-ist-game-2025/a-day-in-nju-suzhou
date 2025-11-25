@@ -12,6 +12,7 @@
         "bullet": "assets/items/bullet.png",
         "enemy": "assets/enemy/enemy.png",
         "boss": "assets/boss/WashMachine/WashMachineAngrily.png",
+        "title": "assets/background/title.png",
         "chest": "assets/chest/chest.png",
         "explosion": "assets/explosion/"
     },

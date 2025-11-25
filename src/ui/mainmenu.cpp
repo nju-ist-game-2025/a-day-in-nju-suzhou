@@ -6,6 +6,7 @@
 #include <QPalette>
 #include <QPixmap>
 #include <QResizeEvent>
+#include <QTimer>
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 
@@ -18,15 +19,39 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
     mainLayout->setAlignment(Qt::AlignCenter);
     mainLayout->setSpacing(30);
 
-    // 创建标题
-    titleLabel = new QLabel("智科er的一天", this);
-    QFont titleFont;
-    titleFont.setFamily("Microsoft YaHei");
-    titleFont.setPointSize(48);
-    titleFont.setBold(true);
-    titleLabel->setFont(titleFont);
+    // 创建标题（优先尝试使用图片资源）
+    titleLabel = new QLabel(this);
     titleLabel->setAlignment(Qt::AlignCenter);
-    titleLabel->setStyleSheet("color: #FFFFFF;");
+
+    // 优先从配置获取标题图片路径
+    QString titlePath = ConfigManager::instance().getAssetPath("title");
+    if (titlePath.isEmpty()) {
+        // 尝试常见默认位置（如果没有配置）
+        titlePath = "assets/background/title.png";
+    }
+
+    QPixmap titlePixmap;
+    if (!titlePath.isEmpty() && QFile::exists(titlePath)) {
+        titlePixmap = QPixmap(titlePath);
+    }
+
+    if (!titlePixmap.isNull()) {
+        // 使用图片作为标题
+        m_titlePixmap = titlePixmap;  // 保存原始图用于缩放
+        m_useTitleImage = true;
+
+        QTimer::singleShot(0, this, &MainMenu::adjustTitlePixmap);
+        titleLabel->setStyleSheet("background:transparent;");
+    } else {
+        // 回退到文本标题
+        titleLabel->setText("智科er的一天");
+        QFont titleFont;
+        titleFont.setFamily("Microsoft YaHei");
+        titleFont.setPointSize(48);
+        titleFont.setBold(true);
+        titleLabel->setFont(titleFont);
+        titleLabel->setStyleSheet("color: #FFFFFF;");
+    }
 
     // 添加标题阴影效果
     QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect(this);
@@ -205,10 +230,40 @@ void MainMenu::resizeEvent(QResizeEvent* event) {
     codexButton->setFont(buttonFont);
     exitButton->setFont(buttonFont);
 
-    // 缩放标题字体
-    QFont titleFont;
-    titleFont.setFamily("Microsoft YaHei");
-    titleFont.setPointSize(static_cast<int>(48 * scale));
-    titleFont.setBold(true);
-    titleLabel->setFont(titleFont);
+    // 标题：如果使用图片则缩放图片，否则缩放文本字体
+    if (m_useTitleImage && !m_titlePixmap.isNull()) {
+        adjustTitlePixmap();
+    } else {
+        QFont titleFont;
+        titleFont.setFamily("Microsoft YaHei");
+        titleFont.setPointSize(static_cast<int>(48 * scale));
+        titleFont.setBold(true);
+        titleLabel->setFont(titleFont);
+    }
+}
+
+void MainMenu::showEvent(QShowEvent* event) {
+    QWidget::showEvent(event);
+    if (m_useTitleImage && !m_titlePixmap.isNull()) {
+        adjustTitlePixmap();
+    }
+}
+
+void MainMenu::adjustTitlePixmap() {
+    if (!m_useTitleImage || m_titlePixmap.isNull())
+        return;
+
+    const double widthRatio = 0.95;   // 宽度占窗口宽度的比例
+    const double heightRatio = 0.45;  // 增大高度占比以让图片更显眼
+
+    QSize targetSize(static_cast<int>(width() * widthRatio), static_cast<int>(height() * heightRatio));
+
+    // 防止目标尺寸为0（窗口尚未布局），再尝试使用父窗口/默认值
+    if (targetSize.width() <= 0 || targetSize.height() <= 0) {
+        QSize fallback = QSize(800, 200);
+        targetSize = fallback;
+    }
+
+    QPixmap scaled = m_titlePixmap.scaled(targetSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    titleLabel->setPixmap(scaled);
 }

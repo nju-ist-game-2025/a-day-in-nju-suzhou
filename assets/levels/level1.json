@@ -43,7 +43,7 @@
     {
       "id": 1,
       "name": "Room 2 - Combat",
-      "background": "convexBook",
+      "background": "bed",
       "enemyCount": 3,
       "enemies": [
         {

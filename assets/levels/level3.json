@@ -25,7 +25,7 @@
   ],
   "rooms": [
     {
-      "background": "map3",
+      "background": "map1",
       "enemyCount": 4,
       "enemies": [
         {
@@ -48,7 +48,7 @@
       }
     },
     {
-      "background": "map3",
+      "background": "convexBook",
       "enemyCount": 5,
       "enemies": [
         {
