@@ -156,6 +156,22 @@ RoomConfig LevelConfig::parseRoomConfig(const QJsonObject &roomObj)
     cfg.hasChest = roomObj.value("hasChest").toBool(false);
     cfg.isChestLocked = roomObj.value("isChestLocked").toBool(false);
 
+    // Boss对话配置
+    if (roomObj.contains("bossDialog") && roomObj.value("bossDialog").isArray())
+    {
+        QJsonArray dialogArray = roomObj.value("bossDialog").toArray();
+        for (const QJsonValue &dialogVal : dialogArray)
+        {
+            cfg.bossDialog.append(dialogVal.toString());
+        }
+    }
+
+    // Boss对话背景图片配置
+    if (roomObj.contains("bossDialogBackground"))
+    {
+        cfg.bossDialogBackground = roomObj.value("bossDialogBackground").toString();
+    }
+
     // 门连接配置
     QJsonObject doors = roomObj.value("doors").toObject();
     cfg.doorUp = doors.value("up").toInt(-1);

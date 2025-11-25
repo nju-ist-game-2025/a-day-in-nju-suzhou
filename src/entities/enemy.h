@@ -57,6 +57,10 @@ public:
 
     int getHealth() { return health; };
 
+    // 暂停/恢复所有定时器（用于对话期间）
+    void pauseTimers();
+    void resumeTimers();
+
 signals:
 
     void dying(Enemy *enemy); // 敌人即将死亡信号（在deleteLater之前发出）

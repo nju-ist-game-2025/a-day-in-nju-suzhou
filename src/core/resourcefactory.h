@@ -118,11 +118,38 @@ public:
 
     /**
      * @brief 加载Boss图像
+     * @param size 图片尺寸
+     * @param levelNumber 关卡号
+     * @param bossType Boss类型名称（如 "nightmare", "washmachine"）
      * @throws QString 加载失败时抛出错误信息
      */
-    static QPixmap createBossImage(int size)
+    static QPixmap createBossImage(int size, int levelNumber = 1, const QString &bossType = "")
     {
-        QString imagePath = ConfigManager::instance().getAssetPath("boss");
+        QString imagePath;
+
+        if (!bossType.isEmpty())
+        {
+            // 根据boss类型加载对应的图片
+            if (bossType == "nightmare")
+            {
+                imagePath = "assets/boss/Nightmare/Nightmare.png";
+            }
+            else if (bossType == "washmachine")
+            {
+                imagePath = "assets/boss/WashMachine/WashMachineNormally.png";
+            }
+            else
+            {
+                // 默认使用配置文件中的boss图片
+                imagePath = ConfigManager::instance().getAssetPath("boss");
+            }
+        }
+        else
+        {
+            // 使用默认boss图片
+            imagePath = ConfigManager::instance().getAssetPath("boss");
+        }
+
         return loadImageScaled(imagePath, size, size);
     }
 
