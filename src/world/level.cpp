@@ -39,10 +39,7 @@ Level::Level(Player* player, QGraphicsScene* scene, QObject* parent)
       m_continueHint(nullptr),
       m_currentDialogIndex(0),
       m_isStoryFinished(false),
-      m_isBossDialog(false),
-      m_shadowOverlay(nullptr),
-      m_shadowText(nullptr),
-      m_shadowTimer(nullptr) {
+      m_isBossDialog(false) {
 }
 
 Level::~Level() {
@@ -80,25 +77,6 @@ Level::~Level() {
             m_scene->removeItem(m_continueHint);
         delete m_continueHint;
         m_continueHint = nullptr;
-    }
-
-    // 清理遮罩相关UI
-    if (m_shadowOverlay) {
-        if (m_scene)
-            m_scene->removeItem(m_shadowOverlay);
-        delete m_shadowOverlay;
-        m_shadowOverlay = nullptr;
-    }
-    if (m_shadowText) {
-        if (m_scene)
-            m_scene->removeItem(m_shadowText);
-        delete m_shadowText;
-        m_shadowText = nullptr;
-    }
-    if (m_shadowTimer) {
-        m_shadowTimer->stop();
-        delete m_shadowTimer;
-        m_shadowTimer = nullptr;
     }
 
     if (checkChange) {
@@ -747,13 +725,9 @@ Boss* Level::createBossByLevel(int levelNumber, const QPixmap& pic, double scale
         case 1: {
             // 第一关：Nightmare Boss
             qDebug() << "创建Nightmare Boss（第一关）";
-            NightmareBoss* nightmareBoss = new NightmareBoss(pic, scale);
+            NightmareBoss* nightmareBoss = new NightmareBoss(pic, scale, m_scene);
 
             // 连接Nightmare Boss的特殊信号
-            connect(nightmareBoss, &NightmareBoss::requestShowShadowOverlay,
-                    this, &Level::showShadowOverlay);
-            connect(nightmareBoss, &NightmareBoss::requestHideShadowOverlay,
-                    this, &Level::hideShadowOverlay);
             connect(nightmareBoss, &NightmareBoss::requestSpawnEnemies,
                     this, &Level::spawnEnemiesForBoss);
 
@@ -1004,8 +978,7 @@ void Level::clearSceneEntities() {
 }
 
 void Level::clearCurrentRoomEntities() {
-    // 清理遮罩相关UI（如果NightmareBoss正在显示遮罩）
-    hideShadowOverlay();
+    // 遮罩效果现在由NightmareBoss自己管理，其析构函数会自动清理
 
     // Delete all entities completely (used when resetting level)
     for (QPointer<Enemy> enemyPtr : m_currentEnemies) {
@@ -1275,7 +1248,8 @@ Room* Level::currentRoom() const {
 }
 
 void Level::onEnemyDying(Enemy* enemy) {
-    qDebug() << "onEnemyDying 被调用";
+    // 移除频繁的调试输出以避免性能问题
+    // qDebug() << "onEnemyDying 被调用";
 
     if (!enemy) {
         qWarning() << "onEnemyDying: enemy 为 null";
@@ -1286,7 +1260,8 @@ void Level::onEnemyDying(Enemy* enemy) {
     QPointer<Enemy> target(enemy);
     m_currentEnemies.removeAll(target);
 
-    qDebug() << "已从全局敌人列表移除，剩余:" << m_currentEnemies.size();
+    // 移除频繁的调试输出以避免性能问题
+    // qDebug() << "已从全局敌人列表移除，剩余:" << m_currentEnemies.size();
 
     // 只有非召唤的敌人才触发bonusEffects
     // 延迟执行bonusEffects，避免在dying信号处理中访问不稳定状态
@@ -1306,7 +1281,8 @@ void Level::onEnemyDying(Enemy* enemy) {
     }
 
     Room* cur = m_rooms[m_currentRoomIndex];
-    qDebug() << "当前房间" << m_currentRoomIndex << "敌人数量:" << (cur ? cur->currentEnemies.size() : -1);
+    // 移除频繁的调试输出以避免性能问题
+    // qDebug() << "当前房间" << m_currentRoomIndex << "敌人数量:" << (cur ? cur->currentEnemies.size() : -1);
 
     if (cur && cur->currentEnemies.isEmpty()) {
         openDoors(cur);
@@ -1765,79 +1741,7 @@ void Level::bonusEffects() {
     }
 }
 
-// Nightmare Boss 遮罩显示方法
-void Level::showShadowOverlay(const QString& text, int duration) {
-    if (!m_scene)
-        return;
-
-    // 如果已有遮罩，先清理
-    hideShadowOverlay();
-
-    // 加载shadow.png图片
-    QPixmap shadowPixmap("assets/boss/Nightmare/shadow.png");
-    if (shadowPixmap.isNull()) {
-        qWarning() << "无法加载shadow.png，使用黑色矩形代替";
-        // 创建黑色半透明矩形
-        shadowPixmap = QPixmap(800, 600);
-        shadowPixmap.fill(QColor(0, 0, 0, 200));
-    } else {
-        // 缩放到全屏大小
-        shadowPixmap = shadowPixmap.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-    }
-
-    // 创建遮罩
-    m_shadowOverlay = new QGraphicsPixmapItem(shadowPixmap);
-    m_shadowOverlay->setPos(0, 0);
-    m_shadowOverlay->setZValue(10000);  // 最高层级
-    m_scene->addItem(m_shadowOverlay);
-
-    // 如果有文字，显示白色文字
-    if (!text.isEmpty()) {
-        m_shadowText = new QGraphicsTextItem(text);
-        m_shadowText->setDefaultTextColor(Qt::white);
-        m_shadowText->setFont(QFont("Arial", 24, QFont::Bold));
-
-        // 居中显示
-        QRectF textRect = m_shadowText->boundingRect();
-        m_shadowText->setPos((800 - textRect.width()) / 2, (600 - textRect.height()) / 2);
-        m_shadowText->setZValue(10001);
-        m_scene->addItem(m_shadowText);
-    }
-
-    qDebug() << "显示遮罩，文字:" << text << "持续时间:" << duration << "ms";
-
-    // 如果指定了持续时间，设置定时器自动隐藏
-    if (duration > 0) {
-        if (!m_shadowTimer) {
-            m_shadowTimer = new QTimer(this);
-            m_shadowTimer->setSingleShot(true);
-            connect(m_shadowTimer, &QTimer::timeout, this, &Level::hideShadowOverlay);
-        }
-        m_shadowTimer->start(duration);
-    }
-}
-
-void Level::hideShadowOverlay() {
-    if (m_shadowOverlay) {
-        m_scene->removeItem(m_shadowOverlay);
-        delete m_shadowOverlay;
-        m_shadowOverlay = nullptr;
-    }
-
-    if (m_shadowText) {
-        m_scene->removeItem(m_shadowText);
-        delete m_shadowText;
-        m_shadowText = nullptr;
-    }
-
-    if (m_shadowTimer) {
-        m_shadowTimer->stop();
-    }
-
-    qDebug() << "隐藏遮罩";
-}
-
-// Nightmare Boss 召唤敌人方法
+// Boss召唤敌人方法（通用）
 void Level::spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemies) {
     if (!m_scene)
         return;

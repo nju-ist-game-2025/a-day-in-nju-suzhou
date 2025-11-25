@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QGraphicsScene>
 #include <QPainter>
+#include <QRandomGenerator>
 #include <QtMath>
 #include "../core/audiomanager.h"
 #include "../ui/explosion.h"
@@ -73,6 +74,23 @@ ClockBoom::~ClockBoom() {
 void ClockBoom::move() {
     // ClockBoom不移动
     return;
+}
+
+void ClockBoom::takeDamage(int damage) {
+    // ClockBoom被攻击时的特殊处理：
+    // - 不创建额外的Explosion动画（因为explode()已经会创建）
+    // - 直接减血并检查死亡
+    flash();
+    int realDamage = qMax(1, damage);
+    health -= realDamage;
+
+    if (health <= 0) {
+        // 如果还没爆炸，触发爆炸（爆炸会处理dying信号和清理）
+        if (!m_exploded) {
+            explode();
+        }
+        // 如果已经爆炸了，不需要做任何事（已经在explode()中处理了）
+    }
 }
 
 void ClockBoom::onCollisionCheck() {
@@ -162,15 +180,21 @@ void ClockBoom::explode() {
     // 先对范围内的实体造成伤害（在场景状态改变前）
     damageNearbyEntities();
 
-    // 播放爆炸音效
+    // 播放爆炸音效（不阻塞）
     AudioManager::instance().playSound("enemy_death");
 
-    // 创建爆炸动画
+    // 创建爆炸动画 - 延迟创建以分散性能负载
     if (scene()) {
-        Explosion* explosion = new Explosion();
-        explosion->setPos(this->pos());
-        scene()->addItem(explosion);
-        explosion->startAnimation();
+        // 使用延迟计时器随机分散爆炸动画创建，避免同时创建大量动画对象
+        int delayMs = QRandomGenerator::global()->bounded(0, 100);  // 0-100ms随机延迟
+        QTimer::singleShot(delayMs, this, [this]() {
+            if (scene()) {
+                Explosion* explosion = new Explosion();
+                explosion->setPos(this->pos());
+                scene()->addItem(explosion);
+                explosion->startAnimation();
+            }
+        });
     }
 
     // 发出dying信号并删除自己
@@ -189,36 +213,50 @@ void ClockBoom::damageNearbyEntities() {
 
     const double explosionRadius = 200.0;  // 爆炸范围
     QPointF bombPos = pos();
+    const double radiusSquared = explosionRadius * explosionRadius;
 
-    // 使用空间查询代替遍历所有物品，大幅提升性能
+    // 使用空间查询代替遍历所有物品
     QRectF searchRect(bombPos.x() - explosionRadius, bombPos.y() - explosionRadius,
                       explosionRadius * 2, explosionRadius * 2);
     QList<QGraphicsItem*> nearbyItems = scene()->items(searchRect);
+
+    // 性能优化：先进行一次类型筛选，减少重复的dynamic_cast
+    Player* targetPlayer = nullptr;
+    QVector<Enemy*> targetEnemies;
+    targetEnemies.reserve(nearbyItems.size() / 2);  // 预分配避免频繁扩容
 
     for (QGraphicsItem* item : nearbyItems) {
         // 跳过自己
         if (item == this)
             continue;
 
-        QPointF itemPos = item->pos();
+        // 先尝试转换为Enemy（更常见），如果失败再尝试Player
+        if (Enemy* enemy = dynamic_cast<Enemy*>(item)) {
+            targetEnemies.append(enemy);
+        } else if (!targetPlayer) {  // 只需要找到一次玩家
+            targetPlayer = dynamic_cast<Player*>(item);
+        }
+    }
+
+    // 对筛选后的目标进行距离检查和伤害
+    if (targetPlayer) {
+        QPointF itemPos = targetPlayer->pos();
         double dx = itemPos.x() - bombPos.x();
         double dy = itemPos.y() - bombPos.y();
         double distanceSquared = dx * dx + dy * dy;
-        double radiusSquared = explosionRadius * explosionRadius;
 
-        // 使用距离平方比较避免开根号运算
-        if (distanceSquared > radiusSquared)
-            continue;
-
-        // 检查玩家
-        if (Player* p = dynamic_cast<Player*>(item)) {
-            p->forceTakeDamage(2);
-            qDebug() << "ClockBoom对玩家造成2点强制伤害";
-            continue;
+        if (distanceSquared <= radiusSquared) {
+            targetPlayer->forceTakeDamage(2);
         }
+    }
 
-        // 检查其他敌人
-        if (Enemy* enemy = dynamic_cast<Enemy*>(item)) {
+    for (Enemy* enemy : targetEnemies) {
+        QPointF itemPos = enemy->pos();
+        double dx = itemPos.x() - bombPos.x();
+        double dy = itemPos.y() - bombPos.y();
+        double distanceSquared = dx * dx + dy * dy;
+
+        if (distanceSquared <= radiusSquared) {
             enemy->takeDamage(3);
         }
     }

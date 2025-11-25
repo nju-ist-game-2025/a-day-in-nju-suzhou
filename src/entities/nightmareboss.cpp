@@ -1,5 +1,6 @@
 #include "nightmareboss.h"
 #include <QDebug>
+#include <QFont>
 #include <QGraphicsScene>
 #include <QRandomGenerator>
 #include "../core/audiomanager.h"
@@ -7,13 +8,19 @@
 #include "../core/resourcefactory.h"
 #include "player.h"
 
-NightmareBoss::NightmareBoss(const QPixmap& pic, double scale)
+NightmareBoss::NightmareBoss(const QPixmap& pic, double scale, QGraphicsScene* /*scene*/)
     : Boss(pic, scale),
       m_phase(1),
       m_isTransitioning(false),
       m_nightmareWrapTimer(nullptr),
       m_nightmareDescentTimer(nullptr),
-      m_firstDescentTriggered(false) {
+      m_firstDescentTriggered(false),
+      m_shadowOverlay(nullptr),
+      m_shadowText(nullptr),
+      m_shadowTimer(nullptr) {
+    // 遮罩效果使用QGraphicsItem::scene()方法获取场景
+    // 参数scene保留为兼容性参数，但不需要使用
+
     // Nightmare Boss 一阶段属性
     setHealth(350);           // Boss血量
     setContactDamage(6);      // 接触伤害
@@ -46,6 +53,13 @@ NightmareBoss::~NightmareBoss() {
         m_nightmareDescentTimer->stop();
         delete m_nightmareDescentTimer;
     }
+    // 清理遮罩相关资源
+    hideShadowOverlay();
+    if (m_shadowTimer) {
+        m_shadowTimer->stop();
+        delete m_shadowTimer;
+        m_shadowTimer = nullptr;
+    }
     qDebug() << "Nightmare Boss被摧毁";
 }
 
@@ -76,8 +90,8 @@ void NightmareBoss::takeDamage(int damage) {
             qDebug() << "亡语对玩家造成2点伤害";
         }
 
-        // 发送信号显示遮罩和文字
-        emit requestShowShadowOverlay("游戏还没有结束！", 3000);
+        // 发送信号显示遮罩和文字（使用内部方法）
+        showShadowOverlay("游戏还没有结束！", 3000);
 
         // 3秒后进入二阶段
         QTimer::singleShot(3000, this, &NightmareBoss::enterPhase2);
@@ -194,8 +208,8 @@ void NightmareBoss::performNightmareWrap() {
 
     qDebug() << "释放技能1：噩梦缠绕";
 
-    // 显示遮罩3秒 + 白色文字提示
-    emit requestShowShadowOverlay("噩梦缠绕！！\n（你已被剥夺视野）", 3000);
+    // 显示遮罩3秒 + 白色文字提示（使用内部方法）
+    showShadowOverlay("噩梦缠绕！！\n（你已被剥夺视野）", 3000);
 
     // 3秒后瞬移到玩家身边
     QTimer::singleShot(3000, this, [this]() {
@@ -230,7 +244,7 @@ void NightmareBoss::performNightmareWrap() {
             }
         }
         
-        emit requestHideShadowOverlay(); });
+        hideShadowOverlay(); });
 }
 
 void NightmareBoss::performNightmareDescent() {
@@ -286,4 +300,81 @@ void NightmareBoss::resumeTimers() {
             m_nightmareDescentTimer->start(60000);
         }
     }
+}
+
+// ============== 遮罩效果方法 ==============
+
+void NightmareBoss::showShadowOverlay(const QString& text, int duration) {
+    if (!scene())
+        return;
+
+    // 如果已有遮罩，先清理
+    hideShadowOverlay();
+
+    // 加载shadow.png图片
+    QPixmap shadowPixmap("assets/boss/Nightmare/shadow.png");
+    if (shadowPixmap.isNull()) {
+        qWarning() << "无法加载shadow.png，使用黑色矩形代替";
+        // 创建黑色半透明矩形
+        shadowPixmap = QPixmap(800, 600);
+        shadowPixmap.fill(QColor(0, 0, 0, 200));
+    } else {
+        // 缩放到全屏大小
+        shadowPixmap = shadowPixmap.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    }
+
+    // 创建遮罩
+    m_shadowOverlay = new QGraphicsPixmapItem(shadowPixmap);
+    m_shadowOverlay->setPos(0, 0);
+    m_shadowOverlay->setZValue(10000);  // 最高层级
+    scene()->addItem(m_shadowOverlay);
+
+    // 如果有文字，显示白色文字
+    if (!text.isEmpty()) {
+        m_shadowText = new QGraphicsTextItem(text);
+        m_shadowText->setDefaultTextColor(Qt::white);
+        m_shadowText->setFont(QFont("Arial", 24, QFont::Bold));
+
+        // 居中显示
+        QRectF textRect = m_shadowText->boundingRect();
+        m_shadowText->setPos((800 - textRect.width()) / 2, (600 - textRect.height()) / 2);
+        m_shadowText->setZValue(10001);
+        scene()->addItem(m_shadowText);
+    }
+
+    qDebug() << "显示遮罩，文字:" << text << "持续时间:" << duration << "ms";
+
+    // 如果指定了持续时间，设置定时器自动隐藏
+    if (duration > 0) {
+        if (!m_shadowTimer) {
+            m_shadowTimer = new QTimer(this);
+            m_shadowTimer->setSingleShot(true);
+            connect(m_shadowTimer, &QTimer::timeout, this, &NightmareBoss::hideShadowOverlay);
+        }
+        m_shadowTimer->start(duration);
+    }
+}
+
+void NightmareBoss::hideShadowOverlay() {
+    if (m_shadowOverlay) {
+        if (scene()) {
+            scene()->removeItem(m_shadowOverlay);
+        }
+        delete m_shadowOverlay;
+        m_shadowOverlay = nullptr;
+    }
+
+    if (m_shadowText) {
+        if (scene()) {
+            scene()->removeItem(m_shadowText);
+        }
+        delete m_shadowText;
+        m_shadowText = nullptr;
+    }
+
+    if (m_shadowTimer) {
+        m_shadowTimer->stop();
+    }
+
+    qDebug() << "隐藏遮罩";
 }

@@ -72,11 +72,7 @@ class Level : public QObject {
     // Boss工厂方法：根据关卡号创建对应的Boss实例
     Boss* createBossByLevel(int levelNumber, const QPixmap& pic, double scale);
 
-    // Nightmare Boss 遮罩效果
-    void showShadowOverlay(const QString& text, int duration);
-    void hideShadowOverlay();
-
-    // Nightmare Boss 召唤敌人
+    // Boss召唤敌人（通用方法）
     void spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemies);
 
     int m_levelNumber;
@@ -107,11 +103,6 @@ class Level : public QObject {
     int m_currentDialogIndex;
     bool m_isStoryFinished;
     bool m_isBossDialog;  // 标记当前是否为boss对话
-
-    // Nightmare Boss 遮罩效果相关
-    QGraphicsPixmapItem* m_shadowOverlay;
-    QGraphicsTextItem* m_shadowText;
-    QTimer* m_shadowTimer;
 
     // 背景图片项
     QGraphicsPixmapItem* m_backgroundItem = nullptr;

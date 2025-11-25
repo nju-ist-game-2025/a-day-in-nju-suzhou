@@ -22,8 +22,9 @@ class ClockBoom : public Enemy {
     explicit ClockBoom(const QPixmap& normalPic, const QPixmap& redPic, double scale = 1.0);
     ~ClockBoom() override;
 
-    void move() override;     // 重写move，使其不移动
-    void triggerCountdown();  // 公开方法：立即触发倒计时（用于Boss召唤）
+    void move() override;                  // 重写move，使其不移动
+    void takeDamage(int damage) override;  // 重写takeDamage，死亡时不创建额外爆炸动画
+    void triggerCountdown();               // 公开方法：立即触发倒计时（用于Boss召唤）
 
     // 重写暂停/恢复方法
     void pauseTimers() override;
