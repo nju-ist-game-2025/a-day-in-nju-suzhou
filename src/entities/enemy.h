@@ -10,19 +10,21 @@
 
 class Player;
 
-class Enemy : public Entity {
+class Enemy : public Entity
+{
     Q_OBJECT
 
-   public:
+public:
     // 敌人状态枚举
-    enum State {
-        IDLE,    // 空闲/巡逻
-        CHASE,   // 追击
-        ATTACK,  // 攻击
-        WANDER   // 漫游
+    enum State
+    {
+        IDLE,   // 空闲/巡逻
+        CHASE,  // 追击
+        ATTACK, // 攻击
+        WANDER  // 漫游
     };
 
-    Enemy(const QPixmap& pic, double scale = 1.0);
+    Enemy(const QPixmap &pic, double scale = 1.0);
 
     ~Enemy();
 
@@ -30,7 +32,7 @@ class Enemy : public Entity {
 
     void takeDamage(int damage) override;
 
-    void setPlayer(Player* p) { player = p; }
+    void setPlayer(Player *p) { player = p; }
 
     // 配置参数
     void setVisionRange(double range) { visionRange = range; }
@@ -39,7 +41,8 @@ class Enemy : public Entity {
 
     void setAttackCooldown(int ms) { attackCooldown = ms; }
 
-    void setHealth(int hp) {
+    void setHealth(int hp)
+    {
         health = hp;
         maxHealth = hp;
     }
@@ -54,39 +57,39 @@ class Enemy : public Entity {
 
     int getHealth() { return health; };
 
-   signals:
+signals:
 
-    void dying(Enemy* enemy);  // 敌人即将死亡信号（在deleteLater之前发出）
+    void dying(Enemy *enemy); // 敌人即将死亡信号（在deleteLater之前发出）
 
-   private slots:
+private slots:
 
     void updateAI();
 
     void tryAttack();
 
-   private:
-    // AI相关
+protected:
+    // AI相关 - protected 允许子类访问
     State currentState;
-    Player* player;
-    QTimer* aiTimer;
-    QTimer* moveTimer;
-    QTimer* attackTimer;
+    Player *player;
+    QTimer *aiTimer;
+    QTimer *moveTimer;
+    QTimer *attackTimer;
 
-    // 属性
+    // 属性 - protected 允许子类访问
     int health;
     int maxHealth;
-    int contactDamage;      // 接触伤害
-    double visionRange;     // 视野范围
-    double attackRange;     // 攻击范围
-    int attackCooldown;     // 攻击冷却
-    qint64 lastAttackTime;  // 上次攻击时间
+    int contactDamage;     // 接触伤害
+    double visionRange;    // 视野范围
+    double attackRange;    // 攻击范围
+    int attackCooldown;    // 攻击冷却
+    qint64 lastAttackTime; // 上次攻击时间
     bool firstBonus;
 
     // 漫游相关
-    QPointF wanderTarget;  // 漫游目标点
-    int wanderCooldown;    // 漫游冷却
+    QPointF wanderTarget; // 漫游目标点
+    int wanderCooldown;   // 漫游冷却
 
-    // AI方法
+    // AI方法 - protected 允许子类访问和重写
     void updateState();
 
     bool canSeePlayer();
@@ -97,9 +100,9 @@ class Enemy : public Entity {
 
     void wander();
 
-    void attackPlayer();
+    virtual void attackPlayer();
 
     QPointF getRandomWanderPoint();
 };
 
-#endif  // ENEMY_H
+#endif // ENEMY_H

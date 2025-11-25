@@ -55,6 +55,9 @@ private:
     void spawnDoors(const RoomConfig &roomCfg);
     void buildMinimapData(); // New method
 
+    // 敌人工厂方法：根据类型创建具体的敌人实例
+    Enemy *createEnemyByType(int levelNumber, const QString &enemyType, const QPixmap &pic, double scale);
+
     int m_levelNumber;
     QVector<Room *> m_rooms;
     int m_currentRoomIndex;
