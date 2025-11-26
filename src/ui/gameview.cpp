@@ -111,6 +111,8 @@ void GameView::initGame() {
             hud = nullptr;
         }
 
+        // 在清空场景前，先移除全局地图中的墙体，避免重复释放
+        clearMapWalls();
         // scene->clear()会自动删除所有图形项（包括player和enemies）
         scene->clear();
         player = nullptr;  // 清空指针引用
