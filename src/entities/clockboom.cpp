@@ -86,17 +86,19 @@ void ClockBoom::move()
     return;
 }
 
-void ClockBoom::takeDamage(int damage) {
+void ClockBoom::takeDamage(int damage)
+{
     // ClockBoom被攻击时的特殊处理
     // 避免走父类Enemy::takeDamage的死亡流程（会重复创建爆炸效果）
 
     if (m_exploded)
-        return;  // 已经爆炸了，不再处理
+        return; // 已经爆炸了，不再处理
 
-    flash();  // 显示受击闪烁
+    flash(); // 显示受击闪烁
     health -= qMax(1, damage);
 
-    if (health <= 0) {
+    if (health <= 0)
+    {
         // ClockBoom被打死时，显示死亡特效但不造成范围伤害
         // dealDamage=false 表示只是被动死亡，不触发爆炸伤害
         explode(false);
@@ -191,7 +193,8 @@ void ClockBoom::onExplodeTimeout()
     explode();
 }
 
-void ClockBoom::explode(bool dealDamage) {
+void ClockBoom::explode(bool dealDamage)
+{
     if (m_exploded)
         return;
 
@@ -205,7 +208,8 @@ void ClockBoom::explode(bool dealDamage) {
 
     // 只有主动爆炸（倒计时结束）才对范围内实体造成伤害
     // 被打死时不触发范围伤害，避免连锁反应导致卡顿
-    if (dealDamage) {
+    if (dealDamage)
+    {
         damageNearbyEntities();
     }
 
@@ -213,8 +217,9 @@ void ClockBoom::explode(bool dealDamage) {
     AudioManager::instance().playSound("enemy_death");
 
     // 创建爆炸动画 - 立即创建以确保显示
-    if (scene()) {
-        Explosion* explosion = new Explosion();
+    if (scene())
+    {
+        Explosion *explosion = new Explosion();
         explosion->setPos(this->pos());
         scene()->addItem(explosion);
         explosion->startAnimation();
@@ -259,6 +264,9 @@ void ClockBoom::damageNearbyEntities()
         // 先尝试转换为Enemy（更常见），如果失败再尝试Player
         if (Enemy *enemy = dynamic_cast<Enemy *>(item))
         {
+            // 跳过其他 ClockBoom（同类不互相伤害）
+            if (dynamic_cast<ClockBoom *>(enemy))
+                continue;
             targetEnemies.append(enemy);
         }
         else if (!targetPlayer)
@@ -290,7 +298,7 @@ void ClockBoom::damageNearbyEntities()
 
         if (distanceSquared <= radiusSquared)
         {
-            // 对NightmareBoss造成20点伤害的特判
+            // 对NightmareBoss造成50点伤害的特判
             if (dynamic_cast<NightmareBoss *>(enemy))
             {
                 enemy->takeDamage(50);
@@ -298,7 +306,7 @@ void ClockBoom::damageNearbyEntities()
             }
             else
             {
-                enemy->takeDamage(3);
+                enemy->takeDamage(6); // 对普通敌人造成6点伤害
             }
         }
     }

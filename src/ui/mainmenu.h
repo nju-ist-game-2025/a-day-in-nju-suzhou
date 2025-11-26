@@ -14,6 +14,7 @@ class MainMenu : public QWidget {
     QPushButton* startButton;
     QPushButton* characterButton;  // 角色选择按钮
     QPushButton* codexButton;
+    QPushButton* devModeButton;    // 开发者模式按钮
     QPushButton* exitButton;
     QLabel* titleLabel;
     QPixmap m_titlePixmap;
@@ -36,6 +37,7 @@ class MainMenu : public QWidget {
     void startGameClicked();
     void selectCharacterClicked();  // 角色选择信号
     void codexClicked();            // new
+    void devModeClicked(int level); // 开发者模式选择关卡
     void exitGameClicked();
 };
 
