@@ -47,6 +47,10 @@
         {
           "type": "sock_normal",
           "count": 3
+        },
+        {
+          "type": "walker",
+          "count": 3
         }
       ],
       "hasBoss": false,

@@ -11,12 +11,13 @@
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 
-MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
+MainMenu::MainMenu(QWidget *parent) : QWidget(parent)
+{
     // 设置最小窗口大小，允许调整
     setMinimumSize(800, 600);
 
     // 创建主布局
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setAlignment(Qt::AlignCenter);
     mainLayout->setSpacing(30);
 
@@ -26,24 +27,29 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
 
     // 优先从配置获取标题图片路径
     QString titlePath = ConfigManager::instance().getAssetPath("title");
-    if (titlePath.isEmpty()) {
+    if (titlePath.isEmpty())
+    {
         // 尝试常见默认位置（如果没有配置）
         titlePath = "assets/background/title.png";
     }
 
     QPixmap titlePixmap;
-    if (!titlePath.isEmpty() && QFile::exists(titlePath)) {
+    if (!titlePath.isEmpty() && QFile::exists(titlePath))
+    {
         titlePixmap = QPixmap(titlePath);
     }
 
-    if (!titlePixmap.isNull()) {
+    if (!titlePixmap.isNull())
+    {
         // 使用图片作为标题
-        m_titlePixmap = titlePixmap;  // 保存原始图用于缩放
+        m_titlePixmap = titlePixmap; // 保存原始图用于缩放
         m_useTitleImage = true;
 
         QTimer::singleShot(0, this, &MainMenu::adjustTitlePixmap);
         titleLabel->setStyleSheet("background:transparent;");
-    } else {
+    }
+    else
+    {
         // 回退到文本标题
         titleLabel->setText("智科er的一天");
         QFont titleFont;
@@ -55,7 +61,7 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
     }
 
     // 添加标题阴影效果
-    QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect(this);
+    QGraphicsDropShadowEffect *shadowEffect = new QGraphicsDropShadowEffect(this);
     shadowEffect->setBlurRadius(5);
     shadowEffect->setColor(QColor(0, 0, 0, 150));
     shadowEffect->setOffset(3, 3);
@@ -185,25 +191,29 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
     mainLayout->addWidget(titleLabel);
     mainLayout->addSpacing(50);
     mainLayout->addWidget(startButton, 0, Qt::AlignCenter);
-    mainLayout->addWidget(characterButton, 0, Qt::AlignCenter);  // 角色选择按钮
-    mainLayout->addWidget(codexButton, 0, Qt::AlignCenter);      // 新增按钮
-    mainLayout->addWidget(devModeButton, 0, Qt::AlignCenter);    // 开发者模式按钮
+    mainLayout->addWidget(characterButton, 0, Qt::AlignCenter); // 角色选择按钮
+    mainLayout->addWidget(codexButton, 0, Qt::AlignCenter);     // 新增按钮
+    mainLayout->addWidget(devModeButton, 0, Qt::AlignCenter);   // 开发者模式按钮
     mainLayout->addWidget(exitButton, 0, Qt::AlignCenter);
     mainLayout->addStretch();
 
     // 加载主菜单背景图片
     m_backgroundPath = ConfigManager::instance().getAssetPath("background_main");
-    if (m_backgroundPath.isEmpty()) {
+    if (m_backgroundPath.isEmpty())
+    {
         m_backgroundPath = "assets/background/main.png";
     }
 
-    try {
+    try
+    {
         QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("background_main", 800, 600);
         QPalette palette;
         palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
         setAutoFillBackground(true);
         setPalette(palette);
-    } catch (const QString& error) {
+    }
+    catch (const QString &error)
+    {
         QMessageBox::critical(this, "资源加载失败", error);
         // 背景加载失败，使用默认颜色
         setStyleSheet("background-color: #2c3e50;");
@@ -211,12 +221,13 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
 
     // 连接信号和槽
     connect(startButton, &QPushButton::clicked, this, &MainMenu::startGameClicked);
-    connect(characterButton, &QPushButton::clicked, this, &MainMenu::selectCharacterClicked);  // 角色选择连接
-    connect(codexButton, &QPushButton::clicked, this, &MainMenu::codexClicked);                // 新增连接
+    connect(characterButton, &QPushButton::clicked, this, &MainMenu::selectCharacterClicked); // 角色选择连接
+    connect(codexButton, &QPushButton::clicked, this, &MainMenu::codexClicked);               // 新增连接
     connect(exitButton, &QPushButton::clicked, this, &MainMenu::exitGameClicked);
-    
+
     // 开发者模式按钮 - 弹出关卡选择对话框
-    connect(devModeButton, &QPushButton::clicked, this, [this]() {
+    connect(devModeButton, &QPushButton::clicked, this, [this]()
+            {
         QStringList levels;
         levels << "第1关 - 时钟梦境" << "第2关 - 袜子王国" << "第3关 - 终极挑战";
         
@@ -227,22 +238,26 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
         if (ok && !selectedLevel.isEmpty()) {
             int levelNum = levels.indexOf(selectedLevel) + 1;
             emit devModeClicked(levelNum);
-        }
-    });
+        } });
 }
 
-void MainMenu::resizeEvent(QResizeEvent* event) {
+void MainMenu::resizeEvent(QResizeEvent *event)
+{
     QWidget::resizeEvent(event);
 
     // 重新加载并缩放背景图片
-    try {
+    try
+    {
         QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("background_main", 800, 600);
-        if (!backgroundPixmap.isNull()) {
+        if (!backgroundPixmap.isNull())
+        {
             QPalette palette;
             palette.setBrush(QPalette::Window, QBrush(backgroundPixmap.scaled(event->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
             setPalette(palette);
         }
-    } catch (const QString&) {
+    }
+    catch (const QString &)
+    {
         // 背景加载失败，保持当前样式
     }
 
@@ -272,9 +287,12 @@ void MainMenu::resizeEvent(QResizeEvent* event) {
     exitButton->setFont(buttonFont);
 
     // 标题：如果使用图片则缩放图片，否则缩放文本字体
-    if (m_useTitleImage && !m_titlePixmap.isNull()) {
+    if (m_useTitleImage && !m_titlePixmap.isNull())
+    {
         adjustTitlePixmap();
-    } else {
+    }
+    else
+    {
         QFont titleFont;
         titleFont.setFamily("Microsoft YaHei");
         titleFont.setPointSize(static_cast<int>(48 * scale));
@@ -283,24 +301,28 @@ void MainMenu::resizeEvent(QResizeEvent* event) {
     }
 }
 
-void MainMenu::showEvent(QShowEvent* event) {
+void MainMenu::showEvent(QShowEvent *event)
+{
     QWidget::showEvent(event);
-    if (m_useTitleImage && !m_titlePixmap.isNull()) {
+    if (m_useTitleImage && !m_titlePixmap.isNull())
+    {
         adjustTitlePixmap();
     }
 }
 
-void MainMenu::adjustTitlePixmap() {
+void MainMenu::adjustTitlePixmap()
+{
     if (!m_useTitleImage || m_titlePixmap.isNull())
         return;
 
-    const double widthRatio = 0.95;   // 宽度占窗口宽度的比例
-    const double heightRatio = 0.45;  // 增大高度占比以让图片更显眼
+    const double widthRatio = 0.95;  // 宽度占窗口宽度的比例
+    const double heightRatio = 0.45; // 增大高度占比以让图片更显眼
 
     QSize targetSize(static_cast<int>(width() * widthRatio), static_cast<int>(height() * heightRatio));
 
     // 防止目标尺寸为0（窗口尚未布局），再尝试使用父窗口/默认值
-    if (targetSize.width() <= 0 || targetSize.height() <= 0) {
+    if (targetSize.width() <= 0 || targetSize.height() <= 0)
+    {
         QSize fallback = QSize(800, 200);
         targetSize = fallback;
     }

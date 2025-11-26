@@ -648,6 +648,9 @@ void Enemy::moveDash()
 }
 
 // 保持距离移动模式，适合远程敌人
+// 行为：
+//   1. X方向：保持与玩家的水平距离（m_preferredDistance）
+//   2. Y方向：主动对齐玩家高度，以便水平射击能命中
 void Enemy::moveKeepDistance()
 {
     if (!player)
@@ -661,53 +664,55 @@ void Enemy::moveKeepDistance()
     double dist = qSqrt(dx * dx + dy * dy);
 
     if (dist < 0.1)
+    {
+        xdir = 0;
+        ydir = 0;
         return;
-
-    double dirX = dx / dist;
-    double dirY = dy / dist;
-
-    // 根据与玩家的距离决定移动方向
-    double tolerance = 20.0; // 距离容差
-
-    if (dist < m_preferredDistance - tolerance)
-    {
-        // 太近了，后退
-        xdir = static_cast<int>(qRound(-dirX * 8));
-        ydir = static_cast<int>(qRound(-dirY * 8));
-    }
-    else if (dist > m_preferredDistance + tolerance)
-    {
-        // 太远了，靠近
-        xdir = static_cast<int>(qRound(dirX * 10));
-        ydir = static_cast<int>(qRound(dirY * 10));
-    }
-    else
-    {
-        // 距离合适，左右移动（横向游走）
-        double perpX = -dirY;
-        double perpY = dirX;
-
-        // 随机改变方向
-        if (QRandomGenerator::global()->bounded(100) < 2)
-        {
-            m_diagonalDirection = -m_diagonalDirection;
-        }
-
-        xdir = static_cast<int>(qRound(perpX * 6 * m_diagonalDirection));
-        ydir = static_cast<int>(qRound(perpY * 6 * m_diagonalDirection));
     }
 
-    // 更新朝向（始终面向玩家）
-    if (qAbs(dx) > qAbs(dy))
+    double moveSpeed = 4.0;   // 移动速度（较平滑）
+    double tolerance = 30.0;  // X轴距离容差
+    double yTolerance = 20.0; // Y轴对齐容差
+
+    // ========== X方向：保持水平距离 ==========
+    double absDx = qAbs(dx);
+    if (absDx < m_preferredDistance - tolerance)
     {
-        curr_xdir = (dx > 0) ? 1 : -1;
-        curr_ydir = 0;
+        // 太近了，水平后退（远离玩家）
+        xdir = (dx > 0) ? -static_cast<int>(moveSpeed) : static_cast<int>(moveSpeed);
+    }
+    else if (absDx > m_preferredDistance + tolerance)
+    {
+        // 太远了，水平靠近（接近玩家）
+        xdir = (dx > 0) ? static_cast<int>(moveSpeed) : -static_cast<int>(moveSpeed);
     }
     else
     {
-        curr_xdir = 0;
-        curr_ydir = (dy > 0) ? 1 : -1;
+        // X距离合适，保持不动
+        xdir = 0;
     }
+
+    // ========== Y方向：主动对齐玩家高度 ==========
+    if (qAbs(dy) > yTolerance)
+    {
+        // Y轴不对齐，移动到玩家同一水平线
+        ydir = (dy > 0) ? static_cast<int>(moveSpeed) : -static_cast<int>(moveSpeed);
+    }
+    else
+    {
+        // Y轴已对齐
+        ydir = 0;
+    }
+
+    // 如果完全不动（距离和Y都合适），保持一个小的xdir用于朝向更新
+    if (xdir == 0 && ydir == 0)
+    {
+        xdir = (dx > 0) ? 1 : -1;
+    }
+
+    // 更新朝向（始终面向玩家，水平方向）
+    curr_xdir = (dx > 0) ? 1 : -1;
+    curr_ydir = 0;
 }
 
 // 斜向移动模式，斜着接近玩家以躲避直线子弹

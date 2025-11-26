@@ -38,13 +38,22 @@
             "clock_boom": 50,
             "pillow": 60,
             "sock_normal": 50,
-            "sock_angrily": 60
+            "sock_angrily": 60,
+            "sock_shooter": 50,
+            "pants": 55,
+            "walker": 45
         },
         "bosses": {
             "default": 150,
             "nightmare": 160,
             "nightmare2": 180,
             "washmachine": 160
+        },
+        "bullets": {
+            "default": 50,
+            "player": 50,
+            "sock_shooter": 25,
+            "boss_washmachine": 30
         }
     },
     "game": {
