@@ -46,7 +46,8 @@ class WashMachineBoss : public Boss {
     void requestSpawnEnemies(const QVector<QPair<QString, int>>& enemies);
     void requestShowDialog(const QStringList& dialogs, const QString& background);
     void requestChangeBackground(const QString& backgroundPath);
-    void requestAbsorbAllEntities();  // 请求吸纳所有实体
+    void requestAbsorbAllEntities();                      // 请求吸纳所有实体
+    void requestShowTransitionText(const QString& text);  // 请求显示阶段转换文字
 
     // 阶段变化通知
     void phaseChanged(int newPhase);
@@ -68,6 +69,7 @@ class WashMachineBoss : public Boss {
     bool m_isAbsorbing;       // 正在执行吸纳动画
     bool m_waitingForDialog;  // 等待对话结束
     bool m_isDefeated;        // Boss已被击败，等待对话结束后死亡
+    bool m_firstDialogShown;  // 是否已显示过第一轮对话
 
     // 图片资源
     QPixmap m_normalPixmap;

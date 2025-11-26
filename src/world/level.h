@@ -143,6 +143,7 @@ class Level : public QObject {
    public slots:
     void onDialogClicked();
     void nextDialog();
+    void showPhaseTransitionText(const QString& text);  // 显示阶段转换文字提示（可被信号连接或直接调用）
 
    private slots:
     void onEnemyDying(Enemy* enemy);

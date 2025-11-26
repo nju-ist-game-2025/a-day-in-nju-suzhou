@@ -13,16 +13,12 @@
 #include "../entities/clockenemy.h"
 #include "../entities/enemy.h"
 #include "../entities/nightmareboss.h"
-#include "../entities/pillowenemy.h"
-#include "../entities/player.h"
-#include "../entities/projectile.h"
-#include "../entities/sockenemy.h"
 #include "../entities/pantsenemy.h"
+#include "../entities/pillowenemy.h"
 #include "../entities/player.h"
 #include "../entities/projectile.h"
 #include "../entities/sockenemy.h"
 #include "../entities/sockshooter.h"
-#include "../entities/pillowenemy.h"
 #include "../entities/walker.h"
 #include "../entities/washmachineboss.h"
 #include "../items/chest.h"
@@ -403,6 +399,11 @@ void Level::finishStory() {
         delete m_continueHint;
         m_continueHint = nullptr;
     }
+    if (m_skipHint) {
+        m_scene->removeItem(m_skipHint);
+        delete m_skipHint;
+        m_skipHint = nullptr;
+    }
 
     m_isStoryFinished = true;
 
@@ -462,14 +463,44 @@ void Level::finishStory() {
             m_absorbAngles.clear();
 
             m_currentWashMachineBoss->onDialogFinished();
-        } else if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size()) {
-            qDebug() << "Boss对话结束，初始化boss房间" << m_currentRoomIndex;
-            initCurrentRoom(m_rooms[m_currentRoomIndex]);
+        } else {
+            // 其他boss对话结束，或WashMachineBoss第一轮对话结束
+            if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size()) {
+                qDebug() << "Boss对话结束，初始化boss房间" << m_currentRoomIndex;
+                initCurrentRoom(m_rooms[m_currentRoomIndex]);
+            }
+            // 在房间初始化后再通知Boss（这样文字会显示在最顶层）
+            if (m_currentWashMachineBoss) {
+                m_currentWashMachineBoss->onDialogFinished();
+            }
         }
     } else {
         // 关卡开始对话结束
         emit storyFinished();
     }
+}
+
+void Level::showPhaseTransitionText(const QString& text) {
+    // 创建文字项，复用boss门开启提示的样式（深紫色）
+    QGraphicsTextItem* textItem = new QGraphicsTextItem(text);
+    textItem->setDefaultTextColor(QColor(75, 0, 130));  // 深紫色
+    textItem->setFont(QFont("Arial", 16, QFont::Bold));
+
+    // 居中显示
+    QRectF textRect = textItem->boundingRect();
+    textItem->setPos((800 - textRect.width()) / 2, 280);  // 在屏幕中上方显示
+    textItem->setZValue(1000);                            // 确保在最上层
+    m_scene->addItem(textItem);
+
+    // 2秒后自动移除，使用QPointer保护指针
+    QPointer<QGraphicsScene> scenePtr(m_scene);
+    QTimer::singleShot(2000, this, [textItem, scenePtr]() {
+        if (scenePtr && textItem->scene() == scenePtr) {
+            scenePtr->removeItem(textItem);
+        }
+        delete textItem;
+        qDebug() << "阶段转换文字已移除";
+    });
 }
 
 // 文本滚动——暂时搁置
@@ -781,17 +812,11 @@ Enemy* Level::createEnemyByType(int levelNumber, const QString& enemyType, const
             return new SockNormal(pic, scale);
         } else if (enemyType == "sock_angrily") {
             return new SockAngrily(pic, scale);
-        }
-        else if (enemyType == "pants")
-        {
+        } else if (enemyType == "pants") {
             return new PantsEnemy(pic, scale);
-        }
-        else if (enemyType == "sock_shooter")
-        {
+        } else if (enemyType == "sock_shooter") {
             return new SockShooter(pic, scale);
-        }
-        else if (enemyType == "walker")
-        {
+        } else if (enemyType == "walker") {
             return new Walker(pic, scale);
         }
     }
@@ -2014,6 +2039,10 @@ void Level::connectWashMachineBossSignals(WashMachineBoss* boss) {
     // 连接请求背景切换信号
     connect(boss, &WashMachineBoss::requestChangeBackground,
             this, &Level::onWashMachineBossRequestChangeBackground);
+
+    // 连接请求显示文字提示信号
+    connect(boss, &WashMachineBoss::requestShowTransitionText,
+            this, &Level::showPhaseTransitionText);
 
     // 连接请求吸纳信号
     connect(boss, &WashMachineBoss::requestAbsorbAllEntities,

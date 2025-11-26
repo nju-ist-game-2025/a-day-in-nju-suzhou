@@ -22,6 +22,7 @@ WashMachineBoss::WashMachineBoss(const QPixmap& pic, double scale)
       m_isAbsorbing(false),
       m_waitingForDialog(false),
       m_isDefeated(false),
+      m_firstDialogShown(false),
       m_scene(nullptr),
       m_waterAttackTimer(nullptr),
       m_isCharging(false),
@@ -191,7 +192,7 @@ void WashMachineBoss::enterPhase2() {
 
     // 切换到冲刺模式，设置全屏视野
     setMovementPattern(MOVE_DASH);
-    setVisionRange(10000);   // 全屏视野，无论玩家在哪里都攻击
+    setVisionRange(10000);  // 全屏视野，无论玩家在哪里都攻击
     setDashChargeTime(800);
     setDashSpeed(7.0);
     setContactDamage(5);
@@ -267,7 +268,21 @@ void WashMachineBoss::onDialogFinished() {
         return;
     }
 
-    // 否则是变异对话结束，继续战斗
+    // 如果是第一轮对话结束（阶段1）
+    if (m_phase == 1 && !m_firstDialogShown) {
+        m_firstDialogShown = true;
+        qDebug() << "第一轮对话结束，显示清理提示";
+        emit requestShowTransitionText("已将袜子、内裤以及衣物全部移出洗衣机，\n接下来全面开始清理！");
+        return;
+    }
+
+    // 如果不是阶段3（变异阶段），则不需要执行后续逻辑
+    if (m_phase != 3) {
+        qDebug() << "对话结束，但不是变异阶段，无需特殊处理";
+        return;
+    }
+
+    // 变异对话结束，继续战斗
     qDebug() << "变异对话结束，继续变异阶段战斗";
 
     // 切换到变异图片
@@ -280,10 +295,10 @@ void WashMachineBoss::onDialogFinished() {
 
     // 切换到冲刺模式（和第二阶段一样）
     setMovementPattern(MOVE_DASH);
-    setVisionRange(10000);    // 全屏视野，无论玩家在哪里都攻击
-    setDashChargeTime(600);   // 蓄力时间更短
-    setDashSpeed(8.0);        // 冲刺速度更快
-    setContactDamage(6);      // 接触伤害更高
+    setVisionRange(10000);   // 全屏视野，无论玩家在哪里都攻击
+    setDashChargeTime(600);  // 蓄力时间更短
+    setDashSpeed(8.0);       // 冲刺速度更快
+    setContactDamage(6);     // 接触伤害更高
 
     // 清理旋转臭袜子
     cleanupOrbitingSocks();
@@ -351,7 +366,7 @@ void WashMachineBoss::onBossDefeated() {
     AudioManager::instance().playSound("enemy_death");
 
     // 显示击败对话，对话结束后由 onDialogFinished 处理死亡
-    emit requestShowDialog(getDefeatedDialog(), "assets/boss_dia/boss2_1.png");
+    emit requestShowDialog(getDefeatedDialog(), "assets/boss_dia/boss2_3.png");
 }
 
 void WashMachineBoss::move() {
