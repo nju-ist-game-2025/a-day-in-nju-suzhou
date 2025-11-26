@@ -111,13 +111,6 @@ void NightmareBoss::takeDamage(int damage)
         // 击杀场上所有小怪
         killAllEnemies();
 
-        // 对玩家造成2点伤害
-        if (player)
-        {
-            player->takeDamage(2);
-            qDebug() << "亡语对玩家造成2点伤害";
-        }
-
         // 发送信号显示遮罩和文字（使用内部方法）
         // 发出阶段1死亡触发信号（Level将监听以启动背景渐变）
         emit phase1DeathTriggered();
