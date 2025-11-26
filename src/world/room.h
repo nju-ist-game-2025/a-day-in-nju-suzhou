@@ -8,8 +8,9 @@
 #include "enemy.h"
 #include "player.h"
 
-class Room : public QGraphicsScene {
-Q_OBJECT
+class Room : public QGraphicsScene
+{
+    Q_OBJECT
 
     int door_size;
     int change_x;
@@ -24,6 +25,7 @@ Q_OBJECT
     bool openRight;
     bool m_isBattleRoom;  // 是否是战斗房间
     bool m_battleStarted; // 战斗是否已开始（首次进入触发）
+    bool m_isCleared;     // 房间是否已被清除（开发者模式跳关用）
 
 public:
     Room();
@@ -37,7 +39,8 @@ public:
 
     int getChangeY() { return change_y; };
 
-    void resetChangeDir() {
+    void resetChangeDir()
+    {
         change_x = 0;
         change_y = 0;
     };
@@ -74,6 +77,10 @@ public:
     bool isBattleStarted() const;
 
     bool canLeaveRoom() const; // 检查是否可以离开房间
+
+    // 房间清除状态控制（开发者模式用）
+    void setCleared(bool cleared);
+    bool isCleared() const;
 
     void testChange();
 

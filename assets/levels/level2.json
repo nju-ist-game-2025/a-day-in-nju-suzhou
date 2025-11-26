@@ -85,7 +85,7 @@
       "enemies": [
         {
           "type": "walker",
-          "count": 4
+          "count": 3
         },
         {
           "type": "pants",
@@ -214,11 +214,11 @@
         },
         {
           "type": "sock_angrily",
-          "count": 2
+          "count": 1
         },
         {
           "type": "walker",
-          "count": 2
+          "count": 1
         },
         {
           "type": "sock_shooter",

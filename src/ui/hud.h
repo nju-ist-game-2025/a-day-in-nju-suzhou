@@ -6,8 +6,9 @@
 #include "player.h"
 #include <QDebug>
 
-class HUD : public QObject, public QGraphicsItem {
-Q_OBJECT
+class HUD : public QObject, public QGraphicsItem
+{
+    Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
 public:
     HUD(Player *pl, QGraphicsItem *parent = nullptr);
@@ -28,7 +29,8 @@ public:
 
     void paintTeleportCooldown(QPainter *painter);
 
-    struct RoomNode {
+    struct RoomNode
+    {
         int id;
         int x, y; // Grid coordinates relative to start (0,0)
         bool visited;
@@ -43,7 +45,8 @@ public slots:
     void updateMinimap(int currentRoom, const QVector<int> &roomLayout); // Simplified layout data
     void triggerDamageFlash();
 
-    void setMapLayout(const QVector<RoomNode> &nodes); // Set map layout from Level
+    void setMapLayout(const QVector<RoomNode> &nodes);        // Set map layout from Level
+    void syncVisitedRooms(const QVector<bool> &visitedArray); // 同步已访问房间状态
 
 private slots:
 

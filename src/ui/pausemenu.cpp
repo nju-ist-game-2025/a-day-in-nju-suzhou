@@ -7,16 +7,20 @@
 #include "../constants.h"
 
 PauseMenu::PauseMenu(QGraphicsScene *scene, QObject *parent)
-        : QObject(parent), m_scene(scene), m_overlay(nullptr), m_menuBackground(nullptr), m_titleText(nullptr),
-          m_resumeProxy(nullptr), m_menuProxy(nullptr), m_exitProxy(nullptr), m_resumeButton(nullptr),
-          m_menuButton(nullptr), m_exitButton(nullptr), m_isVisible(false) {
+    : QObject(parent), m_scene(scene), m_overlay(nullptr), m_menuBackground(nullptr), m_titleText(nullptr),
+      m_resumeProxy(nullptr), m_menuProxy(nullptr), m_exitProxy(nullptr), m_resumeButton(nullptr),
+      m_menuButton(nullptr), m_exitButton(nullptr), m_isVisible(false)
+{
     createUI();
 }
 
-PauseMenu::~PauseMenu() {
+PauseMenu::~PauseMenu()
+{
     // 先隐藏并从场景中移除
-    if (m_overlay) {
-        if (m_overlay->scene()) {
+    if (m_overlay)
+    {
+        if (m_overlay->scene())
+        {
             m_scene->removeItem(m_overlay);
         }
         // 删除 overlay（子元素会自动删除）
@@ -32,12 +36,13 @@ PauseMenu::~PauseMenu() {
     m_exitButton = nullptr;
 }
 
-void PauseMenu::createUI() {
+void PauseMenu::createUI()
+{
     // 半透明遮罩覆盖整个场景
     m_overlay = new QGraphicsRectItem(0, 0, scene_bound_x, scene_bound_y);
     m_overlay->setBrush(QBrush(QColor(0, 0, 0, 150)));
     m_overlay->setPen(Qt::NoPen);
-    m_overlay->setZValue(10000);  // 确保在最上层
+    m_overlay->setZValue(20000); // 确保在最上层，高于对话框(10000-10002)
 
     // 菜单背景
     int menuWidth = 300;
@@ -60,58 +65,58 @@ void PauseMenu::createUI() {
 
     // 按钮样式
     QString resumeButtonStyle =
-            "QPushButton {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4CAF50, stop:1 #388E3C);"
-            "   color: white;"
-            "   border: 2px solid #2E7D32;"
-            "   border-radius: 8px;"
-            "   padding: 8px;"
-            "   font-family: 'Microsoft YaHei';"
-            "   font-size: 14px;"
-            "   font-weight: bold;"
-            "}"
-            "QPushButton:hover {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #66BB6A, stop:1 #43A047);"
-            "}"
-            "QPushButton:pressed {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #388E3C, stop:1 #2E7D32);"
-            "}";
+        "QPushButton {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4CAF50, stop:1 #388E3C);"
+        "   color: white;"
+        "   border: 2px solid #2E7D32;"
+        "   border-radius: 8px;"
+        "   padding: 8px;"
+        "   font-family: 'Microsoft YaHei';"
+        "   font-size: 14px;"
+        "   font-weight: bold;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #66BB6A, stop:1 #43A047);"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #388E3C, stop:1 #2E7D32);"
+        "}";
 
     QString menuButtonStyle =
-            "QPushButton {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2196F3, stop:1 #1976D2);"
-            "   color: white;"
-            "   border: 2px solid #1565C0;"
-            "   border-radius: 8px;"
-            "   padding: 8px;"
-            "   font-family: 'Microsoft YaHei';"
-            "   font-size: 14px;"
-            "   font-weight: bold;"
-            "}"
-            "QPushButton:hover {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #42A5F5, stop:1 #1E88E5);"
-            "}"
-            "QPushButton:pressed {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1976D2, stop:1 #1565C0);"
-            "}";
+        "QPushButton {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2196F3, stop:1 #1976D2);"
+        "   color: white;"
+        "   border: 2px solid #1565C0;"
+        "   border-radius: 8px;"
+        "   padding: 8px;"
+        "   font-family: 'Microsoft YaHei';"
+        "   font-size: 14px;"
+        "   font-weight: bold;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #42A5F5, stop:1 #1E88E5);"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1976D2, stop:1 #1565C0);"
+        "}";
 
     QString exitButtonStyle =
-            "QPushButton {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f44336, stop:1 #d32f2f);"
-            "   color: white;"
-            "   border: 2px solid #c62828;"
-            "   border-radius: 8px;"
-            "   padding: 8px;"
-            "   font-family: 'Microsoft YaHei';"
-            "   font-size: 14px;"
-            "   font-weight: bold;"
-            "}"
-            "QPushButton:hover {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ef5350, stop:1 #e53935);"
-            "}"
-            "QPushButton:pressed {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d32f2f, stop:1 #c62828);"
-            "}";
+        "QPushButton {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f44336, stop:1 #d32f2f);"
+        "   color: white;"
+        "   border: 2px solid #c62828;"
+        "   border-radius: 8px;"
+        "   padding: 8px;"
+        "   font-family: 'Microsoft YaHei';"
+        "   font-size: 14px;"
+        "   font-weight: bold;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ef5350, stop:1 #e53935);"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d32f2f, stop:1 #c62828);"
+        "}";
 
     int buttonWidth = 200;
     int buttonHeight = 45;
@@ -144,34 +149,37 @@ void PauseMenu::createUI() {
     m_exitProxy->setPos(buttonX, buttonStartY + buttonSpacing * 2);
 
     // 连接信号
-    connect(m_resumeButton, &QPushButton::clicked, this, [this]() {
+    connect(m_resumeButton, &QPushButton::clicked, this, [this]()
+            {
         hide();
-        emit resumeGame();
-    });
+        emit resumeGame(); });
 
-    connect(m_menuButton, &QPushButton::clicked, this, [this]() {
+    connect(m_menuButton, &QPushButton::clicked, this, [this]()
+            {
         hide();
-        emit returnToMenu();
-    });
+        emit returnToMenu(); });
 
-    connect(m_exitButton, &QPushButton::clicked, this, [this]() {
+    connect(m_exitButton, &QPushButton::clicked, this, [this]()
+            {
         emit exitGame();
-        QApplication::quit();
-    });
+        QApplication::quit(); });
 
     // 初始隐藏
     m_overlay->setVisible(false);
 }
 
-void PauseMenu::show() {
-    if (!m_overlay->scene()) {
+void PauseMenu::show()
+{
+    if (!m_overlay->scene())
+    {
         m_scene->addItem(m_overlay);
     }
     m_overlay->setVisible(true);
     m_isVisible = true;
 }
 
-void PauseMenu::hide() {
+void PauseMenu::hide()
+{
     m_overlay->setVisible(false);
     m_isVisible = false;
 }
