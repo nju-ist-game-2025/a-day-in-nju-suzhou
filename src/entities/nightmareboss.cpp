@@ -119,6 +119,8 @@ void NightmareBoss::takeDamage(int damage)
         }
 
         // 发送信号显示遮罩和文字（使用内部方法）
+        // 发出阶段1死亡触发信号（Level将监听以启动背景渐变）
+        emit phase1DeathTriggered();
         showShadowOverlay("游戏还没有结束！", 3000);
 
         // 3秒后进入二阶段

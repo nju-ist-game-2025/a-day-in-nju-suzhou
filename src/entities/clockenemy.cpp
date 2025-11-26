@@ -71,14 +71,8 @@ void ClockEnemy::applyScareEffect()
 
     qDebug() << "时钟怪物触发惊吓效果！玩家移动速度增加但受伤提升150%，持续3秒";
 
-    // 设置效果冷却
+    // 立即设置效果冷却，防止重复触发（将在效果结束后解除）
     player->setEffectCooldown(true);
-    QPointer<Player> cooldownPtr = player;
-    QTimer::singleShot(500, [cooldownPtr]()
-                       {
-        if (cooldownPtr) {
-            cooldownPtr->setEffectCooldown(false);
-        } });
 
     // 显示"惊吓！！"文字提示
     QGraphicsTextItem *scareText = new QGraphicsTextItem("惊吓！！");
@@ -117,7 +111,13 @@ void ClockEnemy::applyScareEffect()
         
         if (playerPtr) {
             playerPtr->setScared(false);
-            qDebug() << "惊吓效果结束，玩家恢复正常";
+            qDebug() << "惊吓效果结束，玩家恢复正常，3秒后可再次触发";
+            // 效果结束后3秒再解除冷却
+            QTimer::singleShot(3000, [playerPtr]() {
+                if (playerPtr) {
+                    playerPtr->setEffectCooldown(false);
+                }
+            });
         }
         if (scareText) {
             if (scareText->scene()) {

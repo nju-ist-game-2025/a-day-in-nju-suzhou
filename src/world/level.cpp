@@ -1,6 +1,7 @@
 #include "level.h"
 #include <QDebug>
 #include <QGraphicsScene>
+#include <QVariantAnimation>
 #include <QMessageBox>
 #include <QPointer>
 #include <QPropertyAnimation>
@@ -221,6 +222,9 @@ void Level::initializeLevelAfterStory(const LevelConfig &config)
         QPixmap bg = ResourceFactory::loadImage(bgPath);
         m_backgroundItem->setPixmap(bg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
         m_backgroundItem->setPos(0, 0);
+        // 保存当前与原始背景路径（相对assets/）
+        m_currentBackgroundPath = startRoomCfg.backgroundImage;
+        m_originalBackgroundPath = m_currentBackgroundPath;
     }
     catch (const QString &e)
     {
@@ -827,6 +831,90 @@ void Level::spawnChestsInRoom(int roomIndex)
     }
 }
 
+// 渐变背景到目标图片路径（绝对或相对 assets/），duration 毫秒
+void Level::fadeBackgroundTo(const QString &imagePath, int duration)
+{
+    if (!m_scene)
+        return;
+
+    QString fullPath = imagePath;
+    // 如果路径看起来像相对assets路径（未包含 assets/ 前缀），尝试从 ConfigManager 获取
+    if (!imagePath.startsWith("assets/"))
+    {
+        fullPath = ConfigManager::instance().getAssetPath(imagePath);
+    }
+
+    QPixmap newBg;
+    try
+    {
+        newBg = ResourceFactory::loadImage(fullPath);
+    }
+    catch (const QString &e)
+    {
+        qWarning() << "fadeBackgroundTo: 加载图片失败:" << e;
+        return;
+    }
+
+    if (newBg.isNull())
+    {
+        qWarning() << "fadeBackgroundTo: 无法加载图片:" << fullPath;
+        return;
+    }
+
+    // 创建覆盖项（位于背景之上，但低于场景中其它元素）
+    if (m_backgroundOverlay)
+    {
+        // 如果已有覆盖，移除并删除
+        if (m_scene)
+            m_scene->removeItem(m_backgroundOverlay);
+        delete m_backgroundOverlay;
+        m_backgroundOverlay = nullptr;
+    }
+
+    m_backgroundOverlay = new QGraphicsPixmapItem(newBg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    m_backgroundOverlay->setPos(0, 0);
+    // 覆盖在背景之上，但低于界面元素
+    m_backgroundOverlay->setZValue(-999);
+    m_backgroundOverlay->setOpacity(0.0);
+    m_scene->addItem(m_backgroundOverlay);
+
+    // 动画从0到1
+    QVariantAnimation *anim = new QVariantAnimation(this);
+    anim->setStartValue(0.0);
+    anim->setEndValue(1.0);
+    anim->setDuration(duration);
+    connect(anim, &QVariantAnimation::valueChanged, this, [this](const QVariant &value)
+            {
+        if (m_backgroundOverlay)
+            m_backgroundOverlay->setOpacity(value.toDouble()); });
+    connect(anim, &QVariantAnimation::finished, this, [this, fullPath]()
+            {
+        // 动画结束后，把主背景替换为目标图，并移除覆盖项
+        if (m_backgroundItem)
+        {
+            try
+            {
+                QPixmap bg = ResourceFactory::loadImage(fullPath);
+                if (!bg.isNull())
+                    m_backgroundItem->setPixmap(bg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+                // 更新当前背景路径
+                m_currentBackgroundPath = fullPath;
+            }
+            catch (const QString &e)
+            {
+                qWarning() << "fadeBackgroundTo finished: 加载图片失败:" << e;
+            }
+        }
+        if (m_backgroundOverlay && m_scene)
+        {
+            m_scene->removeItem(m_backgroundOverlay);
+            delete m_backgroundOverlay;
+            m_backgroundOverlay = nullptr;
+        } });
+
+    anim->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
 Enemy *Level::createEnemyByType(int levelNumber, const QString &enemyType, const QPixmap &pic, double scale)
 {
     // 根据关卡号和敌人类型创建具体的敌人实例
@@ -886,6 +974,10 @@ Boss *Level::createBossByLevel(int levelNumber, const QPixmap &pic, double scale
         // 连接Nightmare Boss的特殊信号
         connect(nightmareBoss, &NightmareBoss::requestSpawnEnemies,
                 this, &Level::spawnEnemiesForBoss);
+        // 当一阶段亡语触发时，开始背景渐变到噩梦关专用背景
+        connect(nightmareBoss, &NightmareBoss::phase1DeathTriggered,
+                this, [this]()
+                { this->fadeBackgroundTo(QString("assets/background/nightmare2_map.png"), 3000); });
 
         boss = nightmareBoss;
         break;
@@ -1542,6 +1634,16 @@ void Level::onEnemyDying(Enemy *enemy)
                                if (levelPtr && playerPtr) {
                                    levelPtr->bonusEffects();
                                } });
+    }
+
+    // 如果死亡的是NightmareBoss，恢复原始背景（3秒渐变）
+    if (dynamic_cast<NightmareBoss *>(enemy))
+    {
+        // 如果有原始路径则恢复，否则不处理
+        if (!m_originalBackgroundPath.isEmpty())
+        {
+            fadeBackgroundTo(m_originalBackgroundPath, 3000);
+        }
     }
 
     for (Room *r : m_rooms)

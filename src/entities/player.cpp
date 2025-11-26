@@ -590,6 +590,10 @@ void Player::crashEnemy()
     if (m_isPaused) // 暂停状态不检测碰撞
         return;
 
+    // 无敌状态下不检测碰撞（也不触发敌人的特殊效果）
+    if (invincible)
+        return;
+
     // 使用collidingItems代替遍历整个场景
     QList<QGraphicsItem *> collisions = collidingItems();
     for (QGraphicsItem *item : collisions)

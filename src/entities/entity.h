@@ -9,11 +9,12 @@
 #include <QTransform>
 #include "constants.h"
 
-class Entity : public QObject, public QGraphicsPixmapItem {
+class Entity : public QObject, public QGraphicsPixmapItem
+{
     Q_OBJECT
 protected:
-    int xdir{}, ydir{};            // 移动方向（由 player/enemy 维护）
-    int curr_xdir{}, curr_ydir{};  // 目前朝向（可选使用）
+    int xdir{}, ydir{};           // 移动方向（由 player/enemy 维护）
+    int curr_xdir{}, curr_ydir{}; // 目前朝向（可选使用）
     double speed{};
     double shootSpeed{};
     double hurt{};
@@ -57,6 +58,7 @@ public:
 
     void setCrashR(int r) { crash_r = r; };
     void setInvincible(bool i) { invincible = i; };
+    bool isInvincible() const { return invincible; }
 
     // 重载 setPos，以便在每次位置更新时检查并调整朝向
     void setPos(qreal x, qreal y);
@@ -67,4 +69,4 @@ protected:
     void updateFacing();
 };
 
-#endif  // ENTITY_H
+#endif // ENTITY_H
