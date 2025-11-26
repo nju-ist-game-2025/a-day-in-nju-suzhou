@@ -12,7 +12,7 @@ ClockEnemy::ClockEnemy(const QPixmap& pic, double scale)
     : Enemy(pic, scale) {
     // 时钟怪物的基础属性（与普通敌人相同）
     setHealth(10);
-    setContactDamage(1);
+    setContactDamage(2);
     setVisionRange(250.0);
     setAttackRange(40.0);
     setAttackCooldown(1000);

@@ -177,13 +177,14 @@ void NightmareBoss::enterPhase2()
     setPixmap(m_phase2Pixmap);
 
     // 恢复满血
-    setHealth(300); // 二阶段血量更高
+    setHealth(350); // 二阶段血量更高
 
     // 增强属性 - 仍然是单段dash但更快
     setContactDamage(6);    // 提高接触伤害
     setSpeed(1.5);          // 提高移动速度
-    setDashSpeed(6.2);      // 更快的冲刺
+    setDashSpeed(6.5);      // 更快的冲刺
     setDashChargeTime(700); // 更短的蓄力时间
+    setVisionRange(500);
 
     // 设置二阶段技能
     setupPhase2Skills();
@@ -315,7 +316,8 @@ void NightmareBoss::performNightmareDescent()
 
     // 准备召唤的敌人列表：8个clock_normal + 20个clock_boom
     QVector<QPair<QString, int>> enemiesToSpawn;
-    enemiesToSpawn.append(qMakePair(QString("clock_normal"), 8));
+    enemiesToSpawn.append(qMakePair(QString("clock_normal"), 4));
+    enemiesToSpawn.append(qMakePair(QString("pillow"), 4));
     enemiesToSpawn.append(qMakePair(QString("clock_boom"), 20));
 
     // 发送信号请求Level召唤敌人

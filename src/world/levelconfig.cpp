@@ -129,11 +129,12 @@ RoomConfig LevelConfig::parseRoomConfig(const QJsonObject &roomObj)
     // 背景图片
     cfg.backgroundImage = roomObj.value("background").toString();
 
-    // 敌人配置
-    cfg.enemyCount = roomObj.value("enemyCount").toInt(0);
+    // Boss标志
     cfg.hasBoss = roomObj.value("hasBoss").toBool(false);
 
     // 解析敌人生成配置列表
+    // enemyCount 将由各种敌人的 count 自动累加计算，不再从 JSON 读取
+    cfg.enemyCount = 0;
     if (roomObj.contains("enemies") && roomObj.value("enemies").isArray())
     {
         QJsonArray enemiesArray = roomObj.value("enemies").toArray();
@@ -147,6 +148,7 @@ RoomConfig LevelConfig::parseRoomConfig(const QJsonObject &roomObj)
                 if (!type.isEmpty() && count > 0)
                 {
                     cfg.enemies.append(EnemySpawnConfig(type, count));
+                    cfg.enemyCount += count; // 自动累加敌人总数
                 }
             }
         }

@@ -65,6 +65,8 @@ set(ENTITY_SOURCES
         src/entities/clockboom.h
         src/entities/sockenemy.cpp
         src/entities/sockenemy.h
+        src/entities/pillowenemy.cpp
+        src/entities/pillowenemy.h
         src/entities/projectile.cpp
         src/entities/projectile.h
 )

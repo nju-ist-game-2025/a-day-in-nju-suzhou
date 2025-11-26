@@ -21,7 +21,28 @@
         "enemy": 40,
         "boss": 150,
         "bullet": 50,
-        "chest": 40
+        "chest": 40,
+        "players": {
+            "default": 60,
+            "HighGracePeople": 60,
+            "beautifulGirl": 60,
+            "njuFish": 60,
+            "quanfuxia": 60
+        },
+        "enemies": {
+            "default": 50,
+            "clock_normal": 50,
+            "clock_boom": 50,
+            "pillow": 60,
+            "sock_normal": 50,
+            "sock_angrily": 60
+        },
+        "bosses": {
+            "default": 150,
+            "nightmare": 160,
+            "nightmare2": 180,
+            "washmachine": 160
+        }
     },
     "game": {
         "scene_width": 800,

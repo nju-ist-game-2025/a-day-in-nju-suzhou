@@ -28,7 +28,6 @@
       "id": 0,
       "name": "Room 1 - Initial",
       "background": "map2",
-      "enemyCount": 0,
       "enemies": [],
       "hasBoss": false,
       "hasChest": true,
@@ -44,7 +43,6 @@
       "id": 1,
       "name": "Room 2 - Combat",
       "background": "map2",
-      "enemyCount": 3,
       "enemies": [
         {
           "type": "sock_normal",
@@ -65,7 +63,6 @@
       "id": 2,
       "name": "Room 3 - Special",
       "background": "map2",
-      "enemyCount": 0,
       "enemies": [],
       "hasBoss": false,
       "hasChest": true,
@@ -81,7 +78,6 @@
       "id": 3,
       "name": "Room 4 - Combat",
       "background": "map2",
-      "enemyCount": 7,
       "enemies": [
         {
           "type": "sock_normal",
@@ -106,7 +102,6 @@
       "id": 4,
       "name": "Room 5 - Combat",
       "background": "map2",
-      "enemyCount": 5,
       "enemies": [
         {
           "type": "sock_normal",
@@ -131,7 +126,6 @@
       "id": 5,
       "name": "Room 6 - Combat",
       "background": "map2",
-      "enemyCount": 6,
       "enemies": [
         {
           "type": "sock_normal",
@@ -156,7 +150,6 @@
       "id": 6,
       "name": "Room 7 - Item",
       "background": "map2",
-      "enemyCount": 0,
       "enemies": [],
       "hasBoss": false,
       "hasChest": true,
@@ -172,7 +165,6 @@
       "id": 7,
       "name": "Room 8 - Item",
       "background": "map2",
-      "enemyCount": 0,
       "enemies": [],
       "hasBoss": false,
       "hasChest": true,
@@ -188,7 +180,6 @@
       "id": 8,
       "name": "Room 9 - Special",
       "background": "map2",
-      "enemyCount": 0,
       "enemies": [],
       "hasBoss": false,
       "hasChest": true,
@@ -204,7 +195,6 @@
       "id": 9,
       "name": "Room 10 - Special (Boss)",
       "background": "map2",
-      "enemyCount": 11,
       "enemies": [
         {
           "type": "sock_normal",
