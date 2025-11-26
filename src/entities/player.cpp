@@ -9,10 +9,8 @@
 #include "constants.h"
 #include "enemy.h"
 
-namespace
-{
-class TeleportEffectItem : public QObject, public QGraphicsEllipseItem
-{
+namespace {
+class TeleportEffectItem : public QObject, public QGraphicsEllipseItem {
 public:
     TeleportEffectItem(QGraphicsScene *scene, const QPointF &center, qreal radius = 35.0)
         : QObject(scene), QGraphicsEllipseItem(-radius, -radius, radius * 2, radius * 2)
