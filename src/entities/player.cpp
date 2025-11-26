@@ -11,59 +11,59 @@
 
 namespace
 {
-class TeleportEffectItem : public QObject, public QGraphicsEllipseItem
-{
-public:
-    TeleportEffectItem(QGraphicsScene *scene, const QPointF &center, qreal radius = 35.0)
-        : QObject(scene), QGraphicsEllipseItem(-radius, -radius, radius * 2, radius * 2)
+    class TeleportEffectItem : public QObject, public QGraphicsEllipseItem
+    {
+    public:
+        TeleportEffectItem(QGraphicsScene *scene, const QPointF &center, qreal radius = 35.0)
+            : QObject(scene), QGraphicsEllipseItem(-radius, -radius, radius * 2, radius * 2)
+        {
+            if (!scene)
+            {
+                deleteLater();
+                return;
+            }
+
+            setPen(QPen(QColor(120, 220, 255, 220), 3));
+            setBrush(Qt::NoBrush);
+            setZValue(900);
+            setPos(center);
+            scene->addItem(this);
+
+            m_timer = new QTimer(this);
+            connect(m_timer, &QTimer::timeout, this, [this]()
+                    { advanceEffect(); });
+            m_timer->start(16);
+        }
+
+    private:
+        void advanceEffect()
+        {
+            m_elapsed += 16;
+            qreal progress = qBound(0.0, m_elapsed / m_duration, 1.0);
+            setOpacity(1.0 - progress);
+            setScale(1.0 + progress * 0.5);
+
+            if (m_elapsed >= m_duration)
+            {
+                if (scene())
+                {
+                    scene()->removeItem(this);
+                }
+                deleteLater();
+            }
+        }
+
+        QTimer *m_timer = nullptr;
+        qreal m_elapsed = 0.0;
+        qreal m_duration = 220.0;
+    };
+
+    void spawnTeleportEffect(QGraphicsScene *scene, const QPointF &center)
     {
         if (!scene)
-        {
-            deleteLater();
             return;
-        }
-
-        setPen(QPen(QColor(120, 220, 255, 220), 3));
-        setBrush(Qt::NoBrush);
-        setZValue(900);
-        setPos(center);
-        scene->addItem(this);
-
-        m_timer = new QTimer(this);
-        connect(m_timer, &QTimer::timeout, this, [this]()
-                { advanceEffect(); });
-        m_timer->start(16);
+        new TeleportEffectItem(scene, center);
     }
-
-private:
-    void advanceEffect()
-    {
-        m_elapsed += 16;
-        qreal progress = qBound(0.0, m_elapsed / m_duration, 1.0);
-        setOpacity(1.0 - progress);
-        setScale(1.0 + progress * 0.5);
-
-        if (m_elapsed >= m_duration)
-        {
-            if (scene())
-            {
-                scene()->removeItem(this);
-            }
-            deleteLater();
-        }
-    }
-
-    QTimer *m_timer = nullptr;
-    qreal m_elapsed = 0.0;
-    qreal m_duration = 220.0;
-};
-
-void spawnTeleportEffect(QGraphicsScene *scene, const QPointF &center)
-{
-    if (!scene)
-        return;
-    new TeleportEffectItem(scene, center);
-}
 } // namespace
 
 Player::Player(const QPixmap &pic_player, double scale)

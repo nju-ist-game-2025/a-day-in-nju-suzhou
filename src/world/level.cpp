@@ -19,6 +19,7 @@
 #include "../entities/sockenemy.h"
 #include "../entities/sockshooter.h"
 #include "../entities/pillowenemy.h"
+#include "../entities/walker.h"
 #include "../entities/washmachineboss.h"
 #include "../items/chest.h"
 #include "../ui/gameview.h"
@@ -857,6 +858,10 @@ Enemy *Level::createEnemyByType(int levelNumber, const QString &enemyType, const
         else if (enemyType == "sock_shooter")
         {
             return new SockShooter(pic, scale);
+        }
+        else if (enemyType == "walker")
+        {
+            return new Walker(pic, scale);
         }
     }
 

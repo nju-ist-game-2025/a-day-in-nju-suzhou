@@ -73,6 +73,8 @@ set(ENTITY_SOURCES
         src/entities/pantsenemy.h
         src/entities/projectile.cpp
         src/entities/projectile.h
+        src/entities/walker.cpp
+        src/entities/walker.h
 )
 
 set(WORLD_SOURCES

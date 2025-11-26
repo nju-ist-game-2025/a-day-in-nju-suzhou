@@ -37,7 +37,8 @@
             "sock_normal": 50,
             "sock_angrily": 60,
             "sock_shooter": 50,
-            "pants": 55
+            "pants": 55,
+            "walker": 45
         },
         "bosses": {
             "default": 150,
