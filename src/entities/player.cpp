@@ -28,8 +28,7 @@ public:
             scene->addItem(this);
 
         m_timer = new QTimer(this);
-        connect(m_timer, &QTimer::timeout, this, [this]()
-                { advanceEffect(); });
+        connect(m_timer, &QTimer::timeout, this, [this]() { advanceEffect(); });
         m_timer->start(16);
     }
 
@@ -40,17 +39,15 @@ private:
         setOpacity(1.0 - progress);
         setScale(1.0 + progress * 0.5);
 
-        if (m_elapsed >= m_duration)
-        {
-            if (scene())
-            {
+        if (m_elapsed >= m_duration) {
+            if (scene()) {
                 scene()->removeItem(this);
             }
             deleteLater();
         }
     }
 
-    QTimer *m_timer = nullptr;
+    QTimer* m_timer = nullptr;
     qreal m_elapsed = 0.0;
     qreal m_duration = 220.0;
 };
