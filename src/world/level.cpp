@@ -155,7 +155,19 @@ void Level::init(int levelNumber)
     qDebug() << "加载关卡:" << config.getLevelName();
     qDebug() << "关卡描述条数:" << config.getDescription().size();
 
-    // 如果有剧情描述，显示剧情；否则直接初始化关卡
+    // 开发者模式：非可视化模拟整个流程，直接显示boss对话
+    if (m_skipToBoss)
+    {
+        qDebug() << "开发者模式: 非可视化模拟流程，直接进入Boss对话";
+        // 直接初始化关卡（跳过开头对话的显示，但内部状态正确初始化）
+        initializeLevelAfterStory(config);
+        // 延迟发出storyFinished信号，确保GameView的连接已建立
+        QTimer::singleShot(0, this, [this]()
+                           { emit storyFinished(); });
+        return;
+    }
+
+    // 正常流程：如果有剧情描述，显示剧情；否则直接初始化关卡
     if (!config.getDescription().isEmpty())
     {
         // 断开之前的所有 storyFinished 连接，避免重复触发
@@ -179,6 +191,8 @@ void Level::init(int levelNumber)
 void Level::initializeLevelAfterStory(const LevelConfig &config)
 {
     qDebug() << "加载关卡:" << config.getLevelName();
+
+    bool isDevMode = m_skipToBoss; // 保存开发者模式状态
 
     for (int i = 0; i < config.getRoomCount(); ++i)
     {
@@ -204,32 +218,66 @@ void Level::initializeLevelAfterStory(const LevelConfig &config)
     visited.resize(config.getRoomCount());
     visited.fill(false);
 
-    // 如果是开发者模式且选择直接进入Boss房，找到Boss房索引
     int startRoomIndex = config.getStartRoomIndex();
-    if (m_skipToBoss)
+    int bossRoomIndex = -1;
+
+    // 开发者模式：模拟遍历所有房间，直接进入boss房
+    if (isDevMode)
     {
+        // 找到Boss房索引
         for (int i = 0; i < config.getRoomCount(); ++i)
         {
             if (config.getRoom(i).hasBoss)
             {
-                startRoomIndex = i;
-                qDebug() << "开发者模式: 直接跳转到Boss房，房间索引:" << i;
+                bossRoomIndex = i;
                 break;
             }
         }
-        // 标记所有房间为已访问（跳过普通房间）
-        visited.fill(true);
-        visited_count = config.getRoomCount();
+
+        if (bossRoomIndex >= 0)
+        {
+            // 标记所有非boss房间为已访问且已清除
+            for (int i = 0; i < config.getRoomCount(); ++i)
+            {
+                if (!config.getRoom(i).hasBoss)
+                {
+                    visited[i] = true;
+                    if (m_rooms[i])
+                    {
+                        m_rooms[i]->setCleared(true);
+                    }
+                }
+            }
+            visited_count = config.getRoomCount() - 1;
+
+            // 设置boss门状态
+            m_hasEncounteredBossDoor = true;
+            m_bossDoorsAlreadyOpened = true;
+            m_isStoryFinished = true;
+
+            // 直接进入boss房
+            m_currentRoomIndex = bossRoomIndex;
+            qDebug() << "开发者模式: 模拟完成，进入Boss房" << bossRoomIndex;
+        }
+        else
+        {
+            // 没找到boss房，使用正常流程
+            visited[startRoomIndex] = true;
+            visited_count = 1;
+            m_currentRoomIndex = startRoomIndex;
+        }
+
         m_skipToBoss = false; // 重置标志
     }
     else
     {
+        // 正常流程：从起始房间开始
         visited[startRoomIndex] = true;
         visited_count = 1;
+        m_currentRoomIndex = startRoomIndex;
     }
 
-    m_currentRoomIndex = startRoomIndex;
-    const RoomConfig &startRoomCfg = config.getRoom(m_currentRoomIndex);
+    const RoomConfig &currentRoomCfg = config.getRoom(m_currentRoomIndex);
 
     // 创建背景图片项
     if (!m_backgroundItem)
@@ -241,12 +289,12 @@ void Level::initializeLevelAfterStory(const LevelConfig &config)
 
     try
     {
-        QString bgPath = ConfigManager::instance().getAssetPath(startRoomCfg.backgroundImage);
+        QString bgPath = ConfigManager::instance().getAssetPath(currentRoomCfg.backgroundImage);
         QPixmap bg = ResourceFactory::loadImage(bgPath);
         m_backgroundItem->setPixmap(bg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
         m_backgroundItem->setPos(0, 0);
         // 保存当前与原始背景路径（相对assets/）
-        m_currentBackgroundPath = startRoomCfg.backgroundImage;
+        m_currentBackgroundPath = currentRoomCfg.backgroundImage;
         m_originalBackgroundPath = m_currentBackgroundPath;
     }
     catch (const QString &e)
@@ -254,7 +302,18 @@ void Level::initializeLevelAfterStory(const LevelConfig &config)
         qWarning() << "加载房间背景失败:" << e;
     }
 
-    initCurrentRoom(m_rooms[m_currentRoomIndex]);
+    // 开发者模式：显示boss对话，对话结束后初始化boss房
+    if (isDevMode && bossRoomIndex >= 0 && !currentRoomCfg.bossDialog.isEmpty())
+    {
+        visited[bossRoomIndex] = true;
+        visited_count++;
+        showStoryDialog(currentRoomCfg.bossDialog, true, currentRoomCfg.bossDialogBackground);
+    }
+    else
+    {
+        // 正常初始化当前房间
+        initCurrentRoom(m_rooms[m_currentRoomIndex]);
+    }
 
     checkChange = new QTimer(this);
     connect(checkChange, &QTimer::timeout, this, &Level::enterNextRoom);
@@ -768,11 +827,19 @@ void Level::spawnEnemiesInRoom(int roomIndex)
     }
 
     const RoomConfig &roomCfg = config.getRoom(roomIndex);
+    Room *cur = m_rooms[roomIndex];
+
+    // 如果房间已被标记为清除（开发者模式跳关），跳过敌人生成
+    if (cur && cur->isCleared())
+    {
+        qDebug() << "房间" << roomIndex << "已被清除，跳过敌人生成";
+        openDoors(cur);
+        return;
+    }
 
     try
     {
         bool hasBoss = roomCfg.hasBoss;
-        Room *cur = m_rooms[roomIndex];
 
         // 计算总敌人数量（用于判断是否打开门）
         int totalEnemyCount = 0;
@@ -1324,6 +1391,8 @@ void Level::buildMinimapData()
         if (auto hud = view->getHUD())
         {
             hud->setMapLayout(nodes);
+            // 同步 visited 状态（开发者模式跳关时需要）
+            hud->syncVisitedRooms(visited);
         }
     }
 }
