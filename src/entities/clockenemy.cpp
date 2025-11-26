@@ -4,12 +4,12 @@
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
 #include <QPointer>
-#include <QRandomGenerator>
 #include <QTimer>
 #include "player.h"
 
-ClockEnemy::ClockEnemy(const QPixmap& pic, double scale)
-    : Enemy(pic, scale) {
+ClockEnemy::ClockEnemy(const QPixmap &pic, double scale)
+    : Enemy(pic, scale)
+{
     // 时钟怪物的基础属性（与普通敌人相同）
     setHealth(10);
     setContactDamage(2);
@@ -23,7 +23,15 @@ ClockEnemy::ClockEnemy(const QPixmap& pic, double scale)
     setZigzagAmplitude(60.0);
 }
 
-void ClockEnemy::attackPlayer() {
+void ClockEnemy::onContactWithPlayer(Player *p)
+{
+    Q_UNUSED(p);
+    // 接触时触发惊吓效果
+    applyScareEffect();
+}
+
+void ClockEnemy::attackPlayer()
+{
     if (!player)
         return;
 
@@ -32,55 +40,89 @@ void ClockEnemy::attackPlayer() {
         return;
 
     // 近战攻击：检测碰撞
-    QList<QGraphicsItem*> collisions = collidingItems();
-    for (QGraphicsItem* item : collisions) {
-        Player* p = dynamic_cast<Player*>(item);
-        if (p) {
+    QList<QGraphicsItem *> collisions = collidingItems();
+    for (QGraphicsItem *item : collisions)
+    {
+        Player *p = dynamic_cast<Player *>(item);
+        if (p)
+        {
             p->takeDamage(contactDamage);
 
-            // 50%概率触发昏睡效果
-            if (QRandomGenerator::global()->bounded(2) == 0) {
-                applySleepEffect();
-            }
+            // 触发惊吓效果（不可叠加）
+            applyScareEffect();
 
             break;
         }
     }
 }
 
-void ClockEnemy::applySleepEffect() {
+void ClockEnemy::applyScareEffect()
+{
     if (!player || !scene())
         return;
 
-    qDebug() << "时钟怪物触发昏睡效果！玩家无法移动1秒";
+    // 检查玩家是否已经处于惊吓状态（不可叠加）
+    if (player->isScared())
+        return;
 
-    // 显示"昏睡ZZZ"文字提示
-    QGraphicsTextItem* sleepText = new QGraphicsTextItem("昏睡ZZZ");
+    // 检查效果冷却（触发后0.5秒内不可再次触发）
+    if (player->isEffectOnCooldown())
+        return;
+
+    qDebug() << "时钟怪物触发惊吓效果！玩家移动速度增加但受伤提升150%，持续3秒";
+
+    // 设置效果冷却
+    player->setEffectCooldown(true);
+    QPointer<Player> cooldownPtr = player;
+    QTimer::singleShot(500, [cooldownPtr]()
+                       {
+        if (cooldownPtr) {
+            cooldownPtr->setEffectCooldown(false);
+        } });
+
+    // 显示"惊吓！！"文字提示
+    QGraphicsTextItem *scareText = new QGraphicsTextItem("惊吓！！");
     QFont font;
     font.setPointSize(16);
     font.setBold(true);
-    sleepText->setFont(font);
-    sleepText->setDefaultTextColor(QColor(128, 128, 128));  // 灰色
-    sleepText->setPos(player->pos().x(), player->pos().y() - 40);
-    sleepText->setZValue(200);
-    scene()->addItem(sleepText);
+    scareText->setFont(font);
+    scareText->setDefaultTextColor(QColor(128, 128, 128)); // 灰色
+    scareText->setPos(player->pos().x(), player->pos().y() - 40);
+    scareText->setZValue(200);
+    scene()->addItem(scareText);
 
-    // 禁用玩家移动
-    player->setCanMove(false);
+    // 应用惊吓效果：移动速度增加、受伤提升150%
+    player->setScared(true);
 
-    // 使用QPointer保护player指针，确保即使ClockEnemy被删除也能恢复玩家移动
+    // 使用QPointer保护player指针
     QPointer<Player> playerPtr = player;
 
-    // 1秒后恢复移动并删除文字（不再依赖this指针）
-    QTimer::singleShot(1000, [playerPtr, sleepText]() {
-        if (playerPtr) {
-            playerPtr->setCanMove(true);
-            qDebug() << "昏睡效果结束，玩家恢复移动";
+    // 创建文字跟随定时器，让文字跟随玩家移动
+    QTimer *followTimer = new QTimer();
+    QObject::connect(followTimer, &QTimer::timeout, [playerPtr, scareText]()
+                     {
+        if (playerPtr && scareText && scareText->scene()) {
+            scareText->setPos(playerPtr->pos().x(), playerPtr->pos().y() - 40);
+        } });
+    followTimer->start(16); // 每16ms更新位置
+
+    // 3秒后恢复正常并删除文字
+    QTimer::singleShot(3000, [playerPtr, scareText, followTimer]()
+                       {
+        // 停止跟随定时器
+        if (followTimer) {
+            followTimer->stop();
+            delete followTimer;
         }
-        if (sleepText) {
-            if (sleepText->scene()) {
-                sleepText->scene()->removeItem(sleepText);
+        
+        if (playerPtr) {
+            playerPtr->setScared(false);
+            qDebug() << "惊吓效果结束，玩家恢复正常";
+        }
+        if (scareText) {
+            if (scareText->scene()) {
+                scareText->scene()->removeItem(scareText);
             }
-            delete sleepText;
+            delete scareText;
         } });
 }
