@@ -1,8 +1,70 @@
 #include "player.h"
 #include <QDateTime>
 #include <QElapsedTimer>
+#include <QGraphicsEllipseItem>
+#include <QGraphicsScene>
+#include <QPen>
+#include <QtGlobal>
+#include <cmath>
 #include "constants.h"
 #include "enemy.h"
+
+namespace
+{
+class TeleportEffectItem : public QObject, public QGraphicsEllipseItem
+{
+public:
+    TeleportEffectItem(QGraphicsScene *scene, const QPointF &center, qreal radius = 35.0)
+        : QObject(scene), QGraphicsEllipseItem(-radius, -radius, radius * 2, radius * 2)
+    {
+        if (!scene)
+        {
+            deleteLater();
+            return;
+        }
+
+        setPen(QPen(QColor(120, 220, 255, 220), 3));
+        setBrush(Qt::NoBrush);
+        setZValue(900);
+        setPos(center);
+        scene->addItem(this);
+
+        m_timer = new QTimer(this);
+        connect(m_timer, &QTimer::timeout, this, [this]()
+                { advanceEffect(); });
+        m_timer->start(16);
+    }
+
+private:
+    void advanceEffect()
+    {
+        m_elapsed += 16;
+        qreal progress = qBound(0.0, m_elapsed / m_duration, 1.0);
+        setOpacity(1.0 - progress);
+        setScale(1.0 + progress * 0.5);
+
+        if (m_elapsed >= m_duration)
+        {
+            if (scene())
+            {
+                scene()->removeItem(this);
+            }
+            deleteLater();
+        }
+    }
+
+    QTimer *m_timer = nullptr;
+    qreal m_elapsed = 0.0;
+    qreal m_duration = 220.0;
+};
+
+void spawnTeleportEffect(QGraphicsScene *scene, const QPointF &center)
+{
+    if (!scene)
+        return;
+    new TeleportEffectItem(scene, center);
+}
+} // namespace
 
 Player::Player(const QPixmap &pic_player, double scale)
     : redContainers(5), redHearts(5.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(2), isDead(false), keys(0)
@@ -81,6 +143,13 @@ void Player::keyPressEvent(QKeyEvent *event)
 {
     if (!event || isDead) // 已死亡则不处理输入
         return;
+
+    if (event->key() == Qt::Key_Q)
+    {
+        tryTeleport();
+        event->accept();
+        return;
+    }
 
     // 处理移动按键（方向键）
     if (keysPressed.count(event->key()))
@@ -231,46 +300,7 @@ void Player::move()
     // 边界检测
     double newX = pos().x() + xdir * speed;
     double newY = pos().y() + ydir * speed;
-
-    // 在门的区域允许玩家移动到更靠边的位置
-    double doorMargin = 20.0; // 门附近允许的额外边距
-    double doorSize = 100.0;  // 门的宽度（用于判断是否在门附近）
-
-    // 上边界：在门附近允许到达 y = -doorMargin
-    if (newY < 0)
-    {
-        if (qAbs(newX + pixmap().width() / 2 - 400) < doorSize) // 在上门附近
-            newY = qMax(newY, -doorMargin);
-        else
-            newY = 0;
-    }
-
-    // 下边界：在门附近允许到达 y = room_bound_y - pixmap().height() + doorMargin
-    if (newY > room_bound_y - pixmap().height())
-    {
-        if (qAbs(newX + pixmap().width() / 2 - 400) < doorSize) // 在下门附近
-            newY = qMin(newY, (double)(room_bound_y - pixmap().height()) + doorMargin);
-        else
-            newY = room_bound_y - pixmap().height();
-    }
-
-    // 左边界：在门附近允许到达 x = -doorMargin
-    if (newX < 0)
-    {
-        if (qAbs(newY + pixmap().height() / 2 - 300) < doorSize) // 在左门附近
-            newX = qMax(newX, -doorMargin);
-        else
-            newX = 0;
-    }
-
-    // 右边界：在门附近允许到达 x = room_bound_x - pixmap().width() + doorMargin
-    if (newX > room_bound_x - pixmap().width())
-    {
-        if (qAbs(newY + pixmap().height() / 2 - 300) < doorSize) // 在右门附近
-            newX = qMin(newX, (double)(room_bound_x - pixmap().width()) + doorMargin);
-        else
-            newX = room_bound_x - pixmap().width();
-    }
+    QPointF clampedPos = clampPositionWithinRoom(QPointF(newX, newY));
 
     // 更新朝向图像
     if (xdir != 0 || ydir != 0)
@@ -305,7 +335,128 @@ void Player::move()
         }
     }
 
-    this->setPos(newX, newY);
+    this->setPos(clampedPos);
+}
+
+void Player::tryTeleport()
+{
+    if (isDead || !m_canMove || m_isPaused)
+        return;
+
+    QPointF dir = currentMoveDirection();
+    if (qFuzzyIsNull(dir.x()) && qFuzzyIsNull(dir.y()))
+        return;
+
+    qint64 now = QDateTime::currentMSecsSinceEpoch();
+    if (now - m_lastTeleportTime < m_teleportCooldownMs)
+        return;
+
+    QPointF desiredPos = pos() + dir * m_teleportDistance;
+    QPointF clampedPos = clampPositionWithinRoom(desiredPos);
+    auto *scenePtr = scene();
+    QRectF bounds = boundingRect();
+    QPointF centerOffset(bounds.width() / 2.0, bounds.height() / 2.0);
+
+    if (scenePtr)
+    {
+        spawnTeleportEffect(scenePtr, pos() + centerOffset);
+    }
+
+    AudioManager::instance().playSound("player_teleport");
+    setPos(clampedPos);
+    if (scenePtr)
+    {
+        spawnTeleportEffect(scenePtr, clampedPos + centerOffset);
+    }
+    m_lastTeleportTime = now;
+}
+
+QPointF Player::currentMoveDirection() const
+{
+    QPointF dir(0, 0);
+    if (keysPressed.value(Qt::Key_W, false))
+        dir.ry() -= 1;
+    if (keysPressed.value(Qt::Key_S, false))
+        dir.ry() += 1;
+    if (keysPressed.value(Qt::Key_A, false))
+        dir.rx() -= 1;
+    if (keysPressed.value(Qt::Key_D, false))
+        dir.rx() += 1;
+
+    double length = std::hypot(dir.x(), dir.y());
+    if (length <= 0.0)
+        return QPointF(0, 0);
+
+    return QPointF(dir.x() / length, dir.y() / length);
+}
+
+QPointF Player::clampPositionWithinRoom(const QPointF &candidate) const
+{
+    double newX = candidate.x();
+    double newY = candidate.y();
+
+    double doorMargin = 20.0;
+    double doorSize = 100.0;
+
+    if (newY < 0)
+    {
+        if (qAbs(newX + pixmap().width() / 2 - 400) < doorSize)
+            newY = qMax(newY, -doorMargin);
+        else
+            newY = 0;
+    }
+
+    if (newY > room_bound_y - pixmap().height())
+    {
+        if (qAbs(newX + pixmap().width() / 2 - 400) < doorSize)
+            newY = qMin(newY, (double)(room_bound_y - pixmap().height()) + doorMargin);
+        else
+            newY = room_bound_y - pixmap().height();
+    }
+
+    if (newX < 0)
+    {
+        if (qAbs(newY + pixmap().height() / 2 - 300) < doorSize)
+            newX = qMax(newX, -doorMargin);
+        else
+            newX = 0;
+    }
+
+    if (newX > room_bound_x - pixmap().width())
+    {
+        if (qAbs(newY + pixmap().height() / 2 - 300) < doorSize)
+            newX = qMin(newX, (double)(room_bound_x - pixmap().width()) + doorMargin);
+        else
+            newX = room_bound_x - pixmap().width();
+    }
+
+    return QPointF(newX, newY);
+}
+
+int Player::getTeleportRemainingMs() const
+{
+    if (m_lastTeleportTime == 0)
+        return 0;
+
+    qint64 now = QDateTime::currentMSecsSinceEpoch();
+    int remaining = m_teleportCooldownMs - static_cast<int>(now - m_lastTeleportTime);
+    return qMax(0, remaining);
+}
+
+double Player::getTeleportReadyRatio() const
+{
+    if (m_teleportCooldownMs <= 0)
+        return 1.0;
+
+    double remaining = static_cast<double>(getTeleportRemainingMs());
+    double total = static_cast<double>(m_teleportCooldownMs);
+    double ratio = 1.0 - qBound(0.0, remaining / total, 1.0);
+    return qBound(0.0, ratio, 1.0);
+}
+
+bool Player::isTeleportReady() const
+{
+    return getTeleportRemainingMs() <= 0;
 }
 
 void Player::takeDamage(int damage)

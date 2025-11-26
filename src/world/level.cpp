@@ -244,7 +244,14 @@ bool Level::eventFilter(QObject *watched, QEvent *event)
         {
             if (event->type() == QEvent::KeyPress)
             {
-                QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+                auto *keyEvent = dynamic_cast<QKeyEvent *>(event);
+                if (!m_skipRequested &&
+                keyEvent->modifiers().testFlag(Qt::ControlModifier) &&
+                keyEvent->key() == Qt::Key_S){
+                    m_skipRequested = true;
+                    finishStory();
+                    return true;
+                }
                 if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Space)
                 {
                     onDialogClicked();
@@ -353,6 +360,12 @@ void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const
     m_continueHint->setPos(580, 550);
     m_continueHint->setZValue(10002);
     m_scene->addItem(m_continueHint);
+    m_skipHint = new QGraphicsTextItem("Ctrl+S 跳过剧情");
+    m_skipHint->setDefaultTextColor(QColor(255, 255, 255, 140));
+    m_skipHint->setFont(QFont("Microsoft YaHei", 11, QFont::Light));
+    m_skipHint->setPos(30, 550);
+    m_skipHint->setZValue(10002);
+    m_scene->addItem(m_skipHint);
 
     // 让渐变背景可点击
     m_textBackground->setFlag(QGraphicsItem::ItemIsFocusable);
@@ -404,7 +417,7 @@ void Level::nextDialog()
 void Level::finishStory()
 {
     qDebug() << "剧情播放完毕";
-
+    m_skipRequested=false;
     // 清理渐变背景
     if (m_textBackground)
     {

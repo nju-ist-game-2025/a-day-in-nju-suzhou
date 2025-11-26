@@ -41,6 +41,7 @@ class CharacterSelector : public QWidget {
     struct CharacterInfo {
         QString name;       // 角色名称
         QString imagePath;  // 图片路径
+        QString ability;    // 能力说明
         QPushButton* button;
     };
 
@@ -53,6 +54,7 @@ class CharacterSelector : public QWidget {
     QLabel* m_titleLabel;
     QLabel* m_previewLabel;
     QLabel* m_nameLabel;
+    QLabel* m_abilityLabel;
     QPushButton* m_confirmButton;
     QPushButton* m_backButton;
     QHBoxLayout* m_characterLayout;
