@@ -4,8 +4,8 @@
 #include "player.h"
 #include "statuseffect.h"
 
-Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap& pic_bullet, double scale)
-    : mode(_mode), isDestroying(false), m_isPaused(false) {
+Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap &pic_bullet, double scale)
+        : mode(_mode), isDestroying(false), m_isPaused(false) {
     setTransformationMode(Qt::SmoothTransformation);
 
     // 禁用缓存以避免留下轨迹
@@ -27,10 +27,10 @@ Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap& pic_
     } else {
         // 按比例缩放（保持宽高比）
         this->setPixmap(pic_bullet.scaled(
-            pic_bullet.width() * scale,
-            pic_bullet.height() * scale,
-            Qt::KeepAspectRatio,
-            Qt::SmoothTransformation));
+                pic_bullet.width() * scale,
+                pic_bullet.height() * scale,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation));
     }
 
     this->setPos(pos);
@@ -80,19 +80,19 @@ void Projectile::move() {
     }
 }
 
-void geteffects(Enemy* enemy) {
+void geteffects(Enemy *enemy) {
     if (!enemy)
         return;
     if (enemy->getHealth() < 2)
         return;
 
-    QVector<StatusEffect*> localEffects;
+    QVector<StatusEffect *> localEffects;
 
-    SpeedEffect* sp = new SpeedEffect(5, 0.5);
+    SpeedEffect *sp = new SpeedEffect(5, 0.5);
     localEffects.push_back(sp);
-    DamageEffect* dam = new DamageEffect(5, 0.5);
+    DamageEffect *dam = new DamageEffect(5, 0.5);
     localEffects.push_back(dam);
-    shootSpeedEffect* shootsp = new shootSpeedEffect(5, 0.5);
+    shootSpeedEffect *shootsp = new shootSpeedEffect(5, 0.5);
     localEffects.push_back(shootsp);
 
     // 依1/3的概率获得效果
@@ -101,14 +101,14 @@ void geteffects(Enemy* enemy) {
         localEffects[i]->applyTo(enemy);
 
         // 清理未使用的效果
-        for (StatusEffect* effect : localEffects) {
+        for (StatusEffect *effect: localEffects) {
             if (effect != localEffects[i]) {  // 只删除未使用的
                 effect->deleteLater();
             }
         }
     } else {
         // 如果没有选中效果，清理所有
-        for (StatusEffect* effect : localEffects) {
+        for (StatusEffect *effect: localEffects) {
             effect->deleteLater();
         }
     }
@@ -125,7 +125,7 @@ void Projectile::checkCrash() {
         return;
 
     // 使用collidingItems代替遍历整个scene，大幅提升性能
-    QList<QGraphicsItem*> collisions = collidingItems();
+    QList<QGraphicsItem *> collisions = collidingItems();
 
     // 如果没有碰撞，直接返回
     if (collisions.isEmpty())
@@ -133,8 +133,8 @@ void Projectile::checkCrash() {
 
     if (mode) {
         // 敌人子弹，检测玩家碰撞
-        for (QGraphicsItem* item : collisions) {
-            if (auto it = dynamic_cast<Player*>(item)) {
+        for (QGraphicsItem *item: collisions) {
+            if (auto it = dynamic_cast<Player *>(item)) {
                 if (abs(it->pos().x() - this->pos().x()) <= it->crash_r &&
                     abs(it->pos().y() - this->pos().y()) <= it->crash_r) {
                     it->takeDamage(hurt);
@@ -145,8 +145,8 @@ void Projectile::checkCrash() {
         }
     } else {
         // 玩家子弹，检测敌人碰撞
-        for (QGraphicsItem* item : collisions) {
-            if (auto it = dynamic_cast<Enemy*>(item)) {
+        for (QGraphicsItem *item: collisions) {
+            if (auto it = dynamic_cast<Enemy *>(item)) {
                 if (abs(it->pos().x() - this->pos().x()) <= it->crash_r &&
                     abs(it->pos().y() - this->pos().y()) <= it->crash_r) {
                     // 先应用效果，再造成伤害（防止敌人在takeDamage中死亡）

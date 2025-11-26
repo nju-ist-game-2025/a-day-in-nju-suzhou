@@ -3,12 +3,12 @@
 
 #include "enemy.h"
 
-class PillowEnemy : public Enemy
-{
-    Q_OBJECT
+class PillowEnemy : public Enemy {
+Q_OBJECT
 
 public:
     explicit PillowEnemy(const QPixmap &pic, double scale = 1.0);
+
     ~PillowEnemy() override = default;
 
     // 接触玩家时触发昏睡效果

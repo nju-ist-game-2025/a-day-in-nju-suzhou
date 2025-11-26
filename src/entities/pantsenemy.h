@@ -14,12 +14,12 @@ class Player;
  * - 技能期间：免疫移速下降、以自身为圆心快速旋转、形成伤害圆、移速大增
  * - 旋转圆接触玩家造成更高伤害
  */
-class PantsEnemy : public Enemy
-{
-    Q_OBJECT
+class PantsEnemy : public Enemy {
+Q_OBJECT
 
 public:
     explicit PantsEnemy(const QPixmap &pic, double scale = 1.0);
+
     ~PantsEnemy() override;
 
     // 接触玩家时的处理
@@ -27,12 +27,14 @@ public:
 
     // 暂停/恢复定时器
     void pauseTimers() override;
+
     void resumeTimers() override;
 
 protected:
     void attackPlayer() override;
 
 private slots:
+
     void onSpinningTimer();  // 技能冷却定时器
     void onSpinningUpdate(); // 旋转动画更新
     void onSpinningEnd();    // 技能结束

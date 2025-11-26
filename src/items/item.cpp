@@ -5,8 +5,8 @@ Item::Item(const QString &name, const QString &desc) {
     this->description = desc;
 }
 
-void Item::showFloatText(QGraphicsScene* scene, const QString& text, const QPointF& position, const QColor& color) {
-    QGraphicsTextItem* textItem = new QGraphicsTextItem(text);
+void Item::showFloatText(QGraphicsScene *scene, const QString &text, const QPointF &position, const QColor &color) {
+    QGraphicsTextItem * textItem = new QGraphicsTextItem(text);
     textItem->setPos(position);
     textItem->setDefaultTextColor(color);
     textItem->setFont(QFont("Microsoft YaHei", 10, QFont::Black));
@@ -15,8 +15,8 @@ void Item::showFloatText(QGraphicsScene* scene, const QString& text, const QPoin
     scene->addItem(textItem);
 
     // 使用QTimer实现简单动画
-    QTimer* moveTimer = new QTimer;
-    QTimer* fadeTimer = new QTimer;
+    QTimer * moveTimer = new QTimer;
+    QTimer * fadeTimer = new QTimer;
 
     // 使用值捕获，避免悬挂引用
     int step = 0;

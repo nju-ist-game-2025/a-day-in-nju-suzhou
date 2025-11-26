@@ -5,6 +5,7 @@
 #include "enemy.h"
 
 class Player;
+
 class Projectile;
 
 /**
@@ -15,34 +16,39 @@ class Projectile;
  * - 只向水平方向（面朝方向，即图片右侧）发射子弹
  * - 攻击参数可自由调整
  */
-class SockShooter : public Enemy
-{
-    Q_OBJECT
+class SockShooter : public Enemy {
+Q_OBJECT
 
 public:
     explicit SockShooter(const QPixmap &pic, double scale = 1.0);
+
     ~SockShooter() override;
 
     // 暂停/恢复定时器
     void pauseTimers() override;
+
     void resumeTimers() override;
 
     // ========== 攻击参数设置接口（方便调整） ==========
 
     // 设置子弹伤害
     void setBulletDamage(int damage) { m_bulletDamage = damage; }
+
     int getBulletDamage() const { return m_bulletDamage; }
 
     // 设置射击冷却时间（毫秒）
     void setShootCooldown(int ms) { m_shootCooldown = ms; }
+
     int getShootCooldown() const { return m_shootCooldown; }
 
     // 设置子弹速度
     void setBulletSpeed(double speed) { m_bulletSpeed = speed; }
+
     double getBulletSpeed() const { return m_bulletSpeed; }
 
     // 设置子弹缩放
     void setBulletScale(double scale) { m_bulletScale = scale; }
+
     double getBulletScale() const { return m_bulletScale; }
 
     // 设置与玩家保持的理想距离
@@ -53,10 +59,12 @@ protected:
     // 使用基类 Enemy::moveKeepDistance() 移动逻辑（已重构支持Y轴对齐）
 
 private slots:
+
     void shootBullet();
 
 private:
     void loadBulletPixmap();
+
     void updateFacingDirection();
 
     // 射击相关

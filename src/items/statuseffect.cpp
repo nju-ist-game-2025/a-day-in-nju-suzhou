@@ -2,15 +2,13 @@
 #include <memory>
 
 StatusEffect::StatusEffect(double dur, QObject *parent)
-    : QObject{parent}, duration(dur), target(nullptr)
-{
+        : QObject{parent}, duration(dur), target(nullptr) {
     effTimer = new QTimer(this);
     effTimer->setSingleShot(true);
     connect(effTimer, &QTimer::timeout, this, &StatusEffect::expire);
 }
 
-void StatusEffect::applyTo(Entity *tgt)
-{
+void StatusEffect::applyTo(Entity *tgt) {
     if (!tgt)
         return;
     target = tgt;
@@ -18,10 +16,8 @@ void StatusEffect::applyTo(Entity *tgt)
     effTimer->start(static_cast<int>(duration * 1000));
 }
 
-void StatusEffect::expire()
-{
-    if (target)
-    {
+void StatusEffect::expire() {
+    if (target) {
         onRemoveEffect(target);
     }
     effTimer->stop();
@@ -29,8 +25,7 @@ void StatusEffect::expire()
 }
 
 PoisonEffect::PoisonEffect(Entity *target_, double duration, int damage_)
-    : StatusEffect(duration), damage(damage_), poisonTimer(nullptr)
-{
+        : StatusEffect(duration), damage(damage_), poisonTimer(nullptr) {
     // 无论 target_ 是否为空，都创建定时器
     // 定时器会在 onApplyEffect 中启动
     poisonTimer = new QTimer(this);
@@ -38,8 +33,8 @@ PoisonEffect::PoisonEffect(Entity *target_, double duration, int damage_)
     Q_UNUSED(target_); // target_ 参数目前未使用，保留用于兼容性
 }
 
-void StatusEffect::showFloatText(QGraphicsScene *scene, const QString &text, const QPointF &position, const QColor &color)
-{
+void
+StatusEffect::showFloatText(QGraphicsScene *scene, const QString &text, const QPointF &position, const QColor &color) {
     if (!scene)
         return;
 
@@ -63,8 +58,7 @@ void StatusEffect::showFloatText(QGraphicsScene *scene, const QString &text, con
     QTimer *fadeTimer = new QTimer;
 
     // 上升动画
-    connect(moveTimer, &QTimer::timeout, [textPtr, moveTimer, stepPtr, textDeleted]()
-            {
+    connect(moveTimer, &QTimer::timeout, [textPtr, moveTimer, stepPtr, textDeleted]() {
         if (*textDeleted || !textPtr) {
             moveTimer->stop();
             moveTimer->deleteLater();
@@ -75,11 +69,11 @@ void StatusEffect::showFloatText(QGraphicsScene *scene, const QString &text, con
         if (*stepPtr >= 25) {
             moveTimer->stop();
             moveTimer->deleteLater();
-        } });
+        }
+    });
 
     // 淡出动画
-    connect(fadeTimer, &QTimer::timeout, [textPtr, scene, fadeTimer, textDeleted]()
-            {
+    connect(fadeTimer, &QTimer::timeout, [textPtr, scene, fadeTimer, textDeleted]() {
         if (*textDeleted) {
             fadeTimer->stop();
             fadeTimer->deleteLater();
@@ -104,7 +98,8 @@ void StatusEffect::showFloatText(QGraphicsScene *scene, const QString &text, con
             fadeTimer->deleteLater();
         } else {
             textPtr->setOpacity(opacity);
-        } });
+        }
+    });
 
     moveTimer->start(150);
     fadeTimer->start(100);

@@ -16,15 +16,15 @@ const int bomb_r = 60;
 const int bombHurt = 1;
 
 class Player : public Entity {
-    Q_OBJECT
+Q_OBJECT
     int redContainers;
     double redHearts;
     int soulHearts;
     int blackHearts;                   // 是否短暂无敌，防止持续攻击
     QMap<int, bool> shootKeysPressed;  // 射击按键状态
-    QTimer* keysTimer;
-    QTimer* crashTimer;
-    QTimer* shootTimer;  // 射击检测定时器（持续检测）
+    QTimer *keysTimer;
+    QTimer *crashTimer;
+    QTimer *shootTimer;  // 射击检测定时器（持续检测）
     int shootCooldown;   // 射击冷却时间（毫秒）
     int shootType;       // 0=普通, 1=激光
     QPixmap pic_bullet;
@@ -39,20 +39,21 @@ class Player : public Entity {
     int bulletHurt;  // 玩家子弹伤害，可配置
     bool isDead;     // 玩家是否已死亡
 
-   public:
+public:
     friend class Item;
 
     QMap<int, bool> keysPressed;
 
-    explicit Player(const QPixmap& pic_player, double scale = 1.0);
+    explicit Player(const QPixmap &pic_player, double scale = 1.0);
 
-    void keyPressEvent(QKeyEvent* event) override;  // 控制移动
-    void keyReleaseEvent(QKeyEvent* event) override;
+    void keyPressEvent(QKeyEvent *event) override;  // 控制移动
+    void keyReleaseEvent(QKeyEvent *event) override;
 
     void move() override;
+
     void tryTeleport();  // Q键瞬移
 
-    void setBulletPic(const QPixmap& pic) { pic_bullet = pic; };
+    void setBulletPic(const QPixmap &pic) { pic_bullet = pic; };
 
     void setShootCooldown(int milliseconds) { shootCooldown = milliseconds; }  // 设置射击冷却时间
     [[nodiscard]] int getShootCooldown() const { return shootCooldown; };
@@ -87,8 +88,11 @@ class Player : public Entity {
     void setShootType(int type) { shootType = type; };
 
     int getTeleportCooldownMs() const { return m_teleportCooldownMs; }
+
     int getTeleportRemainingMs() const;
+
     double getTeleportReadyRatio() const;
+
     bool isTeleportReady() const;
 
     void crashEnemy();
@@ -117,10 +121,12 @@ class Player : public Entity {
 
     // 控制玩家是否可以移动（用于昏睡等状态效果）
     void setCanMove(bool canMove) { m_canMove = canMove; }
+
     bool canMove() const { return m_canMove; }
 
     // 控制玩家是否可以射击（用于吸纳动画等）
     void setCanShoot(bool canShoot) { m_canShoot = canShoot; }
+
     bool canShoot() const { return m_canShoot; }
 
     // 惊吓状态控制（移动速度增加但受伤提升150%）
@@ -137,24 +143,27 @@ class Player : public Entity {
             damageScale = m_originalDamageScale;
         }
     }
+
     bool isScared() const { return m_isScared; }
 
     // 效果冷却控制（触发后0.5秒内不可再次触发）
     void setEffectCooldown(bool onCooldown) { m_effectOnCooldown = onCooldown; }
+
     bool isEffectOnCooldown() const { return m_effectOnCooldown; }
 
     // 暂停控制
     void setPaused(bool paused) { m_isPaused = paused; }
+
     bool isPaused() const { return m_isPaused; }
 
-   signals:
+signals:
 
     void playerDied();  // 玩家死亡信号
     void healthChanged(float current, float max);
 
     void playerDamaged();
 
-   private:
+private:
     bool m_canMove = true;               // 是否可以移动
     bool m_canShoot = true;              // 是否可以射击
     bool m_isPaused = false;             // 是否暂停
@@ -167,10 +176,11 @@ class Player : public Entity {
     double m_teleportDistance = 120.0;   // 瞬移距离
 
     QPointF currentMoveDirection() const;
-    QPointF clampPositionWithinRoom(const QPointF& candidate) const;
 
-   protected:
-    void focusOutEvent(QFocusEvent* event) override;
+    QPointF clampPositionWithinRoom(const QPointF &candidate) const;
+
+protected:
+    void focusOutEvent(QFocusEvent *event) override;
 };
 
 #endif  // PLAYER_H

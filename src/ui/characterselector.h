@@ -14,10 +14,10 @@
  * 允许玩家在游戏开始前选择角色
  */
 class CharacterSelector : public QWidget {
-    Q_OBJECT
+Q_OBJECT
 
-   public:
-    explicit CharacterSelector(QWidget* parent = nullptr);
+public:
+    explicit CharacterSelector(QWidget *parent = nullptr);
 
     // 获取当前选中的角色图片路径
     QString getSelectedCharacter() const { return m_selectedCharacter; }
@@ -25,25 +25,31 @@ class CharacterSelector : public QWidget {
     // 获取当前选中的角色名称
     QString getSelectedCharacterName() const { return m_selectedName; }
 
-   signals:
-    void characterSelected(const QString& characterPath);  // 选择角色后发出
+signals:
+
+    void characterSelected(const QString &characterPath);  // 选择角色后发出
     void backToMenu();                                     // 返回主菜单
 
-   private slots:
+private slots:
+
     void onCharacterClicked(int index);
+
     void onConfirmClicked();
+
     void onBackClicked();
+
     void onAbilityClicked();
 
-   private:
+private:
     void loadCharacters();
+
     void updateSelection(int index);
 
     struct CharacterInfo {
         QString name;       // 角色名称
         QString imagePath;  // 图片路径
         QString ability;    // 能力说明
-        QPushButton* button;
+        QPushButton *button;
     };
 
     QList<CharacterInfo> m_characters;
@@ -52,16 +58,16 @@ class CharacterSelector : public QWidget {
     QString m_selectedCharacter;
     QString m_selectedName;
 
-    QLabel* m_titleLabel;
-    QLabel* m_previewLabel;
-    QLabel* m_nameLabel;
-    QPushButton* m_abilityButton;
-    QPushButton* m_confirmButton;
-    QPushButton* m_backButton;
-    QHBoxLayout* m_characterLayout;
+    QLabel *m_titleLabel;
+    QLabel *m_previewLabel;
+    QLabel *m_nameLabel;
+    QPushButton *m_abilityButton;
+    QPushButton *m_confirmButton;
+    QPushButton *m_backButton;
+    QHBoxLayout *m_characterLayout;
 
-   protected:
-    void resizeEvent(QResizeEvent* event) override;
+protected:
+    void resizeEvent(QResizeEvent *event) override;
 };
 
 #endif  // CHARACTERSELECTOR_H

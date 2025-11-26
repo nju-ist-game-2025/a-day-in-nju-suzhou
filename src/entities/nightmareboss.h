@@ -13,12 +13,12 @@
  * 死亡时：亡语触发进入二阶段
  * 二阶段：单段dash（更快） + 两个技能
  */
-class NightmareBoss : public Boss
-{
-    Q_OBJECT
+class NightmareBoss : public Boss {
+Q_OBJECT
 
 public:
     explicit NightmareBoss(const QPixmap &pic, double scale = 1.5, QGraphicsScene *scene = nullptr);
+
     ~NightmareBoss() override;
 
     void takeDamage(int damage) override; // 重写伤害处理，实现亡语
@@ -26,9 +26,11 @@ public:
 
     // 重写暂停/恢复方法
     void pauseTimers() override;
+
     void resumeTimers() override;
 
 signals:
+
     void phase1DeathTriggered();                                           // 一阶段死亡信号
     void requestSpawnEnemies(const QVector<QPair<QString, int>> &enemies); // 请求召唤敌人
 
@@ -68,11 +70,14 @@ private:
 
     // 遮罩效果方法（内部使用）
     void showShadowOverlay(const QString &text, int duration);
+
     void hideShadowOverlay();
+
     void updateShadowVision();                                // 更新玩家视野区域
     QPixmap createShadowWithVision(const QPointF &playerPos); // 创建带视野的遮罩
 
 private slots:
+
     void onNightmareWrapTimeout();    // 噩梦缠绕定时触发
     void onNightmareDescentTimeout(); // 噩梦降临定时触发
 };

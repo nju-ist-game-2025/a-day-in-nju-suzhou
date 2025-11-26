@@ -5,11 +5,11 @@
 #include <QTimer>
 
 class GameController : public QObject {
-Q_OBJECT
+    Q_OBJECT
 public:
     explicit GameController(QObject *parent = nullptr);
 
-signals:
+    signals:
 };
 
 #endif // GAMECONTROLLER_H

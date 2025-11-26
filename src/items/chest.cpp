@@ -4,19 +4,16 @@
 #include "../core/audiomanager.h"
 #include "player.h"
 
-Chest::Chest(Player *pl, bool locked_, const QPixmap &pic_chest, double scale) : locked(locked_), isOpened(false), player(pl)
-{
-    if (scale == 1.0)
-    {
+Chest::Chest(Player *pl, bool locked_, const QPixmap &pic_chest, double scale) : locked(locked_), isOpened(false),
+                                                                                 player(pl) {
+    if (scale == 1.0) {
         this->setPixmap(pic_chest);
-    }
-    else
-    {
+    } else {
         this->setPixmap(pic_chest.scaled(
-            pic_chest.width() * scale,
-            pic_chest.height() * scale,
-            Qt::KeepAspectRatio,
-            Qt::SmoothTransformation));
+                pic_chest.width() * scale,
+                pic_chest.height() * scale,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation));
     }
 
     DamageUpItem *dam = new DamageUpItem("", 1.05);
@@ -45,10 +42,8 @@ Chest::Chest(Player *pl, bool locked_, const QPixmap &pic_chest, double scale) :
     checkOpen->start(16);
 }
 
-Chest::~Chest()
-{
-    if (checkOpen)
-    {
+Chest::~Chest() {
+    if (checkOpen) {
         checkOpen->stop();
         disconnect(checkOpen, nullptr, this, nullptr);
     }
@@ -56,33 +51,25 @@ Chest::~Chest()
 
 #include <QKeyEvent>
 
-void Chest::open()
-{
+void Chest::open() {
     // 如果已经打开过，不再处理
-    if (isOpened)
-    {
+    if (isOpened) {
         return;
     }
 
-    if (!scene() || !player)
-    {
+    if (!scene() || !player) {
         return;
     }
 
     // 检查玩家是否在范围内并按下空格键
     if (player->isKeyPressed(Qt::Key_Space) &&
         abs(player->pos().x() - this->pos().x()) <= open_r &&
-        abs(player->pos().y() - this->pos().y()) <= open_r)
-    {
-        if (locked)
-        {
-            if (player->getKeys() > 0)
-            {
+        abs(player->pos().y() - this->pos().y()) <= open_r) {
+        if (locked) {
+            if (player->getKeys() > 0) {
                 player->addKeys(-1);
                 locked = false;
-            }
-            else
-            {
+            } else {
                 return;
             }
         }
@@ -93,8 +80,7 @@ void Chest::open()
         emit opened(this);
 
         // 立即停止并断开定时器，防止重复触发
-        if (checkOpen)
-        {
+        if (checkOpen) {
             checkOpen->stop();
             disconnect(checkOpen, nullptr, this, nullptr);
         }
@@ -107,20 +93,17 @@ void Chest::open()
         QPointer<Player> playerPtr = player;
 
         int i = QRandomGenerator::global()->bounded(items.size());
-        if (playerPtr)
-        {
+        if (playerPtr) {
             items[i]->onPickup(playerPtr.data());
         }
 
         // 先应用效果，再删除对象
-        if (playerPtr)
-        {
+        if (playerPtr) {
             bonusEffects();
         }
 
         // 从场景移除
-        if (scene())
-        {
+        if (scene()) {
             scene()->removeItem(this);
         }
 
@@ -129,11 +112,9 @@ void Chest::open()
     }
 }
 
-void Chest::bonusEffects()
-{
+void Chest::bonusEffects() {
     // 检查player是否仍然有效
-    if (!player || !player->scene())
-    {
+    if (!player || !player->scene()) {
         return;
     }
 
@@ -159,33 +140,25 @@ void Chest::bonusEffects()
 
     // 以1/3的概率获得额外增益效果
     int i = QRandomGenerator::global()->bounded(effectstoPlayer.size() * 3);
-    if (i >= 0 && i < effectstoPlayer.size() && effectstoPlayer[i])
-    {
+    if (i >= 0 && i < effectstoPlayer.size() && effectstoPlayer[i]) {
         // 应用前再次检查player
-        if (player)
-        {
+        if (player) {
             effectstoPlayer[i]->applyTo(player.data());
         }
-        for (StatusEffect *effect : effectstoPlayer)
-        {
-            if (effect != effectstoPlayer[i])
-            { // 只删除未使用的
+        for (StatusEffect *effect: effectstoPlayer) {
+            if (effect != effectstoPlayer[i]) { // 只删除未使用的
                 effect->deleteLater();
             }
         }
-    }
-    else
-    {
+    } else {
         // 如果没有选中任何效果，清理所有效果
-        for (StatusEffect *effect : effectstoPlayer)
-        {
+        for (StatusEffect *effect: effectstoPlayer) {
             effect->deleteLater();
         }
     }
 }
 
-lockedChest::lockedChest(Player *pl, const QPixmap &pic_chest, double scale) : Chest(pl, true, pic_chest, scale)
-{
+lockedChest::lockedChest(Player *pl, const QPixmap &pic_chest, double scale) : Chest(pl, true, pic_chest, scale) {
     items.clear();
 
     // 锁住的箱子奖励提高

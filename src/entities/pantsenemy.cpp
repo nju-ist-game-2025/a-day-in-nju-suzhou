@@ -8,15 +8,14 @@
 #include "player.h"
 
 PantsEnemy::PantsEnemy(const QPixmap &pic, double scale)
-    : Enemy(pic, scale),
-      m_isSpinning(false),
-      m_spinningCooldownTimer(nullptr),
-      m_spinningUpdateTimer(nullptr),
-      m_spinningDurationTimer(nullptr),
-      m_spinningCircle(nullptr),
-      m_currentFrameIndex(0),
-      m_lastSpinningDamageTime(0)
-{
+        : Enemy(pic, scale),
+          m_isSpinning(false),
+          m_spinningCooldownTimer(nullptr),
+          m_spinningUpdateTimer(nullptr),
+          m_spinningDurationTimer(nullptr),
+          m_spinningCircle(nullptr),
+          m_currentFrameIndex(0),
+          m_lastSpinningDamageTime(0) {
     // 设置基础属性
     setHealth(20);           // 生命值
     setContactDamage(2);     // 普通接触伤害
@@ -59,42 +58,35 @@ PantsEnemy::PantsEnemy(const QPixmap &pic, double scale)
     m_spinningCooldownTimer->start();
 }
 
-PantsEnemy::~PantsEnemy()
-{
+PantsEnemy::~PantsEnemy() {
     // 清理旋转圆
-    if (m_spinningCircle && scene())
-    {
+    if (m_spinningCircle && scene()) {
         scene()->removeItem(m_spinningCircle);
         delete m_spinningCircle;
         m_spinningCircle = nullptr;
     }
 
     // 停止所有定时器
-    if (m_spinningCooldownTimer)
-    {
+    if (m_spinningCooldownTimer) {
         m_spinningCooldownTimer->stop();
         delete m_spinningCooldownTimer;
     }
-    if (m_spinningUpdateTimer)
-    {
+    if (m_spinningUpdateTimer) {
         m_spinningUpdateTimer->stop();
         delete m_spinningUpdateTimer;
     }
-    if (m_spinningDurationTimer)
-    {
+    if (m_spinningDurationTimer) {
         m_spinningDurationTimer->stop();
         delete m_spinningDurationTimer;
     }
 }
 
-void PantsEnemy::createRotationFrames()
-{
+void PantsEnemy::createRotationFrames() {
     // 基于原始图片创建不同角度的旋转帧
     m_rotationFrames.clear();
     m_rotationFrames.reserve(ROTATION_FRAME_COUNT);
 
-    for (int i = 0; i < ROTATION_FRAME_COUNT; ++i)
-    {
+    for (int i = 0; i < ROTATION_FRAME_COUNT; ++i) {
         double angle = (360.0 / ROTATION_FRAME_COUNT) * i;
         QTransform transform;
         transform.rotate(angle);
@@ -118,17 +110,14 @@ void PantsEnemy::createRotationFrames()
     qDebug() << "PantsEnemy: 创建了" << m_rotationFrames.size() << "帧旋转动画";
 }
 
-void PantsEnemy::onSpinningTimer()
-{
+void PantsEnemy::onSpinningTimer() {
     // 技能冷却结束，释放旋转技能
-    if (!m_isSpinning && !m_isPaused)
-    {
+    if (!m_isSpinning && !m_isPaused) {
         startSpinning();
     }
 }
 
-void PantsEnemy::startSpinning()
-{
+void PantsEnemy::startSpinning() {
     if (m_isSpinning || !scene())
         return;
 
@@ -144,8 +133,8 @@ void PantsEnemy::startSpinning()
     // 创建旋转伤害圆（浅灰色填充）
     double circleRadius = SPINNING_CIRCLE_RADIUS;
     m_spinningCircle = new QGraphicsEllipseItem(
-        -circleRadius, -circleRadius,
-        circleRadius * 2, circleRadius * 2);
+            -circleRadius, -circleRadius,
+            circleRadius * 2, circleRadius * 2);
 
     // 设置浅灰色半透明填充
     QColor fillColor(180, 180, 180, 120); // 浅灰色，半透明
@@ -164,8 +153,7 @@ void PantsEnemy::startSpinning()
     m_spinningDurationTimer->start();
 }
 
-void PantsEnemy::stopSpinning()
-{
+void PantsEnemy::stopSpinning() {
     if (!m_isSpinning)
         return;
 
@@ -183,23 +171,20 @@ void PantsEnemy::stopSpinning()
     setPixmap(m_originalPixmap);
 
     // 移除旋转圆
-    if (m_spinningCircle && scene())
-    {
+    if (m_spinningCircle && scene()) {
         scene()->removeItem(m_spinningCircle);
         delete m_spinningCircle;
         m_spinningCircle = nullptr;
     }
 }
 
-void PantsEnemy::onSpinningUpdate()
-{
+void PantsEnemy::onSpinningUpdate() {
     if (!m_isSpinning)
         return;
 
     // 更新旋转动画帧
     m_currentFrameIndex = (m_currentFrameIndex + 1) % ROTATION_FRAME_COUNT;
-    if (m_currentFrameIndex < m_rotationFrames.size())
-    {
+    if (m_currentFrameIndex < m_rotationFrames.size()) {
         QGraphicsPixmapItem::setPixmap(m_rotationFrames[m_currentFrameIndex]);
     }
 
@@ -210,13 +195,11 @@ void PantsEnemy::onSpinningUpdate()
     checkSpinningDamage();
 }
 
-void PantsEnemy::onSpinningEnd()
-{
+void PantsEnemy::onSpinningEnd() {
     stopSpinning();
 }
 
-void PantsEnemy::updateSpinningCircle()
-{
+void PantsEnemy::updateSpinningCircle() {
     if (!m_spinningCircle)
         return;
 
@@ -226,8 +209,7 @@ void PantsEnemy::updateSpinningCircle()
     m_spinningCircle->setPos(center);
 }
 
-void PantsEnemy::checkSpinningDamage()
-{
+void PantsEnemy::checkSpinningDamage() {
     if (!m_isSpinning || !m_spinningCircle || !player || !scene())
         return;
 
@@ -248,23 +230,20 @@ void PantsEnemy::checkSpinningDamage()
     double distance = qSqrt(dx * dx + dy * dy);
 
     // 如果玩家在旋转圆范围内
-    if (distance <= SPINNING_CIRCLE_RADIUS)
-    {
+    if (distance <= SPINNING_CIRCLE_RADIUS) {
         player->takeDamage(SPINNING_DAMAGE);
         m_lastSpinningDamageTime = currentTime;
         qDebug() << "PantsEnemy: 旋转技能命中玩家，造成" << SPINNING_DAMAGE << "点伤害";
     }
 }
 
-void PantsEnemy::onContactWithPlayer(Player *p)
-{
+void PantsEnemy::onContactWithPlayer(Player *p) {
     Q_UNUSED(p);
     // 普通接触伤害由基类处理，这里不需要额外效果
     // 旋转伤害由 checkSpinningDamage() 单独处理
 }
 
-void PantsEnemy::attackPlayer()
-{
+void PantsEnemy::attackPlayer() {
     if (!player)
         return;
 
@@ -274,14 +253,11 @@ void PantsEnemy::attackPlayer()
     // 如果正在旋转，旋转伤害由 checkSpinningDamage 处理
     // 普通攻击仍然生效
     QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item : collisions)
-    {
+    for (QGraphicsItem *item: collisions) {
         Player *p = dynamic_cast<Player *>(item);
-        if (p)
-        {
+        if (p) {
             // 旋转状态下不造成普通接触伤害（旋转伤害更高且单独计算）
-            if (!m_isSpinning)
-            {
+            if (!m_isSpinning) {
                 p->takeDamage(contactDamage);
             }
             break;
@@ -289,42 +265,33 @@ void PantsEnemy::attackPlayer()
     }
 }
 
-void PantsEnemy::pauseTimers()
-{
+void PantsEnemy::pauseTimers() {
     Enemy::pauseTimers();
 
-    if (m_spinningCooldownTimer && m_spinningCooldownTimer->isActive())
-    {
+    if (m_spinningCooldownTimer && m_spinningCooldownTimer->isActive()) {
         m_spinningCooldownTimer->stop();
     }
-    if (m_spinningUpdateTimer && m_spinningUpdateTimer->isActive())
-    {
+    if (m_spinningUpdateTimer && m_spinningUpdateTimer->isActive()) {
         m_spinningUpdateTimer->stop();
     }
-    if (m_spinningDurationTimer && m_spinningDurationTimer->isActive())
-    {
+    if (m_spinningDurationTimer && m_spinningDurationTimer->isActive()) {
         m_spinningDurationTimer->stop();
     }
 }
 
-void PantsEnemy::resumeTimers()
-{
+void PantsEnemy::resumeTimers() {
     Enemy::resumeTimers();
 
-    if (m_spinningCooldownTimer && !m_isSpinning)
-    {
+    if (m_spinningCooldownTimer && !m_isSpinning) {
         m_spinningCooldownTimer->start();
     }
-    if (m_isSpinning)
-    {
-        if (m_spinningUpdateTimer)
-        {
+    if (m_isSpinning) {
+        if (m_spinningUpdateTimer) {
             m_spinningUpdateTimer->start();
         }
         // 注意：m_spinningDurationTimer 是单次定时器，暂停后恢复比较复杂
         // 简化处理：暂停后恢复时如果正在旋转，继续旋转一小段时间
-        if (m_spinningDurationTimer)
-        {
+        if (m_spinningDurationTimer) {
             m_spinningDurationTimer->start(1000); // 恢复后再持续1秒
         }
     }

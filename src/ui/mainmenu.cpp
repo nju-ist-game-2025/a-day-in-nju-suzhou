@@ -11,8 +11,7 @@
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 
-MainMenu::MainMenu(QWidget *parent) : QWidget(parent)
-{
+MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
     // 设置最小窗口大小，允许调整
     setMinimumSize(800, 600);
 
@@ -27,29 +26,24 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent)
 
     // 优先从配置获取标题图片路径
     QString titlePath = ConfigManager::instance().getAssetPath("title");
-    if (titlePath.isEmpty())
-    {
+    if (titlePath.isEmpty()) {
         // 尝试常见默认位置（如果没有配置）
         titlePath = "assets/background/title.png";
     }
 
     QPixmap titlePixmap;
-    if (!titlePath.isEmpty() && QFile::exists(titlePath))
-    {
+    if (!titlePath.isEmpty() && QFile::exists(titlePath)) {
         titlePixmap = QPixmap(titlePath);
     }
 
-    if (!titlePixmap.isNull())
-    {
+    if (!titlePixmap.isNull()) {
         // 使用图片作为标题
         m_titlePixmap = titlePixmap; // 保存原始图用于缩放
         m_useTitleImage = true;
 
         QTimer::singleShot(0, this, &MainMenu::adjustTitlePixmap);
         titleLabel->setStyleSheet("background:transparent;");
-    }
-    else
-    {
+    } else {
         // 回退到文本标题
         titleLabel->setText("智科er的一天");
         QFont titleFont;
@@ -69,72 +63,72 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent)
 
     // 通用按钮样式
     QString buttonStyle =
-        "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4CAF50, stop:1 #388E3C);"
-        "   color: white;"
-        "   border: 2px solid #2E7D32;"
-        "   border-radius: 10px;"
-        "   padding: 5px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #66BB6A, stop:1 #43A047);"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #388E3C, stop:1 #2E7D32);"
-        "   padding-top: 7px;"
-        "   padding-left: 7px;"
-        "}";
+            "QPushButton {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4CAF50, stop:1 #388E3C);"
+            "   color: white;"
+            "   border: 2px solid #2E7D32;"
+            "   border-radius: 10px;"
+            "   padding: 5px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #66BB6A, stop:1 #43A047);"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #388E3C, stop:1 #2E7D32);"
+            "   padding-top: 7px;"
+            "   padding-left: 7px;"
+            "}";
 
     QString codexButtonStyle =
-        "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2196F3, stop:1 #1976D2);"
-        "   color: white;"
-        "   border: 2px solid #1565C0;"
-        "   border-radius: 10px;"
-        "   padding: 5px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #42A5F5, stop:1 #1E88E5);"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1976D2, stop:1 #1565C0);"
-        "   padding-top: 7px;"
-        "   padding-left: 7px;"
-        "}";
+            "QPushButton {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2196F3, stop:1 #1976D2);"
+            "   color: white;"
+            "   border: 2px solid #1565C0;"
+            "   border-radius: 10px;"
+            "   padding: 5px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #42A5F5, stop:1 #1E88E5);"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1976D2, stop:1 #1565C0);"
+            "   padding-top: 7px;"
+            "   padding-left: 7px;"
+            "}";
 
     QString characterButtonStyle =
-        "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #9C27B0, stop:1 #7B1FA2);"
-        "   color: white;"
-        "   border: 2px solid #6A1B9A;"
-        "   border-radius: 10px;"
-        "   padding: 5px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #AB47BC, stop:1 #8E24AA);"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #7B1FA2, stop:1 #6A1B9A);"
-        "   padding-top: 7px;"
-        "   padding-left: 7px;"
-        "}";
+            "QPushButton {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #9C27B0, stop:1 #7B1FA2);"
+            "   color: white;"
+            "   border: 2px solid #6A1B9A;"
+            "   border-radius: 10px;"
+            "   padding: 5px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #AB47BC, stop:1 #8E24AA);"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #7B1FA2, stop:1 #6A1B9A);"
+            "   padding-top: 7px;"
+            "   padding-left: 7px;"
+            "}";
 
     QString exitButtonStyle =
-        "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f44336, stop:1 #d32f2f);"
-        "   color: white;"
-        "   border: 2px solid #c62828;"
-        "   border-radius: 10px;"
-        "   padding: 5px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ef5350, stop:1 #e53935);"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d32f2f, stop:1 #c62828);"
-        "   padding-top: 7px;"
-        "   padding-left: 7px;"
-        "}";
+            "QPushButton {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f44336, stop:1 #d32f2f);"
+            "   color: white;"
+            "   border: 2px solid #c62828;"
+            "   border-radius: 10px;"
+            "   padding: 5px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ef5350, stop:1 #e53935);"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d32f2f, stop:1 #c62828);"
+            "   padding-top: 7px;"
+            "   padding-left: 7px;"
+            "}";
 
     // 创建开始游戏按钮
     startButton = new QPushButton("开始游戏", this);
@@ -166,21 +160,21 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent)
 
     // 创建开发者模式按钮（橙色样式）
     QString devButtonStyle =
-        "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FF9800, stop:1 #F57C00);"
-        "   color: white;"
-        "   border: 2px solid #E65100;"
-        "   border-radius: 10px;"
-        "   padding: 5px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFB74D, stop:1 #FFA726);"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F57C00, stop:1 #E65100);"
-        "   padding-top: 7px;"
-        "   padding-left: 7px;"
-        "}";
+            "QPushButton {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FF9800, stop:1 #F57C00);"
+            "   color: white;"
+            "   border: 2px solid #E65100;"
+            "   border-radius: 10px;"
+            "   padding: 5px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFB74D, stop:1 #FFA726);"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F57C00, stop:1 #E65100);"
+            "   padding-top: 7px;"
+            "   padding-left: 7px;"
+            "}";
     devModeButton = new QPushButton("开发者模式", this);
     devModeButton->setFixedSize(220, 60);
     devModeButton->setFont(buttonFont);
@@ -199,21 +193,18 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent)
 
     // 加载主菜单背景图片
     m_backgroundPath = ConfigManager::instance().getAssetPath("background_main");
-    if (m_backgroundPath.isEmpty())
-    {
+    if (m_backgroundPath.isEmpty()) {
         m_backgroundPath = "assets/background/main.png";
     }
 
-    try
-    {
+    try {
         QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("background_main", 800, 600);
         QPalette palette;
         palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
         setAutoFillBackground(true);
         setPalette(palette);
     }
-    catch (const QString &error)
-    {
+    catch (const QString &error) {
         QMessageBox::critical(this, "资源加载失败", error);
         // 背景加载失败，使用默认颜色
         setStyleSheet("background-color: #2c3e50;");
@@ -226,38 +217,35 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent)
     connect(exitButton, &QPushButton::clicked, this, &MainMenu::exitGameClicked);
 
     // 开发者模式按钮 - 弹出关卡选择对话框
-    connect(devModeButton, &QPushButton::clicked, this, [this]()
-            {
+    connect(devModeButton, &QPushButton::clicked, this, [this]() {
         QStringList levels;
         levels << "第1关 - 时钟梦境" << "第2关 - 袜子王国" << "第3关 - 终极挑战";
-        
+
         bool ok;
-        QString selectedLevel = QInputDialog::getItem(this, "开发者模式", 
-            "选择要跳转的关卡:", levels, 0, false, &ok);
-        
+        QString selectedLevel = QInputDialog::getItem(this, "开发者模式",
+                                                      "选择要跳转的关卡:", levels, 0, false, &ok);
+
         if (ok && !selectedLevel.isEmpty()) {
             int levelNum = levels.indexOf(selectedLevel) + 1;
             emit devModeClicked(levelNum);
-        } });
+        }
+    });
 }
 
-void MainMenu::resizeEvent(QResizeEvent *event)
-{
+void MainMenu::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
 
     // 重新加载并缩放背景图片
-    try
-    {
+    try {
         QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("background_main", 800, 600);
-        if (!backgroundPixmap.isNull())
-        {
+        if (!backgroundPixmap.isNull()) {
             QPalette palette;
-            palette.setBrush(QPalette::Window, QBrush(backgroundPixmap.scaled(event->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
+            palette.setBrush(QPalette::Window, QBrush(backgroundPixmap.scaled(event->size(), Qt::IgnoreAspectRatio,
+                                                                              Qt::SmoothTransformation)));
             setPalette(palette);
         }
     }
-    catch (const QString &)
-    {
+    catch (const QString &) {
         // 背景加载失败，保持当前样式
     }
 
@@ -287,12 +275,9 @@ void MainMenu::resizeEvent(QResizeEvent *event)
     exitButton->setFont(buttonFont);
 
     // 标题：如果使用图片则缩放图片，否则缩放文本字体
-    if (m_useTitleImage && !m_titlePixmap.isNull())
-    {
+    if (m_useTitleImage && !m_titlePixmap.isNull()) {
         adjustTitlePixmap();
-    }
-    else
-    {
+    } else {
         QFont titleFont;
         titleFont.setFamily("Microsoft YaHei");
         titleFont.setPointSize(static_cast<int>(48 * scale));
@@ -301,17 +286,14 @@ void MainMenu::resizeEvent(QResizeEvent *event)
     }
 }
 
-void MainMenu::showEvent(QShowEvent *event)
-{
+void MainMenu::showEvent(QShowEvent *event) {
     QWidget::showEvent(event);
-    if (m_useTitleImage && !m_titlePixmap.isNull())
-    {
+    if (m_useTitleImage && !m_titlePixmap.isNull()) {
         adjustTitlePixmap();
     }
 }
 
-void MainMenu::adjustTitlePixmap()
-{
+void MainMenu::adjustTitlePixmap() {
     if (!m_useTitleImage || m_titlePixmap.isNull())
         return;
 
@@ -321,8 +303,7 @@ void MainMenu::adjustTitlePixmap()
     QSize targetSize(static_cast<int>(width() * widthRatio), static_cast<int>(height() * heightRatio));
 
     // 防止目标尺寸为0（窗口尚未布局），再尝试使用父窗口/默认值
-    if (targetSize.width() <= 0 || targetSize.height() <= 0)
-    {
+    if (targetSize.width() <= 0 || targetSize.height() <= 0) {
         QSize fallback = QSize(800, 200);
         targetSize = fallback;
     }

@@ -18,8 +18,9 @@ class Player;
 class ClockBoom : public Enemy {
     Q_OBJECT
 
-   public:
-    explicit ClockBoom(const QPixmap& normalPic, const QPixmap& redPic, double scale = 1.0);
+public:
+    explicit ClockBoom(const QPixmap &normalPic, const QPixmap &redPic, double scale = 1.0);
+
     ~ClockBoom() override;
 
     void move() override;                  // 重写move，使其不移动
@@ -28,17 +29,18 @@ class ClockBoom : public Enemy {
 
     // 重写暂停/恢复方法
     void pauseTimers() override;
+
     void resumeTimers() override;
 
-   protected:
+protected:
     void attackPlayer() override;  // 重写攻击，首次碰撞触发倒计时
 
-   private:
+private:
     bool m_triggered;          // 是否已触发倒计时
     bool m_exploded;           // 是否已爆炸
-    QTimer* m_collisionTimer;  // 碰撞检测定时器
-    QTimer* m_blinkTimer;      // 闪烁定时器
-    QTimer* m_explodeTimer;    // 爆炸定时器
+    QTimer *m_collisionTimer;  // 碰撞检测定时器
+    QTimer *m_blinkTimer;      // 闪烁定时器
+    QTimer *m_explodeTimer;    // 爆炸定时器
     QPixmap m_normalPixmap;    // 普通图片
     QPixmap m_redPixmap;       // 深红色图片
     bool m_isRed;              // 当前是否显示红色
@@ -49,9 +51,12 @@ class ClockBoom : public Enemy {
     void explode(bool dealDamage = true);  // 触发爆炸，dealDamage控制是否造成范围伤害
     void damageNearbyEntities();           // 对范围内实体造成伤害
 
-   private slots:
-    void onCollisionCheck();
+private
+    slots:
+            void onCollisionCheck();
+
     void onBlinkTimeout();
+
     void onExplodeTimeout();
 };
 
