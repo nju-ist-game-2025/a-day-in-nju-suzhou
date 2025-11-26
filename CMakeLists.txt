@@ -69,6 +69,10 @@ set(ENTITY_SOURCES
         src/entities/pillowenemy.h
         src/entities/projectile.cpp
         src/entities/projectile.h
+        src/entities/toxicgas.cpp
+        src/entities/toxicgas.h
+        src/entities/orbitingsock.cpp
+        src/entities/orbitingsock.h
 )
 
 set(WORLD_SOURCES

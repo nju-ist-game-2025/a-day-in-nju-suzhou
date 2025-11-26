@@ -198,18 +198,28 @@
       "enemies": [
         {
           "type": "sock_normal",
-          "count": 6
+          "count": 4
         },
         {
           "type": "sock_angrily",
-          "count": 5
+          "count": 3
         }
       ],
       "hasBoss": true,
       "bossDialog": [
-        "（Boss战即将开始）"
+        "（洗衣房的灯光闪烁着，空气中弥漫着一股异样的气息）",
+        "【洗衣机】\n『你好呀！欢迎来到洗衣房～』",
+        "【洗衣机】\n『我可以帮你洗衣服哦，把脏衣服放进来吧！咕噜咕噜～』",
+        "（旁白）\n（这台洗衣机...好像有什么不对劲）",
+        "（旁白）\n（仔细一看，滚筒里翻滚着无数臭袜子和内裤...散发着诡异的气息）",
+        "（旁白）\n「这台洗衣机已被臭袜子和内裤污染，它正处于巨大的痛苦之中！」",
+        "（旁白）\n「唯一解救它的办法...就是打败它，让它恢复清醒！」",
+        "**智科er** \n 我明白了！我会帮助你的！",
+        "【洗衣机】\n『什...什么？你说什么？我很好啊...咕噜咕噜～』",
+        "【洗衣机】\n『不要靠近我！我要开始甩干模式了！』",
+        "（战斗开始！）"
       ],
-      "bossDialogBackground": "assets/boss_dia/boss1.png",
+      "bossDialogBackground": "assets/boss_dia/boss2_1.png",
       "hasChest": true,
       "isChestLocked": false,
       "doors": {

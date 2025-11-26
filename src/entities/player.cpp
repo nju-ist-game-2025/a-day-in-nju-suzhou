@@ -9,16 +9,12 @@
 #include "constants.h"
 #include "enemy.h"
 
-namespace
-{
-class TeleportEffectItem : public QObject, public QGraphicsEllipseItem
-{
-public:
-    TeleportEffectItem(QGraphicsScene *scene, const QPointF &center, qreal radius = 35.0)
-        : QObject(scene), QGraphicsEllipseItem(-radius, -radius, radius * 2, radius * 2)
-    {
-        if (!scene)
-        {
+namespace {
+class TeleportEffectItem : public QObject, public QGraphicsEllipseItem {
+   public:
+    TeleportEffectItem(QGraphicsScene* scene, const QPointF& center, qreal radius = 35.0)
+        : QObject(scene), QGraphicsEllipseItem(-radius, -radius, radius * 2, radius * 2) {
+        if (!scene) {
             deleteLater();
             return;
         }
@@ -30,55 +26,46 @@ public:
         scene->addItem(this);
 
         m_timer = new QTimer(this);
-        connect(m_timer, &QTimer::timeout, this, [this]()
-                { advanceEffect(); });
+        connect(m_timer, &QTimer::timeout, this, [this]() { advanceEffect(); });
         m_timer->start(16);
     }
 
-private:
-    void advanceEffect()
-    {
+   private:
+    void advanceEffect() {
         m_elapsed += 16;
         qreal progress = qBound(0.0, m_elapsed / m_duration, 1.0);
         setOpacity(1.0 - progress);
         setScale(1.0 + progress * 0.5);
 
-        if (m_elapsed >= m_duration)
-        {
-            if (scene())
-            {
+        if (m_elapsed >= m_duration) {
+            if (scene()) {
                 scene()->removeItem(this);
             }
             deleteLater();
         }
     }
 
-    QTimer *m_timer = nullptr;
+    QTimer* m_timer = nullptr;
     qreal m_elapsed = 0.0;
     qreal m_duration = 220.0;
 };
 
-void spawnTeleportEffect(QGraphicsScene *scene, const QPointF &center)
-{
+void spawnTeleportEffect(QGraphicsScene* scene, const QPointF& center) {
     if (!scene)
         return;
     new TeleportEffectItem(scene, center);
 }
-} // namespace
+}  // namespace
 
-Player::Player(const QPixmap &pic_player, double scale)
-    : redContainers(5), redHearts(5.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(2), isDead(false), keys(0)
-{ // 默认150毫秒射击冷却，子弹伤害默认2
+Player::Player(const QPixmap& pic_player, double scale)
+    : redContainers(5), redHearts(5.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(2), isDead(false), keys(0) {  // 默认150毫秒射击冷却，子弹伤害默认2
     setTransformationMode(Qt::SmoothTransformation);
 
     // 如果scale是1.0，直接使用原始pixmap，否则按比例缩放
     invincible = false;
-    if (scale == 1.0)
-    {
+    if (scale == 1.0) {
         this->setPixmap(pic_player);
-    }
-    else
-    {
+    } else {
         // 按比例缩放（保持宽高比）
         this->setPixmap(pic_player.scaled(
             pic_player.width() * scale,
@@ -97,11 +84,11 @@ Player::Player(const QPixmap &pic_player, double scale)
     shootType = 0;
     damageScale = 1.0;
     curr_xdir = 0;
-    curr_ydir = 1;          // 默认向下
-    this->setPos(400, 300); // 初始位置,根据实际需要后续修改
+    curr_ydir = 1;           // 默认向下
+    this->setPos(400, 300);  // 初始位置,根据实际需要后续修改
 
-    hurt = 1;     // 后续可修改
-    crash_r = 40; // 增大碰撞半径以匹配新的角色大小
+    hurt = 1;      // 后续可修改
+    crash_r = 40;  // 增大碰撞半径以匹配新的角色大小
 
     bombs = 0;
 
@@ -129,68 +116,59 @@ Player::Player(const QPixmap &pic_player, double scale)
     // 射击检测定时器（持续检测射击按键状态）
     shootTimer = new QTimer(this);
     connect(shootTimer, &QTimer::timeout, this, &Player::checkShoot);
-    shootTimer->start(16); // 每16ms检测一次
+    shootTimer->start(16);  // 每16ms检测一次
 
     // 初始无敌时间，防止刚进入游戏时被判定碰撞闪烁
     invincible = true;
     // 确保 isFlashing 初始为 false
     isFlashing = false;
-    QTimer::singleShot(1000, this, [this]()
-                       { invincible = false; });
+    QTimer::singleShot(1000, this, [this]() { invincible = false; });
 }
 
-void Player::keyPressEvent(QKeyEvent *event)
-{
-    if (!event || isDead) // 已死亡则不处理输入
+void Player::keyPressEvent(QKeyEvent* event) {
+    if (!event || isDead)  // 已死亡则不处理输入
         return;
 
-    if (event->key() == Qt::Key_Q)
-    {
+    if (event->key() == Qt::Key_Q) {
         tryTeleport();
         event->accept();
         return;
     }
 
     // 处理移动按键（方向键）
-    if (keysPressed.count(event->key()))
-    {
+    if (keysPressed.count(event->key())) {
         keysPressed[event->key()] = true;
         event->accept();
         return;
     }
 
     // 处理射击按键（WASD）- 只记录按键状态
-    if (shootKeysPressed.count(event->key()))
-    {
+    if (shootKeysPressed.count(event->key())) {
         shootKeysPressed[event->key()] = true;
         event->accept();
         return;
     }
 }
 
-void Player::keyReleaseEvent(QKeyEvent *event)
-{
-    if (!event || isDead) // 已死亡则不处理输入
+void Player::keyReleaseEvent(QKeyEvent* event) {
+    if (!event || isDead)  // 已死亡则不处理输入
         return;
 
     // 释放移动键
-    if (keysPressed.count(event->key()))
-    {
+    if (keysPressed.count(event->key())) {
         keysPressed[event->key()] = false;
     }
     // 释放射击键
-    if (shootKeysPressed.count(event->key()))
-    {
+    if (shootKeysPressed.count(event->key())) {
         shootKeysPressed[event->key()] = false;
     }
 }
 
-void Player::checkShoot()
-{
-    if (isDead) // 已死亡则不射击
+void Player::checkShoot() {
+    if (isDead)  // 已死亡则不射击
         return;
 
-    if (m_isPaused) // 暂停状态不射击
+    if (m_isPaused)  // 暂停状态不射击
         return;
 
     // 检查是否有射击键被按下
@@ -207,26 +185,22 @@ void Player::checkShoot()
         shootKey = Qt::Key_Right;
 
     // 如果有按键按下，检查冷却时间
-    if (shootKey != -1)
-    {
+    if (shootKey != -1) {
         qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
-        if (currentTime - lastShootTime >= shootCooldown)
-        {
+        if (currentTime - lastShootTime >= shootCooldown) {
             shoot(shootKey);
             lastShootTime = currentTime;
         }
     }
 }
 
-void Player::shoot(int key)
-{
-    // 检查是否已死亡、无法移动（昏睡等状态）或场景不存在
-    if (isDead || !m_canMove || !scene())
+void Player::shoot(int key) {
+    // 检查是否已死亡、无法移动（昏睡等状态）、无法射击或场景不存在
+    if (isDead || !m_canMove || !m_canShoot || !scene())
         return;
 
     // 检查子弹图片是否有效
-    if (pic_bullet.isNull())
-    {
+    if (pic_bullet.isNull()) {
         qWarning() << "Player::shoot: pic_bullet is null, cannot shoot";
         return;
     }
@@ -236,53 +210,48 @@ void Player::shoot(int key)
     // 计算子弹发射位置（从角色中心发射）
     QPointF bulletPos = this->pos() + QPointF(pixmap().width() / 2 - 7.5, pixmap().height() / 2 - 7.5);
     // if(shootType == 0) //改变为发射激光模式，需要ui的图片实现
-    auto *bullet = new Projectile(0, bulletHurt, bulletPos, pic_bullet); // 使用可配置的玩家子弹伤害
+    auto* bullet = new Projectile(0, bulletHurt, bulletPos, pic_bullet);  // 使用可配置的玩家子弹伤害
     bullet->setSpeed(shootSpeed);
 
     // 将子弹添加到场景中
-    if (scene())
-    {
+    if (scene()) {
         scene()->addItem(bullet);
-    }
-    else
-    {
+    } else {
         // 如果场景不存在，删除子弹防止内存泄漏
         delete bullet;
         return;
     }
 
     // 设置子弹方向和速度
-    switch (key)
-    {
-    case Qt::Key_Up:
-        bullet->setDir(0, -9);
-        break;
-    case Qt::Key_Down:
-        bullet->setDir(0, 9);
-        break;
-    case Qt::Key_Left:
-        bullet->setDir(-9, 0);
-        break;
-    case Qt::Key_Right:
-        bullet->setDir(9, 0);
-        break;
-    default:
-        break;
+    switch (key) {
+        case Qt::Key_Up:
+            bullet->setDir(0, -9);
+            break;
+        case Qt::Key_Down:
+            bullet->setDir(0, 9);
+            break;
+        case Qt::Key_Left:
+            bullet->setDir(-9, 0);
+            break;
+        case Qt::Key_Right:
+            bullet->setDir(9, 0);
+            break;
+        default:
+            break;
     }
 
     // 移除频繁的调试输出以避免性能问题
     // qDebug() << "射击音效已触发";
 }
 
-void Player::move()
-{
-    if (isDead) // 已死亡则不移动
+void Player::move() {
+    if (isDead)  // 已死亡则不移动
         return;
 
-    if (!m_canMove) // 无法移动（昏睡等状态）
+    if (!m_canMove)  // 无法移动（昏睡等状态）
         return;
 
-    if (m_isPaused) // 暂停状态不移动
+    if (m_isPaused)  // 暂停状态不移动
         return;
 
     xdir = 0;
@@ -303,31 +272,23 @@ void Player::move()
     QPointF clampedPos = clampPositionWithinRoom(QPointF(newX, newY));
 
     // 更新朝向图像
-    if (xdir != 0 || ydir != 0)
-    {
-        if (ydir > 0)
-        {
+    if (xdir != 0 || ydir != 0) {
+        if (ydir > 0) {
             if (!down.isNull())
                 this->setPixmap(down);
             curr_ydir = 1;
             curr_xdir = 0;
-        }
-        else if (ydir < 0)
-        {
+        } else if (ydir < 0) {
             if (!up.isNull())
                 this->setPixmap(up);
             curr_ydir = -1;
             curr_xdir = 0;
-        }
-        else if (xdir > 0)
-        {
+        } else if (xdir > 0) {
             if (!right.isNull())
                 this->setPixmap(right);
             curr_xdir = 1;
             curr_ydir = 0;
-        }
-        else if (xdir < 0)
-        {
+        } else if (xdir < 0) {
             if (!left.isNull())
                 this->setPixmap(left);
             curr_xdir = -1;
@@ -338,8 +299,7 @@ void Player::move()
     this->setPos(clampedPos);
 }
 
-void Player::tryTeleport()
-{
+void Player::tryTeleport() {
     if (isDead || !m_canMove || m_isPaused)
         return;
 
@@ -353,26 +313,23 @@ void Player::tryTeleport()
 
     QPointF desiredPos = pos() + dir * m_teleportDistance;
     QPointF clampedPos = clampPositionWithinRoom(desiredPos);
-    auto *scenePtr = scene();
+    auto* scenePtr = scene();
     QRectF bounds = boundingRect();
     QPointF centerOffset(bounds.width() / 2.0, bounds.height() / 2.0);
 
-    if (scenePtr)
-    {
+    if (scenePtr) {
         spawnTeleportEffect(scenePtr, pos() + centerOffset);
     }
 
     AudioManager::instance().playSound("player_teleport");
     setPos(clampedPos);
-    if (scenePtr)
-    {
+    if (scenePtr) {
         spawnTeleportEffect(scenePtr, clampedPos + centerOffset);
     }
     m_lastTeleportTime = now;
 }
 
-QPointF Player::currentMoveDirection() const
-{
+QPointF Player::currentMoveDirection() const {
     QPointF dir(0, 0);
     if (keysPressed.value(Qt::Key_W, false))
         dir.ry() -= 1;
@@ -390,40 +347,35 @@ QPointF Player::currentMoveDirection() const
     return QPointF(dir.x() / length, dir.y() / length);
 }
 
-QPointF Player::clampPositionWithinRoom(const QPointF &candidate) const
-{
+QPointF Player::clampPositionWithinRoom(const QPointF& candidate) const {
     double newX = candidate.x();
     double newY = candidate.y();
 
     double doorMargin = 20.0;
     double doorSize = 100.0;
 
-    if (newY < 0)
-    {
+    if (newY < 0) {
         if (qAbs(newX + pixmap().width() / 2 - 400) < doorSize)
             newY = qMax(newY, -doorMargin);
         else
             newY = 0;
     }
 
-    if (newY > room_bound_y - pixmap().height())
-    {
+    if (newY > room_bound_y - pixmap().height()) {
         if (qAbs(newX + pixmap().width() / 2 - 400) < doorSize)
             newY = qMin(newY, (double)(room_bound_y - pixmap().height()) + doorMargin);
         else
             newY = room_bound_y - pixmap().height();
     }
 
-    if (newX < 0)
-    {
+    if (newX < 0) {
         if (qAbs(newY + pixmap().height() / 2 - 300) < doorSize)
             newX = qMax(newX, -doorMargin);
         else
             newX = 0;
     }
 
-    if (newX > room_bound_x - pixmap().width())
-    {
+    if (newX > room_bound_x - pixmap().width()) {
         if (qAbs(newY + pixmap().height() / 2 - 300) < doorSize)
             newX = qMin(newX, (double)(room_bound_x - pixmap().width()) + doorMargin);
         else
@@ -433,8 +385,7 @@ QPointF Player::clampPositionWithinRoom(const QPointF &candidate) const
     return QPointF(newX, newY);
 }
 
-int Player::getTeleportRemainingMs() const
-{
+int Player::getTeleportRemainingMs() const {
     if (m_lastTeleportTime == 0)
         return 0;
 
@@ -443,8 +394,7 @@ int Player::getTeleportRemainingMs() const
     return qMax(0, remaining);
 }
 
-double Player::getTeleportReadyRatio() const
-{
+double Player::getTeleportReadyRatio() const {
     if (m_teleportCooldownMs <= 0)
         return 1.0;
 
@@ -454,43 +404,36 @@ double Player::getTeleportReadyRatio() const
     return qBound(0.0, ratio, 1.0);
 }
 
-bool Player::isTeleportReady() const
-{
+bool Player::isTeleportReady() const {
     return getTeleportRemainingMs() <= 0;
 }
 
-void Player::takeDamage(int damage)
-{
-    if (isDead || invincible) // 已死亡或无敌则不受伤
+void Player::takeDamage(int damage) {
+    if (isDead || invincible)  // 已死亡或无敌则不受伤
         return;
 
-    if (damage <= 0) // 0伤害或负伤害直接返回，避免触发闪烁和无敌
+    if (damage <= 0)  // 0伤害或负伤害直接返回，避免触发闪烁和无敌
         return;
 
     flash();
     double oldHealth = redHearts;
     damage *= damageScale;
 
-    while (damage > 0 && soulHearts > 0)
-    {
+    while (damage > 0 && soulHearts > 0) {
         soulHearts--;
         damage -= 2;
     }
-    while (damage > 0 && blackHearts > 0)
-    {
+    while (damage > 0 && blackHearts > 0) {
         blackHearts--;
         damage -= 2;
     }
-    while (damage > 0 && redHearts > 0.0)
-    {
+    while (damage > 0 && redHearts > 0.0) {
         redHearts -= 0.5;
         damage--;
     }
-    if (redHearts != oldHealth)
-    {
+    if (redHearts != oldHealth) {
         emit healthChanged(redHearts, getMaxHealth());
-        if (redHearts < oldHealth)
-        {
+        if (redHearts < oldHealth) {
             emit playerDamaged();
         }
     }
@@ -500,38 +443,32 @@ void Player::takeDamage(int damage)
         setInvincible();
 }
 
-void Player::forceTakeDamage(int damage)
-{
-    if (isDead) // 已死亡则不受伤，但无视无敌状态
+void Player::forceTakeDamage(int damage) {
+    if (isDead)  // 已死亡则不受伤，但无视无敌状态
         return;
 
-    if (damage <= 0) // 0伤害或负伤害直接返回
+    if (damage <= 0)  // 0伤害或负伤害直接返回
         return;
 
     flash();
     double oldHealth = redHearts;
     damage *= damageScale;
 
-    while (damage > 0 && soulHearts > 0)
-    {
+    while (damage > 0 && soulHearts > 0) {
         soulHearts--;
         damage -= 2;
     }
-    while (damage > 0 && blackHearts > 0)
-    {
+    while (damage > 0 && blackHearts > 0) {
         blackHearts--;
         damage -= 2;
     }
-    while (damage > 0 && redHearts > 0.0)
-    {
+    while (damage > 0 && redHearts > 0.0) {
         redHearts -= 0.5;
         damage--;
     }
-    if (redHearts != oldHealth)
-    {
+    if (redHearts != oldHealth) {
         emit healthChanged(redHearts, getMaxHealth());
-        if (redHearts < oldHealth)
-        {
+        if (redHearts < oldHealth) {
             emit playerDamaged();
         }
     }
@@ -542,9 +479,8 @@ void Player::forceTakeDamage(int damage)
 }
 
 // 死亡效果
-void Player::die()
-{
-    if (isDead) // 避免重复触发
+void Player::die() {
+    if (isDead)  // 避免重复触发
         return;
 
     isDead = true;
@@ -554,16 +490,13 @@ void Player::die()
     qDebug() << "玩家死亡音效已触发";
 
     // 停止所有定时器
-    if (keysTimer)
-    {
+    if (keysTimer) {
         keysTimer->stop();
     }
-    if (crashTimer)
-    {
+    if (crashTimer) {
         crashTimer->stop();
     }
-    if (shootTimer)
-    {
+    if (shootTimer) {
         shootTimer->stop();
     }
 
@@ -571,31 +504,32 @@ void Player::die()
     // 只需隐藏玩家即可
     setVisible(false);
 
-    emit playerDied(); // 发出玩家死亡信号（只发一次）
+    emit playerDied();  // 发出玩家死亡信号（只发一次）
 }
 
 // 短暂无敌效果，有待UI同学的具体实现
-void Player::setInvincible()
-{
+void Player::setInvincible() {
     invincible = true;
-    QTimer::singleShot(1000, this, [this]()
-                       { invincible = false; });
+    QTimer::singleShot(1000, this, [this]() { invincible = false; });
 }
 
-void Player::crashEnemy()
-{
-    if (isDead || !scene()) // 已死亡或无场景则不检测碰撞
+// 持久无敌（需要手动取消）
+void Player::setPermanentInvincible(bool inv) {
+    invincible = inv;
+    qDebug() << "[Player] 持久无敌设置为:" << inv;
+}
+
+void Player::crashEnemy() {
+    if (isDead || !scene())  // 已死亡或无场景则不检测碰撞
         return;
 
-    if (m_isPaused) // 暂停状态不检测碰撞
+    if (m_isPaused)  // 暂停状态不检测碰撞
         return;
 
     // 使用collidingItems代替遍历整个场景
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item : collisions)
-    {
-        if (auto it = dynamic_cast<Enemy *>(item))
-        {
+    QList<QGraphicsItem*> collisions = collidingItems();
+    for (QGraphicsItem* item : collisions) {
+        if (auto it = dynamic_cast<Enemy*>(item)) {
             // 使用图片中心点计算距离，而不是左上角pos()
             QRectF playerRect = boundingRect();
             QRectF enemyRect = it->boundingRect();
@@ -605,24 +539,21 @@ void Player::crashEnemy()
             double dx = abs(enemyCenter.x() - playerCenter.x());
             double dy = abs(enemyCenter.y() - playerCenter.y());
 
-            if (dx <= it->crash_r + crash_r && dy <= it->crash_r + crash_r)
-            {
+            if (dx <= it->crash_r + crash_r && dy <= it->crash_r + crash_r) {
                 this->takeDamage(it->getContactDamage());
                 // 触发敌人的特殊接触效果（惊吓/昏迷等）
                 it->onContactWithPlayer(this);
-                break; // 一次只处理一个碰撞
+                break;  // 一次只处理一个碰撞
             }
         }
     }
 }
 
-void Player::placeBomb()
-{
+void Player::placeBomb() {
     if (bombs <= 0)
         return;
     auto posi = this->pos();
-    QTimer::singleShot(2000, this, [this, posi]()
-                       {
+    QTimer::singleShot(2000, this, [this, posi]() {
         foreach (QGraphicsItem* item, scene()->items()) {
             if (auto it = dynamic_cast<Enemy*>(item)) {
                 if (abs(it->pos().x() - posi.x()) > bomb_r ||
@@ -634,8 +565,7 @@ void Player::placeBomb()
         } });
 }
 
-void Player::focusOutEvent(QFocusEvent *event)
-{
+void Player::focusOutEvent(QFocusEvent* event) {
     QGraphicsItem::focusOutEvent(event);
     setFocus();
 }
