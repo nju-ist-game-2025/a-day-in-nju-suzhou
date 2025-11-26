@@ -9,6 +9,7 @@
 #include "enemy.h"
 
 class Player;
+
 class PoisonTrail;
 
 /**
@@ -20,53 +21,62 @@ class PoisonTrail;
  * - 玩家踩到毒痕100%触发中毒效果，3秒CD不可叠加
  * - 每3秒随机切换移动方向
  */
-class Walker : public Enemy
-{
-    Q_OBJECT
+class Walker : public Enemy {
+Q_OBJECT
 
 public:
     explicit Walker(const QPixmap &pic, double scale = 1.0);
+
     ~Walker() override;
 
     // 暂停/恢复定时器
     void pauseTimers() override;
+
     void resumeTimers() override;
 
     // ========== 参数设置接口 ==========
 
     // 设置移动速度
     void setWalkerSpeed(double speed) { m_walkerSpeed = speed; }
+
     double getWalkerSpeed() const { return m_walkerSpeed; }
 
     // 设置方向切换间隔（毫秒）
     void setDirectionChangeInterval(int ms) { m_dirChangeInterval = ms; }
+
     int getDirectionChangeInterval() const { return m_dirChangeInterval; }
 
     // 设置毒痕生成间隔（毫秒）
     void setTrailSpawnInterval(int ms) { m_trailSpawnInterval = ms; }
+
     int getTrailSpawnInterval() const { return m_trailSpawnInterval; }
 
     // 设置毒痕持续时间（毫秒）
     void setTrailDuration(int ms) { m_trailDuration = ms; }
+
     int getTrailDuration() const { return m_trailDuration; }
 
     // 设置鼓舞效果持续时间（秒）
     void setEncourageDuration(double sec) { m_encourageDuration = sec; }
+
     double getEncourageDuration() const { return m_encourageDuration; }
 
     // 设置中毒效果持续时间（秒）
     void setPoisonDuration(double sec) { m_poisonDuration = sec; }
+
     double getPoisonDuration() const { return m_poisonDuration; }
 
 protected:
     void executeMovement() override;
 
 private slots:
+
     void changeDirection();  // 随机改变移动方向
     void spawnPoisonTrail(); // 生成毒痕
 
 private:
     void initTimers();
+
     QPointF getRandomDirection(); // 获取随机方向向量
 
     // 定时器
@@ -102,12 +112,13 @@ private:
  * - 对玩家：100%触发中毒，3秒CD
  * - 对敌人（非Walker）：+50%移速鼓舞效果，3秒CD
  */
-class PoisonTrail : public QObject, public QGraphicsEllipseItem
-{
-    Q_OBJECT
+class PoisonTrail : public QObject, public QGraphicsEllipseItem {
+Q_OBJECT
 
 public:
-    explicit PoisonTrail(const QPointF &center, int duration, double encourageDur, double poisonDur, QObject *parent = nullptr);
+    explicit PoisonTrail(const QPointF &center, int duration, double encourageDur, double poisonDur,
+                         QObject *parent = nullptr);
+
     ~PoisonTrail() override;
 
     void setScene(QGraphicsScene *scene);
@@ -117,17 +128,24 @@ public:
 
     // 静态方法：管理冷却时间
     static bool canApplyPoisonTo(Player *player);
+
     static bool canApplyEncourageTo(Enemy *enemy);
+
     static void markPoisonApplied(Player *player);
+
     static void markEncourageApplied(Enemy *enemy);
+
     static void clearCooldowns();
 
 private slots:
+
     void updateFade();
+
     void onExpired();
 
 private:
     void applyPoisonToPlayer(Player *player);
+
     void applyEncourageToEnemy(Enemy *enemy);
 
     QTimer *m_fadeTimer;

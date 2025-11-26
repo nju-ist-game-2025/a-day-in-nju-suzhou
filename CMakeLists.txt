@@ -14,7 +14,7 @@ if (MINGW)
     add_compile_definitions(QT_FORCE_ASSERTS)
     # 禁用noexcept静态断言错误
     add_compile_options(-Wno-error -fpermissive)
-endif()
+endif ()
 
 # Option: build as Windows GUI (no console). Default OFF for maximum compatibility.
 option(BUILD_WIN32_EXECUTABLE "Build as Windows GUI executable (no console)" OFF)
@@ -118,7 +118,7 @@ set(UI_SOURCES
         src/ui/characterselector.cpp
         src/ui/pausemenu.h
         src/ui/pausemenu.cpp
-        )
+)
 
 
 # 合并所有源文件
@@ -226,26 +226,26 @@ if (WIN32 AND Qt6_FOUND)
     get_target_property(QT_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
     get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
     get_filename_component(QT_DIR "${QT_BIN_DIR}" DIRECTORY)
-    
+
     # 复制多媒体插件
     add_custom_command(TARGET game_final POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:game_final>/multimedia"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:game_final>/multimedia"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${QT_DIR}/plugins/multimedia"
             "$<TARGET_FILE_DIR:game_final>/multimedia"
-        COMMENT "Copying Qt multimedia plugins"
+            COMMENT "Copying Qt multimedia plugins"
     )
-    
+
     # 复制 Qt6Multimedia.dll（如果存在）
     if (EXISTS "${QT_BIN_DIR}/Qt6Multimedia.dll")
         add_custom_command(TARGET game_final POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${QT_BIN_DIR}/Qt6Multimedia.dll"
                 "$<TARGET_FILE_DIR:game_final>/"
-            COMMENT "Copying Qt6Multimedia.dll"
+                COMMENT "Copying Qt6Multimedia.dll"
         )
-    endif()
-endif()
+    endif ()
+endif ()
 
 if (QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(game_final)

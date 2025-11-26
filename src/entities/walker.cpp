@@ -17,17 +17,16 @@ QMap<Enemy *, qint64> PoisonTrail::s_enemyEncourageCooldowns;
 // ========== Walker 实现 ==========
 
 Walker::Walker(const QPixmap &pic, double scale)
-    : Enemy(pic, scale),
-      m_directionTimer(nullptr),
-      m_trailTimer(nullptr),
-      m_currentDirection(1.0, 0.0),
-      m_walkerSpeed(DEFAULT_WALKER_SPEED),
-      m_dirChangeInterval(DEFAULT_DIR_CHANGE_INTERVAL),
-      m_trailSpawnInterval(DEFAULT_TRAIL_SPAWN_INTERVAL),
-      m_trailDuration(DEFAULT_TRAIL_DURATION),
-      m_encourageDuration(DEFAULT_ENCOURAGE_DURATION),
-      m_poisonDuration(DEFAULT_POISON_DURATION)
-{
+        : Enemy(pic, scale),
+          m_directionTimer(nullptr),
+          m_trailTimer(nullptr),
+          m_currentDirection(1.0, 0.0),
+          m_walkerSpeed(DEFAULT_WALKER_SPEED),
+          m_dirChangeInterval(DEFAULT_DIR_CHANGE_INTERVAL),
+          m_trailSpawnInterval(DEFAULT_TRAIL_SPAWN_INTERVAL),
+          m_trailDuration(DEFAULT_TRAIL_DURATION),
+          m_encourageDuration(DEFAULT_ENCOURAGE_DURATION),
+          m_poisonDuration(DEFAULT_POISON_DURATION) {
     // 设置基础属性
     setHealth(8);                        // 血量适中
     setContactDamage(0);                  // 无接触伤害！
@@ -52,24 +51,20 @@ Walker::Walker(const QPixmap &pic, double scale)
              << " 接触伤害:" << contactDamage;
 }
 
-Walker::~Walker()
-{
-    if (m_directionTimer)
-    {
+Walker::~Walker() {
+    if (m_directionTimer) {
         m_directionTimer->stop();
         delete m_directionTimer;
         m_directionTimer = nullptr;
     }
-    if (m_trailTimer)
-    {
+    if (m_trailTimer) {
         m_trailTimer->stop();
         delete m_trailTimer;
         m_trailTimer = nullptr;
     }
 }
 
-void Walker::initTimers()
-{
+void Walker::initTimers() {
     // 方向切换定时器
     m_directionTimer = new QTimer(this);
     connect(m_directionTimer, &QTimer::timeout, this, &Walker::changeDirection);
@@ -81,43 +76,35 @@ void Walker::initTimers()
     m_trailTimer->start(m_trailSpawnInterval);
 }
 
-void Walker::pauseTimers()
-{
+void Walker::pauseTimers() {
     Enemy::pauseTimers();
 
-    if (m_directionTimer && m_directionTimer->isActive())
-    {
+    if (m_directionTimer && m_directionTimer->isActive()) {
         m_directionTimer->stop();
     }
-    if (m_trailTimer && m_trailTimer->isActive())
-    {
+    if (m_trailTimer && m_trailTimer->isActive()) {
         m_trailTimer->stop();
     }
 }
 
-void Walker::resumeTimers()
-{
+void Walker::resumeTimers() {
     Enemy::resumeTimers();
 
-    if (m_directionTimer && !m_directionTimer->isActive())
-    {
+    if (m_directionTimer && !m_directionTimer->isActive()) {
         m_directionTimer->start(m_dirChangeInterval);
     }
-    if (m_trailTimer && !m_trailTimer->isActive())
-    {
+    if (m_trailTimer && !m_trailTimer->isActive()) {
         m_trailTimer->start(m_trailSpawnInterval);
     }
 }
 
-QPointF Walker::getRandomDirection()
-{
+QPointF Walker::getRandomDirection() {
     // 生成随机角度（0-360度）
     double angle = QRandomGenerator::global()->bounded(360) * M_PI / 180.0;
     return QPointF(qCos(angle), qSin(angle));
 }
 
-void Walker::changeDirection()
-{
+void Walker::changeDirection() {
     if (m_isPaused)
         return;
 
@@ -125,20 +112,16 @@ void Walker::changeDirection()
     m_currentDirection = getRandomDirection();
 
     // 更新朝向（xdir用于图片翻转）
-    if (m_currentDirection.x() > 0)
-    {
+    if (m_currentDirection.x() > 0) {
         xdir = 1;
-    }
-    else if (m_currentDirection.x() < 0)
-    {
+    } else if (m_currentDirection.x() < 0) {
         xdir = -1;
     }
 
     qDebug() << "Walker 改变方向:" << m_currentDirection;
 }
 
-void Walker::spawnPoisonTrail()
-{
+void Walker::spawnPoisonTrail() {
     if (m_isPaused)
         return;
 
@@ -157,8 +140,7 @@ void Walker::spawnPoisonTrail()
     trail->setZValue(-10);
 }
 
-void Walker::executeMovement()
-{
+void Walker::executeMovement() {
     if (m_isPaused)
         return;
 
@@ -176,35 +158,28 @@ void Walker::executeMovement()
     bool hitBoundary = false;
 
     // X边界检测
-    if (newPos.x() < 0)
-    {
+    if (newPos.x() < 0) {
         newPos.setX(0);
         m_currentDirection.setX(-m_currentDirection.x());
         hitBoundary = true;
-    }
-    else if (newPos.x() + rect.width() > sceneWidth)
-    {
+    } else if (newPos.x() + rect.width() > sceneWidth) {
         newPos.setX(sceneWidth - rect.width());
         m_currentDirection.setX(-m_currentDirection.x());
         hitBoundary = true;
     }
 
     // Y边界检测
-    if (newPos.y() < 0)
-    {
+    if (newPos.y() < 0) {
         newPos.setY(0);
         m_currentDirection.setY(-m_currentDirection.y());
         hitBoundary = true;
-    }
-    else if (newPos.y() + rect.height() > sceneHeight)
-    {
+    } else if (newPos.y() + rect.height() > sceneHeight) {
         newPos.setY(sceneHeight - rect.height());
         m_currentDirection.setY(-m_currentDirection.y());
         hitBoundary = true;
     }
 
-    if (hitBoundary)
-    {
+    if (hitBoundary) {
         // 更新朝向
         if (m_currentDirection.x() > 0)
             xdir = 1;
@@ -219,15 +194,14 @@ void Walker::executeMovement()
 // ========== PoisonTrail 实现 ==========
 
 PoisonTrail::PoisonTrail(const QPointF &center, int duration, double encourageDur, double poisonDur, QObject *parent)
-    : QObject(parent),
-      QGraphicsEllipseItem(-TRAIL_RADIUS, -TRAIL_RADIUS, TRAIL_RADIUS * 2, TRAIL_RADIUS * 2),
-      m_fadeTimer(nullptr),
-      m_checkTimer(nullptr),
-      m_totalDuration(duration),
-      m_elapsedTime(0),
-      m_encourageDuration(encourageDur),
-      m_poisonDuration(poisonDur)
-{
+        : QObject(parent),
+          QGraphicsEllipseItem(-TRAIL_RADIUS, -TRAIL_RADIUS, TRAIL_RADIUS * 2, TRAIL_RADIUS * 2),
+          m_fadeTimer(nullptr),
+          m_checkTimer(nullptr),
+          m_totalDuration(duration),
+          m_elapsedTime(0),
+          m_encourageDuration(encourageDur),
+          m_poisonDuration(poisonDur) {
     // 设置位置
     setPos(center);
 
@@ -251,38 +225,31 @@ PoisonTrail::PoisonTrail(const QPointF &center, int duration, double encourageDu
     m_checkTimer->start(100); // 每100ms检测一次碰撞
 }
 
-PoisonTrail::~PoisonTrail()
-{
-    if (m_fadeTimer)
-    {
+PoisonTrail::~PoisonTrail() {
+    if (m_fadeTimer) {
         m_fadeTimer->stop();
     }
-    if (m_checkTimer)
-    {
+    if (m_checkTimer) {
         m_checkTimer->stop();
     }
 }
 
-void PoisonTrail::setScene(QGraphicsScene *scene)
-{
+void PoisonTrail::setScene(QGraphicsScene *scene) {
     Q_UNUSED(scene);
     // 场景设置已通过 scene()->addItem() 完成
 }
 
-void PoisonTrail::updateFade()
-{
+void PoisonTrail::updateFade() {
     m_elapsedTime += 50;
 
-    if (m_elapsedTime >= m_totalDuration)
-    {
+    if (m_elapsedTime >= m_totalDuration) {
         onExpired();
         return;
     }
 
     // 计算淡出进度（后半段开始淡出）
     double fadeStartTime = m_totalDuration * 0.5;
-    if (m_elapsedTime > fadeStartTime)
-    {
+    if (m_elapsedTime > fadeStartTime) {
         double fadeProgress = (m_elapsedTime - fadeStartTime) / (m_totalDuration - fadeStartTime);
         double opacity = 1.0 - fadeProgress;
 
@@ -295,53 +262,42 @@ void PoisonTrail::updateFade()
     }
 }
 
-void PoisonTrail::onExpired()
-{
+void PoisonTrail::onExpired() {
     // 停止定时器
-    if (m_fadeTimer)
-    {
+    if (m_fadeTimer) {
         m_fadeTimer->stop();
     }
-    if (m_checkTimer)
-    {
+    if (m_checkTimer) {
         m_checkTimer->stop();
     }
 
     // 从场景移除并删除
-    if (scene())
-    {
+    if (scene()) {
         scene()->removeItem(this);
     }
     deleteLater();
 }
 
-void PoisonTrail::checkCollisions()
-{
+void PoisonTrail::checkCollisions() {
     if (!scene())
         return;
 
     // 获取与毒痕重叠的所有物品
     QList<QGraphicsItem *> collidingItems = this->collidingItems();
 
-    for (QGraphicsItem *item : collidingItems)
-    {
+    for (QGraphicsItem *item: collidingItems) {
         // 检查是否是玩家
-        if (Player *player = dynamic_cast<Player *>(item))
-        {
-            if (canApplyPoisonTo(player))
-            {
+        if (Player *player = dynamic_cast<Player *>(item)) {
+            if (canApplyPoisonTo(player)) {
                 applyPoisonToPlayer(player);
                 markPoisonApplied(player);
             }
         }
-        // 检查是否是敌人（非Walker）
-        else if (Enemy *enemy = dynamic_cast<Enemy *>(item))
-        {
+            // 检查是否是敌人（非Walker）
+        else if (Enemy *enemy = dynamic_cast<Enemy *>(item)) {
             // 排除Walker类型
-            if (dynamic_cast<Walker *>(enemy) == nullptr)
-            {
-                if (canApplyEncourageTo(enemy))
-                {
+            if (dynamic_cast<Walker *>(enemy) == nullptr) {
+                if (canApplyEncourageTo(enemy)) {
                     applyEncourageToEnemy(enemy);
                     markEncourageApplied(enemy);
                 }
@@ -350,60 +306,50 @@ void PoisonTrail::checkCollisions()
     }
 }
 
-bool PoisonTrail::canApplyPoisonTo(Player *player)
-{
+bool PoisonTrail::canApplyPoisonTo(Player *player) {
     if (!player)
         return false;
 
     qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
 
-    if (s_playerPoisonCooldowns.contains(player))
-    {
+    if (s_playerPoisonCooldowns.contains(player)) {
         qint64 lastApplyTime = s_playerPoisonCooldowns[player];
-        if (currentTime - lastApplyTime < EFFECT_COOLDOWN_MS)
-        {
+        if (currentTime - lastApplyTime < EFFECT_COOLDOWN_MS) {
             return false; // 仍在冷却中
         }
     }
     return true;
 }
 
-bool PoisonTrail::canApplyEncourageTo(Enemy *enemy)
-{
+bool PoisonTrail::canApplyEncourageTo(Enemy *enemy) {
     if (!enemy)
         return false;
 
     qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
 
-    if (s_enemyEncourageCooldowns.contains(enemy))
-    {
+    if (s_enemyEncourageCooldowns.contains(enemy)) {
         qint64 lastApplyTime = s_enemyEncourageCooldowns[enemy];
-        if (currentTime - lastApplyTime < EFFECT_COOLDOWN_MS)
-        {
+        if (currentTime - lastApplyTime < EFFECT_COOLDOWN_MS) {
             return false; // 仍在冷却中
         }
     }
     return true;
 }
 
-void PoisonTrail::markPoisonApplied(Player *player)
-{
+void PoisonTrail::markPoisonApplied(Player *player) {
     s_playerPoisonCooldowns[player] = QDateTime::currentMSecsSinceEpoch();
 }
 
-void PoisonTrail::markEncourageApplied(Enemy *enemy)
-{
+void PoisonTrail::markEncourageApplied(Enemy *enemy) {
     s_enemyEncourageCooldowns[enemy] = QDateTime::currentMSecsSinceEpoch();
 }
 
-void PoisonTrail::clearCooldowns()
-{
+void PoisonTrail::clearCooldowns() {
     s_playerPoisonCooldowns.clear();
     s_enemyEncourageCooldowns.clear();
 }
 
-void PoisonTrail::applyPoisonToPlayer(Player *player)
-{
+void PoisonTrail::applyPoisonToPlayer(Player *player) {
     if (!player)
         return;
 
@@ -416,8 +362,7 @@ void PoisonTrail::applyPoisonToPlayer(Player *player)
     // 100%触发中毒效果
     int duration = static_cast<int>(m_poisonDuration);
     // 限制中毒时长不超过玩家当前血量
-    if (duration > static_cast<int>(player->getCurrentHealth()))
-    {
+    if (duration > static_cast<int>(player->getCurrentHealth())) {
         duration = static_cast<int>(player->getCurrentHealth());
     }
     if (duration < 1)
@@ -431,8 +376,7 @@ void PoisonTrail::applyPoisonToPlayer(Player *player)
     StatusEffect::showFloatText(player->scene(), QString("中毒！"), player->pos() + QPointF(0, -15), QColor(0, 100, 30));
 }
 
-void PoisonTrail::applyEncourageToEnemy(Enemy *enemy)
-{
+void PoisonTrail::applyEncourageToEnemy(Enemy *enemy) {
     if (!enemy)
         return;
 

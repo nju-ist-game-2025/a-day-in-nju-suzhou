@@ -5,45 +5,40 @@
 #include <QElapsedTimer>
 
 HUD::HUD(Player *pl, QGraphicsItem *parent)
-    : QGraphicsItem(parent), currentHealth(3.0f), maxHealth(3.0f), isFlashing(false), isScreenFlashing(false),
-      flashCount(0), currentRoomIndex(0)
-{
+        : QGraphicsItem(parent), currentHealth(3.0f), maxHealth(3.0f), isFlashing(false), isScreenFlashing(false),
+          flashCount(0), currentRoomIndex(0) {
     player = pl;
     flashTimer = new QTimer(this);
     connect(flashTimer, &QTimer::timeout, this, &HUD::endDamageFlash);
 
     screenFlashTimer = new QTimer(this);
     screenFlashTimer->setSingleShot(true);
-    connect(screenFlashTimer, &QTimer::timeout, this, [this]()
-            {
+    connect(screenFlashTimer, &QTimer::timeout, this, [this]() {
         isScreenFlashing = false;
-        update(); });
+        update();
+    });
 
     setPos(0, 0);
 }
 
-void HUD::setMapLayout(const QVector<RoomNode> &nodes)
-{
+void HUD::setMapLayout(const QVector<RoomNode> &nodes) {
     mapNodes = nodes;
     update();
 }
 
-QRectF HUD::boundingRect() const
-{
+QRectF HUD::boundingRect() const {
     // 扩大边界以包含小地图区域（右上角）
     return QRectF(0, 0, 800, 200);
 }
 
-void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
+void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
     painter->setRenderHint(QPainter::Antialiasing);
 
     // 绘制屏幕边缘红光闪烁效果
-    if (isScreenFlashing)
-    {
+    if (isScreenFlashing) {
         QLinearGradient gradient;
 
         gradient.setStart(0, 0);
@@ -91,8 +86,7 @@ void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
     painter->drawRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
 
     // 绘制当前血量
-    if (currentHealth > 0)
-    {
+    if (currentHealth > 0) {
         float healthWidth = (currentHealth / maxHealth) * healthBarWidth;
 
         // 留出边框
@@ -101,14 +95,10 @@ void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
         int fillWidth = healthWidth - 2;
         int fillHeight = healthBarHeight - 2;
 
-        if (fillWidth > 0)
-        {
-            if (isFlashing && flashCount % 2 == 0)
-            {
+        if (fillWidth > 0) {
+            if (isFlashing && flashCount % 2 == 0) {
                 painter->setBrush(QColor(255, 100, 100));
-            }
-            else
-            {
+            } else {
                 painter->setBrush(Qt::red);
             }
             painter->setPen(QPen(Qt::darkRed, 1));
@@ -141,8 +131,7 @@ void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
     paintMinimap(painter);
 }
 
-void HUD::paintKey(QPainter *painter)
-{
+void HUD::paintKey(QPainter *painter) {
     const int textAreaWidth = 150; // 文字区域宽度
     const int Y = 10;              // 血条Y坐标
     const int Height = 25;         // 血条高度
@@ -155,8 +144,7 @@ void HUD::paintKey(QPainter *painter)
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }
 
-void HUD::paintSoul(QPainter *painter)
-{
+void HUD::paintSoul(QPainter *painter) {
     const int textAreaWidth = 150; // 文字区域宽度
     const int Y = 40;              // 血条Y坐标
     const int Height = 25;         // 血条高度
@@ -169,8 +157,7 @@ void HUD::paintSoul(QPainter *painter)
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }
 
-void HUD::paintBlack(QPainter *painter)
-{
+void HUD::paintBlack(QPainter *painter) {
     const int textAreaWidth = 150; // 文字区域宽度
     const int X = textAreaWidth;   // 血条起始X坐标
     const int Y = 60;              // 血条Y坐标
@@ -184,8 +171,7 @@ void HUD::paintBlack(QPainter *painter)
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }
 
-void HUD::paintTeleportCooldown(QPainter *painter)
-{
+void HUD::paintTeleportCooldown(QPainter *painter) {
     if (!player)
         return;
 
@@ -207,12 +193,9 @@ void HUD::paintTeleportCooldown(QPainter *painter)
     painter->setPen(Qt::white);
 
     QString centerText;
-    if (player->isTeleportReady())
-    {
+    if (player->isTeleportReady()) {
         centerText = "Q瞬移\nREADY";
-    }
-    else
-    {
+    } else {
         double seconds = player->getTeleportRemainingMs() / 1000.0;
         centerText = QString("Q\n%1s").arg(seconds, 0, 'f', 1);
     }
@@ -224,8 +207,7 @@ void HUD::paintTeleportCooldown(QPainter *painter)
     painter->drawText(gaugeRect.adjusted(0, 62, 0, 0), Qt::AlignHCenter | Qt::AlignTop, "");
 }
 
-void HUD::paintEffects(QPainter *painter, const QString &text, int count, double duration, QColor color)
-{
+void HUD::paintEffects(QPainter *painter, const QString &text, int count, double duration, QColor color) {
     const int textAreaWidth = 120;
     const int Y = 100 + 30 * count;
     const int Width = 150;
@@ -235,8 +217,7 @@ void HUD::paintEffects(QPainter *painter, const QString &text, int count, double
     static QElapsedTimer elapsedTimer;
     static bool firstCall = true;
 
-    if (firstCall)
-    {
+    if (firstCall) {
         elapsedTimer.start();
         firstCall = false;
     }
@@ -261,8 +242,7 @@ void HUD::paintEffects(QPainter *painter, const QString &text, int count, double
     painter->drawRect(textAreaWidth, Y, Width, Height);
 }
 
-void HUD::updateHealth(float current, float max)
-{
+void HUD::updateHealth(float current, float max) {
     float oldHealth = currentHealth;
     currentHealth = qMax(0.0f, current);
     maxHealth = qMax(1.0f, max);
@@ -272,8 +252,7 @@ void HUD::updateHealth(float current, float max)
     update();
 }
 
-void HUD::triggerDamageFlash()
-{
+void HUD::triggerDamageFlash() {
     isFlashing = true;
     flashCount = 0;
 
@@ -282,36 +261,33 @@ void HUD::triggerDamageFlash()
     isScreenFlashing = true;
     screenFlashTimer->start(300);
 
-    QTimer::singleShot(0, this, [this]()
-                       {
+    QTimer::singleShot(0, this, [this]() {
         update();
-        flashCount++; });
-    QTimer::singleShot(150, this, [this]()
-                       {
+        flashCount++;
+    });
+    QTimer::singleShot(150, this, [this]() {
         update();
-        flashCount++; });
-    QTimer::singleShot(300, this, [this]()
-                       {
+        flashCount++;
+    });
+    QTimer::singleShot(300, this, [this]() {
         update();
-        flashCount++; });
-    QTimer::singleShot(450, this, [this]()
-                       {
+        flashCount++;
+    });
+    QTimer::singleShot(450, this, [this]() {
         isFlashing = false;
-        update(); });
+        update();
+    });
 
     update();
 }
 
-void HUD::endDamageFlash()
-{
+void HUD::endDamageFlash() {
     isFlashing = false;
     update();
 }
 
-void HUD::paintMinimap(QPainter *painter)
-{
-    if (mapNodes.isEmpty())
-    {
+void HUD::paintMinimap(QPainter *painter) {
+    if (mapNodes.isEmpty()) {
         return;
     }
 
@@ -331,14 +307,14 @@ void HUD::paintMinimap(QPainter *painter)
     QFont font = painter->font();
     font.setPointSize(10);
     painter->setFont(font);
-    painter->drawText(QRect(startX, startY + mapSize + 5, mapSize, 20), Qt::AlignCenter, QString("Room %1").arg(currentRoomIndex));
+    painter->drawText(QRect(startX, startY + mapSize + 5, mapSize, 20), Qt::AlignCenter,
+                      QString("Room %1").arg(currentRoomIndex));
 
     // Find center of map (Start Room 0 at center)
     int centerX = startX + mapSize / 2;
     int centerY = startY + mapSize / 2;
 
-    for (const RoomNode &node : mapNodes)
-    {
+    for (const RoomNode &node: mapNodes) {
         // Only draw visited rooms or all rooms? User said "overall room structure". Let's draw all but dim unvisited.
         // Or just draw all for now as requested.
 
@@ -349,20 +325,13 @@ void HUD::paintMinimap(QPainter *painter)
         if (drawX < startX || drawX > startX + mapSize || drawY < startY || drawY > startY + mapSize)
             continue;
 
-        if (node.hasBoss)
-        {
+        if (node.hasBoss) {
             painter->setBrush(QColor(75, 0, 130)); // Boss房间恒为深紫色 (Indigo)
-        }
-        else if (node.id == currentRoomIndex)
-        {
+        } else if (node.id == currentRoomIndex) {
             painter->setBrush(Qt::red); // Current room
-        }
-        else if (node.visited)
-        {
+        } else if (node.visited) {
             painter->setBrush(Qt::lightGray); // Visited
-        }
-        else
-        {
+        } else {
             painter->setBrush(Qt::darkGray); // Unvisited
         }
 
@@ -378,27 +347,22 @@ void HUD::paintMinimap(QPainter *painter)
 
         // Draw connections (lines) - 只绘制右和下的连接，避免重复绘制
         painter->setPen(QPen(Qt::white, 1));
-        if (node.right >= 0)
-        {
+        if (node.right >= 0) {
             painter->drawLine(drawX + cellSize, drawY + cellSize / 2, drawX + cellSize + spacing, drawY + cellSize / 2);
         }
-        if (node.down >= 0)
-        {
+        if (node.down >= 0) {
             painter->drawLine(drawX + cellSize / 2, drawY + cellSize, drawX + cellSize / 2, drawY + cellSize + spacing);
         }
         // 上和左的连接会由相邻房间的下和右来绘制，所以不需要重复绘制
     }
 }
 
-void HUD::updateMinimap(int currentRoom, const QVector<int> & /*roomLayout*/)
-{
+void HUD::updateMinimap(int currentRoom, const QVector<int> & /*roomLayout*/) {
     currentRoomIndex = currentRoom;
 
     // Update visited status
-    for (int i = 0; i < mapNodes.size(); ++i)
-    {
-        if (mapNodes[i].id == currentRoom)
-        {
+    for (int i = 0; i < mapNodes.size(); ++i) {
+        if (mapNodes[i].id == currentRoom) {
             mapNodes[i].visited = true;
             break;
         }

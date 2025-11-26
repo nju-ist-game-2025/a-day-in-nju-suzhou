@@ -43,8 +43,8 @@ void Explosion::preloadFrames() {
     qDebug() << "爆炸动画帧预加载完成，共" << s_frames.size() << "帧";
 }
 
-Explosion::Explosion(QGraphicsItem* parent)
-    : QObject(), QGraphicsPixmapItem(parent), m_currentFrame(0), m_animationTimer(new QTimer(this)) {
+Explosion::Explosion(QGraphicsItem *parent)
+        : QObject(), QGraphicsPixmapItem(parent), m_currentFrame(0), m_animationTimer(new QTimer(this)) {
     // 确保帧已加载（如果没有预加载，这里会加载）
     if (!s_framesLoaded) {
         preloadFrames();

@@ -11,42 +11,35 @@ QMap<Player *, qint64> SockEnemy::s_playerPoisonCooldowns;
 
 // 袜子怪物基类
 SockEnemy::SockEnemy(const QPixmap &pic, double scale)
-    : Enemy(pic, scale)
-{
+        : Enemy(pic, scale) {
     // 基础袜子怪物属性
 }
 
-bool SockEnemy::canApplyPoisonTo(Player *player)
-{
+bool SockEnemy::canApplyPoisonTo(Player *player) {
     if (!player)
         return false;
 
     qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
 
-    if (s_playerPoisonCooldowns.contains(player))
-    {
+    if (s_playerPoisonCooldowns.contains(player)) {
         qint64 cooldownEndTime = s_playerPoisonCooldowns[player];
-        if (currentTime < cooldownEndTime)
-        {
+        if (currentTime < cooldownEndTime) {
             return false; // 仍在冷却中
         }
     }
     return true;
 }
 
-void SockEnemy::markPoisonCooldownStart(Player *player)
-{
+void SockEnemy::markPoisonCooldownStart(Player *player) {
     // 中毒结束后开始3秒冷却
     s_playerPoisonCooldowns[player] = QDateTime::currentMSecsSinceEpoch() + POISON_COOLDOWN_MS;
 }
 
-void SockEnemy::clearAllCooldowns()
-{
+void SockEnemy::clearAllCooldowns() {
     s_playerPoisonCooldowns.clear();
 }
 
-void SockEnemy::attackPlayer()
-{
+void SockEnemy::attackPlayer() {
     if (!player)
         return;
 
@@ -56,11 +49,9 @@ void SockEnemy::attackPlayer()
 
     // 近战攻击：检测碰撞
     QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item : collisions)
-    {
+    for (QGraphicsItem *item: collisions) {
         Player *p = dynamic_cast<Player *>(item);
-        if (p)
-        {
+        if (p) {
             p->takeDamage(contactDamage);
 
             // 袜子怪物的特殊效果：50%概率触发中毒
@@ -71,21 +62,18 @@ void SockEnemy::attackPlayer()
     }
 }
 
-void SockEnemy::applyPoisonEffect()
-{
+void SockEnemy::applyPoisonEffect() {
     if (!player || player->getCurrentHealth() < 1)
         return;
 
     // 检查冷却时间
-    if (!canApplyPoisonTo(player))
-    {
+    if (!canApplyPoisonTo(player)) {
         qDebug() << "袜子中毒冷却中，无法再次中毒";
         return;
     }
 
     // 50%概率触发中毒效果
-    if (QRandomGenerator::global()->bounded(2) == 0)
-    {
+    if (QRandomGenerator::global()->bounded(2) == 0) {
         // 中毒效果：每秒扣0.5颗心，持续3秒共扣1.5心
         int duration = qMin(3, static_cast<int>(player->getCurrentHealth()));
         PoisonEffect *effect = new PoisonEffect(player, duration, 1);
@@ -93,12 +81,12 @@ void SockEnemy::applyPoisonEffect()
 
         // 中毒结束后开始冷却（duration秒后 + 3秒冷却）
         // 使用QTimer延迟设置冷却开始时间
-        QTimer::singleShot(duration * 1000, [this]()
-                           {
+        QTimer::singleShot(duration * 1000, [this]() {
             if (player) {
                 markPoisonCooldownStart(player);
                 qDebug() << "袜子中毒结束，开始3秒冷却";
-            } });
+            }
+        });
 
         qDebug() << "袜子怪物触发中毒效果！持续" << duration << "秒，每秒扣1点血";
         StatusEffect::showFloatText(player->scene(), QString("中毒！"), player->pos(), QColor(100, 50, 0));
@@ -107,8 +95,7 @@ void SockEnemy::applyPoisonEffect()
 
 // 普通袜子怪物 - 使用斜向移动躲避子弹
 SockNormal::SockNormal(const QPixmap &pic, double scale)
-    : SockEnemy(pic, scale)
-{
+        : SockEnemy(pic, scale) {
     // 普通袜子的属性（与基础敌人相同）
     setHealth(10);
     setContactDamage(1);
@@ -123,8 +110,7 @@ SockNormal::SockNormal(const QPixmap &pic, double scale)
 
 // 愤怒袜子怪物 - 移速和伤害提升150%，使用冲刺攻击
 SockAngrily::SockAngrily(const QPixmap &pic, double scale)
-    : SockEnemy(pic, scale)
-{
+        : SockEnemy(pic, scale) {
     // 愤怒袜子的属性（伤害和移速提升150%）
     setHealth(18);
     setContactDamage(2);

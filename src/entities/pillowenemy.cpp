@@ -8,8 +8,7 @@
 #include "player.h"
 
 PillowEnemy::PillowEnemy(const QPixmap &pic, double scale)
-    : Enemy(pic, scale)
-{
+        : Enemy(pic, scale) {
     // 设置移动模式为绕圈移动
     setMovementPattern(MOVE_CIRCLE);
 
@@ -20,15 +19,13 @@ PillowEnemy::PillowEnemy(const QPixmap &pic, double scale)
     setContactDamage(2);    // 接触伤害
 }
 
-void PillowEnemy::onContactWithPlayer(Player *p)
-{
+void PillowEnemy::onContactWithPlayer(Player *p) {
     Q_UNUSED(p);
     // 接触时100%触发昏睡效果
     applySleepEffect();
 }
 
-void PillowEnemy::attackPlayer()
-{
+void PillowEnemy::attackPlayer() {
     if (!player)
         return;
 
@@ -38,11 +35,9 @@ void PillowEnemy::attackPlayer()
 
     // 近战攻击：检测碰撞
     QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item : collisions)
-    {
+    for (QGraphicsItem *item: collisions) {
         Player *p = dynamic_cast<Player *>(item);
-        if (p)
-        {
+        if (p) {
             p->takeDamage(contactDamage);
 
             // 100%概率触发昏睡效果（枕头必定让人昏睡）
@@ -53,8 +48,7 @@ void PillowEnemy::attackPlayer()
     }
 }
 
-void PillowEnemy::applySleepEffect()
-{
+void PillowEnemy::applySleepEffect() {
     if (!player || !scene())
         return;
 
@@ -89,8 +83,7 @@ void PillowEnemy::applySleepEffect()
     QPointer<Player> playerPtr = player;
 
     // 1.5秒后恢复移动并删除文字（不再依赖this指针）
-    QTimer::singleShot(1500, [playerPtr, sleepText]()
-                       {
+    QTimer::singleShot(1500, [playerPtr, sleepText]() {
         if (playerPtr) {
             playerPtr->setCanMove(true);
             qDebug() << "昏睡效果结束，玩家恢复移动，3秒后可再次触发";
@@ -106,5 +99,6 @@ void PillowEnemy::applySleepEffect()
                 sleepText->scene()->removeItem(sleepText);
             }
             delete sleepText;
-        } });
+        }
+    });
 }

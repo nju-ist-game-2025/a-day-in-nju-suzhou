@@ -8,9 +8,8 @@
 #include "enemy.h"
 #include "player.h"
 
-class Room : public QGraphicsScene
-{
-    Q_OBJECT
+class Room : public QGraphicsScene {
+Q_OBJECT
 
     int door_size;
     int change_x;
@@ -38,8 +37,7 @@ public:
 
     int getChangeY() { return change_y; };
 
-    void resetChangeDir()
-    {
+    void resetChangeDir() {
         change_x = 0;
         change_y = 0;
     };
@@ -68,9 +66,13 @@ public:
 
     // 战斗房间控制
     void setBattleRoom(bool isBattle);
+
     bool isBattleRoom() const;
+
     void startBattle();
+
     bool isBattleStarted() const;
+
     bool canLeaveRoom() const; // 检查是否可以离开房间
 
     void testChange();

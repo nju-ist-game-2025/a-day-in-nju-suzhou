@@ -10,16 +10,14 @@
 #include "enemy.h"
 
 namespace {
-class TeleportEffectItem : public QObject, public QGraphicsEllipseItem {
-public:
-    TeleportEffectItem(QGraphicsScene *scene, const QPointF &center, qreal radius = 35.0)
-        : QObject(scene), QGraphicsEllipseItem(-radius, -radius, radius * 2, radius * 2)
-    {
-        if (!scene)
-        {
-            deleteLater();
-            return;
-        }
+    class TeleportEffectItem : public QObject, public QGraphicsEllipseItem {
+    public:
+        TeleportEffectItem(QGraphicsScene *scene, const QPointF &center, qreal radius = 35.0)
+                : QObject(scene), QGraphicsEllipseItem(-radius, -radius, radius * 2, radius * 2) {
+            if (!scene) {
+                deleteLater();
+                return;
+            }
 
             setPen(QPen(QColor(120, 220, 255, 220), 3));
             setBrush(Qt::NoBrush);
@@ -27,40 +25,41 @@ public:
             setPos(center);
             scene->addItem(this);
 
-        m_timer = new QTimer(this);
-        connect(m_timer, &QTimer::timeout, this, [this]() { advanceEffect(); });
-        m_timer->start(16);
-    }
-
-private:
-    void advanceEffect() {
-        m_elapsed += 16;
-        qreal progress = qBound(0.0, m_elapsed / m_duration, 1.0);
-        setOpacity(1.0 - progress);
-        setScale(1.0 + progress * 0.5);
-
-        if (m_elapsed >= m_duration) {
-            if (scene()) {
-                scene()->removeItem(this);
-            }
-            deleteLater();
+            m_timer = new QTimer(this);
+            connect(m_timer, &QTimer::timeout, this, [this]() { advanceEffect(); });
+            m_timer->start(16);
         }
+
+    private:
+        void advanceEffect() {
+            m_elapsed += 16;
+            qreal progress = qBound(0.0, m_elapsed / m_duration, 1.0);
+            setOpacity(1.0 - progress);
+            setScale(1.0 + progress * 0.5);
+
+            if (m_elapsed >= m_duration) {
+                if (scene()) {
+                    scene()->removeItem(this);
+                }
+                deleteLater();
+            }
+        }
+
+        QTimer *m_timer = nullptr;
+        qreal m_elapsed = 0.0;
+        qreal m_duration = 220.0;
+    };
+
+    void spawnTeleportEffect(QGraphicsScene *scene, const QPointF &center) {
+        if (!scene)
+            return;
+        new TeleportEffectItem(scene, center);
     }
-
-    QTimer* m_timer = nullptr;
-    qreal m_elapsed = 0.0;
-    qreal m_duration = 220.0;
-};
-
-void spawnTeleportEffect(QGraphicsScene *scene, const QPointF &center) {
-    if (!scene)
-        return;
-    new TeleportEffectItem(scene, center);
-}
 } // namespace
 
-Player::Player(const QPixmap& pic_player, double scale)
-    : redContainers(5), redHearts(5.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(2), isDead(false), keys(0) {  // 默认150毫秒射击冷却，子弹伤害默认2
+Player::Player(const QPixmap &pic_player, double scale)
+        : redContainers(8), redHearts(8.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0),
+          bulletHurt(5), isDead(false), keys(1) {  // 默认150毫秒射击冷却，子弹伤害默认5
     setTransformationMode(Qt::SmoothTransformation);
 
     // 如果scale是1.0，直接使用原始pixmap，否则按比例缩放
@@ -70,10 +69,10 @@ Player::Player(const QPixmap& pic_player, double scale)
     } else {
         // 按比例缩放（保持宽高比）
         this->setPixmap(pic_player.scaled(
-            pic_player.width() * scale,
-            pic_player.height() * scale,
-            Qt::KeepAspectRatio,
-            Qt::SmoothTransformation));
+                pic_player.width() * scale,
+                pic_player.height() * scale,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation));
     }
 
     // 禁用缓存以避免留下轨迹
@@ -127,7 +126,7 @@ Player::Player(const QPixmap& pic_player, double scale)
     QTimer::singleShot(1000, this, [this]() { invincible = false; });
 }
 
-void Player::keyPressEvent(QKeyEvent* event) {
+void Player::keyPressEvent(QKeyEvent *event) {
     if (!event || isDead)  // 已死亡则不处理输入
         return;
 
@@ -152,7 +151,7 @@ void Player::keyPressEvent(QKeyEvent* event) {
     }
 }
 
-void Player::keyReleaseEvent(QKeyEvent* event) {
+void Player::keyReleaseEvent(QKeyEvent *event) {
     if (!event || isDead)  // 已死亡则不处理输入
         return;
 
@@ -212,7 +211,7 @@ void Player::shoot(int key) {
     // 计算子弹发射位置（从角色中心发射）
     QPointF bulletPos = this->pos() + QPointF(pixmap().width() / 2 - 7.5, pixmap().height() / 2 - 7.5);
     // if(shootType == 0) //改变为发射激光模式，需要ui的图片实现
-    auto* bullet = new Projectile(0, bulletHurt, bulletPos, pic_bullet);  // 使用可配置的玩家子弹伤害
+    auto *bullet = new Projectile(0, bulletHurt, bulletPos, pic_bullet);  // 使用可配置的玩家子弹伤害
     bullet->setSpeed(shootSpeed);
 
     // 将子弹添加到场景中
@@ -315,7 +314,7 @@ void Player::tryTeleport() {
 
     QPointF desiredPos = pos() + dir * m_teleportDistance;
     QPointF clampedPos = clampPositionWithinRoom(desiredPos);
-    auto* scenePtr = scene();
+    auto *scenePtr = scene();
     QRectF bounds = boundingRect();
     QPointF centerOffset(bounds.width() / 2.0, bounds.height() / 2.0);
 
@@ -344,12 +343,12 @@ QPointF Player::currentMoveDirection() const {
 
     double length = std::hypot(dir.x(), dir.y());
     if (length <= 0.0)
-        return QPointF(0, 0);
+        return {0, 0};
 
-    return QPointF(dir.x() / length, dir.y() / length);
+    return {dir.x() / length, dir.y() / length};
 }
 
-QPointF Player::clampPositionWithinRoom(const QPointF& candidate) const {
+QPointF Player::clampPositionWithinRoom(const QPointF &candidate) const {
     double newX = candidate.x();
     double newY = candidate.y();
 
@@ -365,7 +364,7 @@ QPointF Player::clampPositionWithinRoom(const QPointF& candidate) const {
 
     if (newY > room_bound_y - pixmap().height()) {
         if (qAbs(newX + pixmap().width() / 2 - 400) < doorSize)
-            newY = qMin(newY, (double)(room_bound_y - pixmap().height()) + doorMargin);
+            newY = qMin(newY, (double) (room_bound_y - pixmap().height()) + doorMargin);
         else
             newY = room_bound_y - pixmap().height();
     }
@@ -379,12 +378,12 @@ QPointF Player::clampPositionWithinRoom(const QPointF& candidate) const {
 
     if (newX > room_bound_x - pixmap().width()) {
         if (qAbs(newY + pixmap().height() / 2 - 300) < doorSize)
-            newX = qMin(newX, (double)(room_bound_x - pixmap().width()) + doorMargin);
+            newX = qMin(newX, (double) (room_bound_x - pixmap().width()) + doorMargin);
         else
             newX = room_bound_x - pixmap().width();
     }
 
-    return QPointF(newX, newY);
+    return {newX, newY};
 }
 
 int Player::getTeleportRemainingMs() const {
@@ -400,8 +399,8 @@ double Player::getTeleportReadyRatio() const {
     if (m_teleportCooldownMs <= 0)
         return 1.0;
 
-    double remaining = static_cast<double>(getTeleportRemainingMs());
-    double total = static_cast<double>(m_teleportCooldownMs);
+    auto remaining = static_cast<double>(getTeleportRemainingMs());
+    auto total = static_cast<double>(m_teleportCooldownMs);
     double ratio = 1.0 - qBound(0.0, remaining / total, 1.0);
     return qBound(0.0, ratio, 1.0);
 }
@@ -533,9 +532,9 @@ void Player::crashEnemy() {
         return;
 
     // 使用collidingItems代替遍历整个场景
-    QList<QGraphicsItem*> collisions = collidingItems();
-    for (QGraphicsItem* item : collisions) {
-        if (auto it = dynamic_cast<Enemy*>(item)) {
+    QList<QGraphicsItem *> collisions = collidingItems();
+    for (QGraphicsItem *item: collisions) {
+        if (auto it = dynamic_cast<Enemy *>(item)) {
             // 使用图片中心点计算距离，而不是左上角pos()
             QRectF playerRect = boundingRect();
             QRectF enemyRect = it->boundingRect();
@@ -560,18 +559,19 @@ void Player::placeBomb() {
         return;
     auto posi = this->pos();
     QTimer::singleShot(2000, this, [this, posi]() {
-        foreach (QGraphicsItem* item, scene()->items()) {
-            if (auto it = dynamic_cast<Enemy*>(item)) {
-                if (abs(it->pos().x() - posi.x()) > bomb_r ||
-                    abs(it->pos().y() - posi.y()) > bomb_r)
-                    continue;
-                else
-                    it->takeDamage(bombHurt);
+                foreach (QGraphicsItem *item, scene()->items()) {
+                if (auto it = dynamic_cast<Enemy *>(item)) {
+                    if (abs(it->pos().x() - posi.x()) > bomb_r ||
+                        abs(it->pos().y() - posi.y()) > bomb_r)
+                        continue;
+                    else
+                        it->takeDamage(bombHurt);
+                }
             }
-        } });
+    });
 }
 
-void Player::focusOutEvent(QFocusEvent* event) {
+void Player::focusOutEvent(QFocusEvent *event) {
     QGraphicsItem::focusOutEvent(event);
     setFocus();
 }
