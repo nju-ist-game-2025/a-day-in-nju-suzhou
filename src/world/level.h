@@ -98,9 +98,11 @@ class Level : public QObject {
     // galgame相关
     QGraphicsPixmapItem* m_dialogBox;
     QGraphicsTextItem* m_dialogText;
+    QGraphicsTextItem* m_skipHint;   // “跳过”提示
     QGraphicsTextItem* m_continueHint;
     QStringList m_currentDialogs;
     int m_currentDialogIndex;
+    bool m_skipRequested = false;    // 防止重复调用 finishStory
     bool m_isStoryFinished;
     bool m_isBossDialog;  // 标记当前是否为boss对话
 
