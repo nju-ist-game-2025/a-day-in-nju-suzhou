@@ -1,3 +1,6 @@
+#ifndef LEVEL_H
+#define LEVEL_H
+
 #include <QObject>
 #include <QPointer>
 #include <QPropertyAnimation>
@@ -10,6 +13,7 @@
 class Player;
 class Enemy;
 class Boss;
+class WashMachineBoss;
 class Chest;
 class QGraphicsScene;
 
@@ -46,8 +50,14 @@ public:
     void setPaused(bool paused);
     bool isPaused() const { return m_isPaused; }
 
-protected:
-    bool eventFilter(QObject *watched, QEvent *event) override;
+    // 背景切换
+    void changeBackground(const QString& backgroundPath);
+
+    // 吸纳动画（洗衣机Boss变异阶段）
+    void performAbsorbAnimation(WashMachineBoss* boss);
+
+   protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 signals:
     void levelCompleted(int levelNumber);
@@ -74,7 +84,13 @@ private:
     Boss *createBossByLevel(int levelNumber, const QPixmap &pic, double scale);
 
     // Boss召唤敌人（通用方法）
-    void spawnEnemiesForBoss(const QVector<QPair<QString, int>> &enemies);
+    void spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemies);
+
+    // WashMachineBoss相关
+    void connectWashMachineBossSignals(WashMachineBoss* boss);
+    void onWashMachineBossRequestDialog(const QStringList& dialogs, const QString& background);
+    void onWashMachineBossRequestChangeBackground(const QString& backgroundPath);
+    void onWashMachineBossRequestAbsorb();
 
     int m_levelNumber;
     QVector<Room *> m_rooms;
@@ -97,13 +113,13 @@ private:
     bool m_bossDoorsAlreadyOpened; // boss门是否已经打开过
 
     // galgame相关
-    QGraphicsPixmapItem *m_dialogBox;
-    QGraphicsTextItem *m_dialogText;
-    QGraphicsTextItem *m_skipHint; // “跳过”提示
-    QGraphicsTextItem *m_continueHint;
+    QGraphicsPixmapItem* m_dialogBox;
+    QGraphicsTextItem* m_dialogText;
+    QGraphicsTextItem* m_skipHint;  // “跳过”提示
+    QGraphicsTextItem* m_continueHint;
     QStringList m_currentDialogs;
     int m_currentDialogIndex;
-    bool m_skipRequested = false; // 防止重复调用 finishStory
+    bool m_skipRequested = false;  // 防止重复调用 finishStory
     bool m_isStoryFinished;
     bool m_isBossDialog; // 标记当前是否为boss对话
 
@@ -119,7 +135,19 @@ private:
     // 暂停状态
     bool m_isPaused = false;
 
-public slots:
+    // WashMachineBoss引用（用于吸纳动画回调）
+    QPointer<WashMachineBoss> m_currentWashMachineBoss;
+
+    // 吸纳动画相关
+    bool m_isAbsorbAnimationActive = false;
+    QTimer* m_absorbAnimationTimer = nullptr;
+    QVector<QGraphicsItem*> m_absorbingItems;
+    QVector<QPointF> m_absorbStartPositions;
+    QVector<double> m_absorbAngles;
+    QPointF m_absorbCenter;
+    int m_absorbAnimationStep = 0;
+
+   public slots:
     void onDialogClicked();
     void nextDialog();
     // 背景渐变接口：将背景渐变到给定路径（绝对路径或相对 assets/），duration 毫秒
@@ -129,5 +157,10 @@ private slots:
     void onEnemyDying(Enemy *enemy);
 
     void finishStory();
-    void initializeLevelAfterStory(const LevelConfig &config);
+    void initializeLevelAfterStory(const LevelConfig& config);
+
+    // 吸纳动画步进
+    void onAbsorbAnimationStep();
 };
+
+#endif  // LEVEL_H

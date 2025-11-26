@@ -73,6 +73,10 @@ set(ENTITY_SOURCES
         src/entities/pantsenemy.h
         src/entities/projectile.cpp
         src/entities/projectile.h
+        src/entities/toxicgas.cpp
+        src/entities/toxicgas.h
+        src/entities/orbitingsock.cpp
+        src/entities/orbitingsock.h
         src/entities/walker.cpp
         src/entities/walker.h
 )

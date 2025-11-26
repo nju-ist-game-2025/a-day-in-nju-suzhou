@@ -33,6 +33,7 @@ class CharacterSelector : public QWidget {
     void onCharacterClicked(int index);
     void onConfirmClicked();
     void onBackClicked();
+    void onAbilityClicked();
 
    private:
     void loadCharacters();
@@ -54,7 +55,7 @@ class CharacterSelector : public QWidget {
     QLabel* m_titleLabel;
     QLabel* m_previewLabel;
     QLabel* m_nameLabel;
-    QLabel* m_abilityLabel;
+    QPushButton* m_abilityButton;
     QPushButton* m_confirmButton;
     QPushButton* m_backButton;
     QHBoxLayout* m_characterLayout;

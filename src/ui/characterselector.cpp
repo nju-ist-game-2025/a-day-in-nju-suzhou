@@ -51,9 +51,7 @@ CharacterSelector::CharacterSelector(QWidget* parent)
     m_previewLabel->setAlignment(Qt::AlignCenter);
     m_previewLabel->setStyleSheet(
         "QLabel {"
-        "   background-color: rgba(255, 255, 255, 50);"
-        "   border: 3px solid #4CAF50;"
-        "   border-radius: 10px;"
+        "   background-color: transparent;"
         "}");
 
     // 角色名称
@@ -66,20 +64,28 @@ CharacterSelector::CharacterSelector(QWidget* parent)
     m_nameLabel->setAlignment(Qt::AlignCenter);
     m_nameLabel->setStyleSheet("color: #000000;");
 
-    // 能力说明
-    m_abilityLabel = new QLabel(this);
-    m_abilityLabel->setWordWrap(true);
-    QFont abilityFont;
-    abilityFont.setFamily("Microsoft YaHei");
-    abilityFont.setPointSize(14);
-    m_abilityLabel->setFont(abilityFont);
-    m_abilityLabel->setAlignment(Qt::AlignCenter);
-    m_abilityLabel->setStyleSheet(
-        "color: #1b5e20;"
-        "background-color: rgba(255, 255, 255, 120);"
-        "border: 2px solid #4CAF50;"
-        "border-radius: 8px;"
-        "padding: 10px;");
+    // 能力说明按钮
+    m_abilityButton = new QPushButton("查看能力说明", this);
+    m_abilityButton->setFixedSize(160, 40);
+    QFont abilityButtonFont;
+    abilityButtonFont.setFamily("Microsoft YaHei");
+    abilityButtonFont.setPointSize(12);
+    abilityButtonFont.setBold(true);
+    m_abilityButton->setFont(abilityButtonFont);
+    m_abilityButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2196F3, stop:1 #1976D2);"
+        "   color: white;"
+        "   border: 2px solid #1565C0;"
+        "   border-radius: 8px;"
+        "   padding: 5px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #42A5F5, stop:1 #1E88E5);"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1976D2, stop:1 #1565C0);"
+        "}");
 
     // 角色选择按钮容器
     QWidget* characterContainer = new QWidget(this);
@@ -151,8 +157,9 @@ CharacterSelector::CharacterSelector(QWidget* parent)
     mainLayout->addSpacing(20);
     mainLayout->addWidget(m_previewLabel, 0, Qt::AlignCenter);
     mainLayout->addWidget(m_nameLabel);
-    mainLayout->addWidget(m_abilityLabel);
     mainLayout->addSpacing(10);
+    mainLayout->addWidget(m_abilityButton, 0, Qt::AlignCenter);
+    mainLayout->addSpacing(15);
     mainLayout->addWidget(characterContainer);
     mainLayout->addSpacing(30);
     mainLayout->addLayout(buttonLayout);
@@ -161,6 +168,7 @@ CharacterSelector::CharacterSelector(QWidget* parent)
     // 连接信号
     connect(m_confirmButton, &QPushButton::clicked, this, &CharacterSelector::onConfirmClicked);
     connect(m_backButton, &QPushButton::clicked, this, &CharacterSelector::onBackClicked);
+    connect(m_abilityButton, &QPushButton::clicked, this, &CharacterSelector::onAbilityClicked);
 
     // 默认选中配置中的角色
     if (!m_characters.isEmpty()) {
@@ -177,10 +185,10 @@ void CharacterSelector::loadCharacters() {
 
     // 角色配置：名称、图片与能力说明
     QList<CharacterConfig> characterConfigs = {
-        {"美少女", "beautifulGirl.png", "子弹伤害翻倍，适合喜欢爆发输出的玩家。"},
-        {"高雅人士", "HighGracePeople.png", "初始心之容器 +2 且额外获得 2 点魂心，更耐打。"},
-        {"小蓝鲸", "njuFish.png", "移动速度 +25%，子弹速度 +20%，射击冷却 -40ms，灵活敏捷。"},
-        {"权服侠", "quanfuxia.png", "初始携带 2 枚炸弹、2 把钥匙和 1 点黑心，资源更充裕。"}};
+        {"美少女", "beautifulGirl.png", "子弹伤害翻倍。"},
+        {"高雅人士", "HighGracePeople.png", "初始心之容器 +2 且额外获得 2 点魂心。"},
+        {"小蓝鲸", "njuFish.png", "移动速度 +25%，子弹速度 +20%，射击冷却 -40ms。"},
+        {"权服侠", "quanfuxia.png", "初始携带 2 枚炸弹、2 把钥匙和 1 点黑心。"}};
 
     // 获取当前配置中的玩家角色路径
     QString currentPlayerPath = ConfigManager::instance().getAssetPath("player");
@@ -248,10 +256,6 @@ void CharacterSelector::loadCharacters() {
 
     // 默认选择配置中的角色
     m_defaultSelectedIndex = defaultSelectedIndex;
-
-    if (m_abilityLabel) {
-        m_abilityLabel->setText("点击任意角色头像即可查看专属能力加成。");
-    }
 }
 
 void CharacterSelector::onCharacterClicked(int index) {
@@ -280,14 +284,39 @@ void CharacterSelector::updateSelection(int index) {
 
     // 更新名称
     m_nameLabel->setText(m_selectedName);
+}
 
-    // 更新能力说明
-    if (m_abilityLabel) {
-        QString abilityText = m_characters[index].ability.isEmpty()
-                                  ? "该角色暂未配置能力说明。"
-                                  : QString("能力：%1").arg(m_characters[index].ability);
-        m_abilityLabel->setText(abilityText);
-    }
+void CharacterSelector::onAbilityClicked() {
+    if (m_selectedIndex < 0 || m_selectedIndex >= m_characters.size())
+        return;
+
+    QString abilityText = m_characters[m_selectedIndex].ability.isEmpty()
+                              ? "该角色暂未配置能力说明。"
+                              : m_characters[m_selectedIndex].ability;
+
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(QString("%1 - 能力说明").arg(m_selectedName));
+    msgBox.setText(QString("<h3 style='color: #2E7D32;'>%1</h3>").arg(m_selectedName));
+    msgBox.setInformativeText(QString("<p style='font-size: 14px;'>%1</p>").arg(abilityText));
+    msgBox.setIconPixmap(QPixmap(m_selectedCharacter).scaled(80, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setStyleSheet(
+        "QMessageBox {"
+        "   background-color: #f5f5f5;"
+        "}"
+        "QPushButton {"
+        "   background-color: #4CAF50;"
+        "   color: white;"
+        "   border: none;"
+        "   border-radius: 5px;"
+        "   padding: 8px 20px;"
+        "   font-size: 13px;"
+        "   font-weight: bold;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #66BB6A;"
+        "}");
+    msgBox.exec();
 }
 
 void CharacterSelector::onConfirmClicked() {
@@ -359,10 +388,15 @@ void CharacterSelector::resizeEvent(QResizeEvent* event) {
     m_confirmButton->setFont(buttonFont);
     m_backButton->setFont(buttonFont);
 
-    QFont abilityFont;
-    abilityFont.setFamily("Microsoft YaHei");
-    abilityFont.setPointSize(static_cast<int>(14 * scale));
-    m_abilityLabel->setFont(abilityFont);
+    // 缩放能力按钮
+    int abilityBtnWidth = static_cast<int>(160 * scale);
+    int abilityBtnHeight = static_cast<int>(40 * scale);
+    m_abilityButton->setFixedSize(abilityBtnWidth, abilityBtnHeight);
+    QFont abilityButtonFont;
+    abilityButtonFont.setFamily("Microsoft YaHei");
+    abilityButtonFont.setPointSize(static_cast<int>(12 * scale));
+    abilityButtonFont.setBold(true);
+    m_abilityButton->setFont(abilityButtonFont);
 
     // 更新预览图
     if (m_selectedIndex >= 0 && m_selectedIndex < m_characters.size()) {
