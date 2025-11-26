@@ -53,6 +53,8 @@ class GameView : public QWidget {
     void togglePause();  // 切换暂停状态
     void resumeGame();   // 继续游戏
     void pauseGame();    // 暂停游戏
+    void applyCharacterAbility(Player* player, const QString& characterPath);
+    QString resolveCharacterKey(const QString& characterPath) const;
 
    private slots:
 
