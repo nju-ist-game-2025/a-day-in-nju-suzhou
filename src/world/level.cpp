@@ -13,6 +13,7 @@
 #include "../entities/clockenemy.h"
 #include "../entities/enemy.h"
 #include "../entities/nightmareboss.h"
+#include "../entities/pantsenemy.h"
 #include "../entities/player.h"
 #include "../entities/projectile.h"
 #include "../entities/sockenemy.h"
@@ -833,6 +834,10 @@ Enemy *Level::createEnemyByType(int levelNumber, const QString &enemyType, const
         else if (enemyType == "sock_angrily")
         {
             return new SockAngrily(pic, scale);
+        }
+        else if (enemyType == "pants")
+        {
+            return new PantsEnemy(pic, scale);
         }
     }
 

@@ -35,7 +35,8 @@
             "clock_boom": 50,
             "pillow": 60,
             "sock_normal": 50,
-            "sock_angrily": 60
+            "sock_angrily": 60,
+            "pants": 55
         },
         "bosses": {
             "default": 150,
