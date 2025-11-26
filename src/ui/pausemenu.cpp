@@ -37,7 +37,7 @@ void PauseMenu::createUI() {
     m_overlay = new QGraphicsRectItem(0, 0, scene_bound_x, scene_bound_y);
     m_overlay->setBrush(QBrush(QColor(0, 0, 0, 150)));
     m_overlay->setPen(Qt::NoPen);
-    m_overlay->setZValue(10000);  // 确保在最上层
+    m_overlay->setZValue(20000);  // 确保在最上层，高于对话框(10000-10002)
 
     // 菜单背景
     int menuWidth = 300;

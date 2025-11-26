@@ -234,11 +234,20 @@ void Level::initializeLevelAfterStory(const LevelConfig& config) {
 
 // 事件过滤器：处理对话框的点击和键盘事件
 bool Level::eventFilter(QObject* watched, QEvent* event) {
+    // 如果游戏暂停，不拦截任何事件，让暂停菜单处理
+    if (m_isPaused) {
+        return QObject::eventFilter(watched, event);
+    }
+
     if (watched == m_scene && m_dialogBox && !m_isStoryFinished) {
         if (event->type() == QEvent::GraphicsSceneMousePress ||
             event->type() == QEvent::KeyPress) {
             if (event->type() == QEvent::KeyPress) {
                 auto* keyEvent = dynamic_cast<QKeyEvent*>(event);
+                // ESC键不拦截，让它传递给GameView处理暂停菜单
+                if (keyEvent->key() == Qt::Key_Escape) {
+                    return false;  // 不拦截，让事件继续传播
+                }
                 if (!m_skipRequested &&
                     keyEvent->modifiers().testFlag(Qt::ControlModifier) &&
                     keyEvent->key() == Qt::Key_S) {

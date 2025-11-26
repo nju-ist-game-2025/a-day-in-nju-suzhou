@@ -1,6 +1,6 @@
 {
     "developer_mode": {
-        "enabled": false
+        "enabled": true
     },
     "assets": {
         "background_main": "assets/background/main.png",
