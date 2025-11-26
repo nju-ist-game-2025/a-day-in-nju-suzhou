@@ -10,14 +10,12 @@
 
 class Player;
 
-class Enemy : public Entity
-{
-    Q_OBJECT
+class Enemy : public Entity {
+Q_OBJECT
 
 public:
     // 敌人状态枚举
-    enum State
-    {
+    enum State {
         IDLE,   // 空闲/巡逻
         CHASE,  // 追击
         ATTACK, // 攻击
@@ -25,8 +23,7 @@ public:
     };
 
     // 移动模式枚举
-    enum MovementPattern
-    {
+    enum MovementPattern {
         MOVE_DIRECT,        // 直线追击（默认行为）
         MOVE_ZIGZAG,        // Z字形追击（左右蛇形接近）
         MOVE_CIRCLE,        // 绕圈接近（螺旋式靠近玩家）
@@ -52,8 +49,7 @@ public:
 
     void setAttackCooldown(int ms) { attackCooldown = ms; }
 
-    void setHealth(int hp)
-    {
+    void setHealth(int hp) {
         health = hp;
         maxHealth = hp;
     }
@@ -73,22 +69,30 @@ public:
 
     // 移动模式配置
     void setMovementPattern(MovementPattern pattern) { m_movePattern = pattern; }
+
     MovementPattern getMovementPattern() const { return m_movePattern; }
 
     // 移动模式参数配置
     void setPreferredDistance(double dist) { m_preferredDistance = dist; }
+
     void setDashSpeed(double spd) { m_dashSpeed = spd; }
+
     void setDashChargeTime(int ms) { m_dashChargeMs = ms; }
+
     void setZigzagAmplitude(double amp) { m_zigzagAmplitude = amp; }
+
     void setCircleRadius(double radius) { m_circleRadius = radius; }
 
     // 暂停/恢复所有定时器（用于对话期间）
     virtual void pauseTimers();
+
     virtual void resumeTimers();
+
     bool isPaused() const { return m_isPaused; }
 
     // 召唤标记（召唤的敌人不触发bonus）
     void setIsSummoned(bool summoned) { m_isSummoned = summoned; }
+
     bool isSummoned() const { return m_isSummoned; }
 
 signals:

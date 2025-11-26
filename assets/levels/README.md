@@ -79,9 +79,11 @@ if (levelConfig.loadFromFile(levelNumber)) {
     }
 }
 ```
+
 ## 地图设计
 
 ### level1
+
 ```mermaid
 flowchart TD
     A[房间0<br/>起始房间] --> B[房间1]
@@ -91,6 +93,7 @@ flowchart TD
 ```
 
 ### level2
+
 ```mermaid
 flowchart TD
     A[房间0<br/>起始房间] --> B[房间1]
@@ -103,6 +106,7 @@ flowchart TD
 ```
 
 ### level3
+
 ```mermaid
 flowchart TD
     A[房间0<br/>起始房间] --> B[房间1]
@@ -118,7 +122,6 @@ flowchart TD
     I --> L[房间11]
     L --> M[房间12<br/>BOSS房间]
 ```
-
 
 ## 设计优势
 

@@ -1,6 +1,7 @@
 # Boss房间对话系统使用说明
 
 ## 概述
+
 当玩家首次进入boss房间时，会触发一个类似关卡开头的对话框系统，用于展示boss的背景故事或战前对话。
 
 ## 配置方法
@@ -58,10 +59,12 @@
 ## 技术实现
 
 ### 触发时机
+
 - 玩家**首次进入**标记为 `hasBoss: true` 的房间时
 - 只在首次进入时触发，重复进入不会再显示
 
 ### 显示方式
+
 - 使用与关卡开头相同的对话框系统
 - 背景图片根据关卡号自动选择（l1.png, l2.png, l3.png）
 - 点击屏幕或按空格键继续下一段对话
@@ -70,6 +73,7 @@
 ### 代码接口
 
 **LevelConfig.h**：
+
 ```cpp
 struct RoomConfig {
     // ... 其他字段
@@ -80,6 +84,7 @@ struct RoomConfig {
 ```
 
 **使用示例**：
+
 ```cpp
 // 在level.cpp的enterNextRoom()中自动处理
 if (isFirstEnterBossRoom && !newRoomCfg.bossDialog.isEmpty()) {
@@ -90,16 +95,19 @@ if (isFirstEnterBossRoom && !newRoomCfg.bossDialog.isEmpty()) {
 ## 已配置的关卡
 
 ### 第一关 - 起床战争
+
 - Boss：巨型闹钟
 - 主题：征服早起困难
 - 对话风格：轻松幽默
 
 ### 第二关 - 洗衣房
+
 - Boss：脏袜子Boss
 - 主题：对抗拖延症
 - 对话风格：自嘲讽刺
 
 ### 第三关 - 教室
+
 - Boss：教室Boss（期末考试）
 - 主题：最终考验
 - 对话风格：紧张激励

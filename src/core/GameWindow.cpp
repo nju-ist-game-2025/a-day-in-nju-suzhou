@@ -4,18 +4,18 @@
 #include "world/map.h"
 
 namespace {
-Map& sharedMapInstance() {
-    static Map map;
-    return map;
-}
+    Map &sharedMapInstance() {
+        static Map map;
+        return map;
+    }
 }  // namespace
 
 void clearMapWalls() {
     sharedMapInstance().clear();
 }
 
-GameWindow::GameWindow(QWidget* parent)
-    : QMainWindow(parent), m_selectedCharacter("assets/player/player.png") {
+GameWindow::GameWindow(QWidget *parent)
+        : QMainWindow(parent), m_selectedCharacter("assets/player/player.png") {
     // 设置窗口属性
     setWindowTitle("智科er的一天");
 
@@ -94,7 +94,7 @@ void GameWindow::showCharacterSelector() {
     stackedWidget->setCurrentWidget(characterSelector);
 }
 
-void GameWindow::onCharacterSelected(const QString& characterPath) {
+void GameWindow::onCharacterSelected(const QString &characterPath) {
     m_selectedCharacter = characterPath;
     gameView->setPlayerCharacter(characterPath);
     showMainMenu();
@@ -104,8 +104,8 @@ void GameWindow::exitGame() {
     close();
 }
 
-void setupMap(QGraphicsScene* scene) {
-    Map& map = sharedMapInstance();
+void setupMap(QGraphicsScene *scene) {
+    Map & map = sharedMapInstance();
     const QString levelPath = QStringLiteral("assets/levels/level1_wall.json");
     // 墙壁配置是可选的，如果文件不存在也不影响游戏运行
     if (QFile::exists(levelPath)) {

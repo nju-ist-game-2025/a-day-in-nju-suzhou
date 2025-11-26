@@ -7,9 +7,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-class MainMenu : public QWidget
-{
-    Q_OBJECT
+class MainMenu : public QWidget {
+Q_OBJECT
 
 private:
     QPushButton *startButton;
@@ -27,6 +26,7 @@ public:
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
+
     void showEvent(QShowEvent *event) override;
 
 private:
@@ -36,6 +36,7 @@ private:
 signals:
 
     void startGameClicked();
+
     void selectCharacterClicked();  // 角色选择信号
     void codexClicked();            // new
     void devModeClicked(int level); // 开发者模式选择关卡

@@ -8,8 +8,7 @@
 #include "player.h"
 
 PillowEnemy::PillowEnemy(const QPixmap &pic, double scale)
-    : Enemy(pic, scale)
-{
+        : Enemy(pic, scale) {
     // 设置移动模式为绕圈移动
     setMovementPattern(MOVE_CIRCLE);
 
@@ -20,15 +19,13 @@ PillowEnemy::PillowEnemy(const QPixmap &pic, double scale)
     setContactDamage(2);    // 接触伤害
 }
 
-void PillowEnemy::onContactWithPlayer(Player *p)
-{
+void PillowEnemy::onContactWithPlayer(Player *p) {
     Q_UNUSED(p);
     // 接触时100%触发昏睡效果
     applySleepEffect();
 }
 
-void PillowEnemy::attackPlayer()
-{
+void PillowEnemy::attackPlayer() {
     if (!player)
         return;
 
@@ -38,11 +35,9 @@ void PillowEnemy::attackPlayer()
 
     // 近战攻击：检测碰撞
     QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item : collisions)
-    {
+    for (QGraphicsItem *item: collisions) {
         Player *p = dynamic_cast<Player *>(item);
-        if (p)
-        {
+        if (p) {
             p->takeDamage(contactDamage);
 
             // 100%概率触发昏睡效果（枕头必定让人昏睡）
@@ -53,8 +48,7 @@ void PillowEnemy::attackPlayer()
     }
 }
 
-void PillowEnemy::applySleepEffect()
-{
+void PillowEnemy::applySleepEffect() {
     if (!player || !scene())
         return;
 
@@ -66,16 +60,10 @@ void PillowEnemy::applySleepEffect()
     if (player->isEffectOnCooldown())
         return;
 
-    qDebug() << "枕头怪物触发昏睡效果！玩家无法移动1秒";
+    qDebug() << "枕头怪物触发昏睡效果！玩家无法移动1.5秒";
 
-    // 设置效果冷却
+    // 立即设置效果冷却，防止重复触发（将在效果结束后解除）
     player->setEffectCooldown(true);
-    QPointer<Player> cooldownPtr = player;
-    QTimer::singleShot(500, [cooldownPtr]()
-                       {
-        if (cooldownPtr) {
-            cooldownPtr->setEffectCooldown(false);
-        } });
 
     // 显示"昏睡ZZZ"文字提示
     QGraphicsTextItem *sleepText = new QGraphicsTextItem("昏睡ZZZ");
@@ -94,17 +82,23 @@ void PillowEnemy::applySleepEffect()
     // 使用QPointer保护player指针，确保即使PillowEnemy被删除也能恢复玩家移动
     QPointer<Player> playerPtr = player;
 
-    // 1秒后恢复移动并删除文字（不再依赖this指针）
-    QTimer::singleShot(1000, [playerPtr, sleepText]()
-                       {
+    // 1.5秒后恢复移动并删除文字（不再依赖this指针）
+    QTimer::singleShot(1500, [playerPtr, sleepText]() {
         if (playerPtr) {
             playerPtr->setCanMove(true);
-            qDebug() << "昏睡效果结束，玩家恢复移动";
+            qDebug() << "昏睡效果结束，玩家恢复移动，3秒后可再次触发";
+            // 效果结束后3秒再解除冷却
+            QTimer::singleShot(3000, [playerPtr]() {
+                if (playerPtr) {
+                    playerPtr->setEffectCooldown(false);
+                }
+            });
         }
         if (sleepText) {
             if (sleepText->scene()) {
                 sleepText->scene()->removeItem(sleepText);
             }
             delete sleepText;
-        } });
+        }
+    });
 }

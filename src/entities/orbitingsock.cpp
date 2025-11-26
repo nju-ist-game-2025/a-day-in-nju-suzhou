@@ -4,13 +4,13 @@
 #include <QtMath>
 #include "washmachineboss.h"
 
-OrbitingSock::OrbitingSock(const QPixmap& pic, WashMachineBoss* master, double scale)
-    : SockEnemy(pic, scale),
-      m_master(master),
-      m_orbitAngle(0.0),
-      m_orbitRadius(100.0),
-      m_orbitSpeed(0.05),  // 约2秒一圈 (2*PI / (2000ms / 16ms) ≈ 0.05)
-      m_orbitTimer(nullptr) {
+OrbitingSock::OrbitingSock(const QPixmap &pic, WashMachineBoss *master, double scale)
+        : SockEnemy(pic, scale),
+          m_master(master),
+          m_orbitAngle(0.0),
+          m_orbitRadius(100.0),
+          m_orbitSpeed(0.05),  // 约2秒一圈 (2*PI / (2000ms / 16ms) ≈ 0.05)
+          m_orbitTimer(nullptr) {
     // 设置臭袜子属性
     setHealth(15);
     setContactDamage(2);

@@ -2,15 +2,15 @@
 #include <QDebug>
 #include <QDir>
 
-AudioManager& AudioManager::instance() {
+AudioManager &AudioManager::instance() {
     static AudioManager instance;
     return instance;
 }
 
-AudioManager::AudioManager(QObject* parent)
-    : QObject(parent),
-      m_soundVolume(100),
-      m_musicVolume(80) {
+AudioManager::AudioManager(QObject *parent)
+        : QObject(parent),
+          m_soundVolume(100),
+          m_musicVolume(80) {
     // 初始化音乐播放器
     m_musicPlayer = new QMediaPlayer(this);
 
@@ -33,14 +33,14 @@ AudioManager::AudioManager(QObject* parent)
 
 AudioManager::~AudioManager() {
     // 清理所有音效池
-    for (auto& pool : m_soundPools) {
+    for (auto &pool: m_soundPools) {
         qDeleteAll(pool.effects);
         pool.effects.clear();
     }
     m_soundPools.clear();
 }
 
-void AudioManager::preloadSound(const QString& soundName, const QString& filePath) {
+void AudioManager::preloadSound(const QString &soundName, const QString &filePath) {
     if (m_soundPools.contains(soundName)) {
         qDebug() << "Sound already preloaded:" << soundName;
         return;
@@ -60,7 +60,7 @@ void AudioManager::preloadSound(const QString& soundName, const QString& filePat
 
     // 预创建多个QSoundEffect实例
     for (int i = 0; i < POOL_SIZE; ++i) {
-        QSoundEffect* effect = new QSoundEffect(this);
+        auto * effect = new QSoundEffect(this);
         effect->setSource(QUrl::fromLocalFile(filePath));
         effect->setVolume(m_soundVolume / 100.0);
         pool.effects.append(effect);
@@ -70,24 +70,24 @@ void AudioManager::preloadSound(const QString& soundName, const QString& filePat
     qDebug() << "Preloaded sound pool:" << soundName << "with" << POOL_SIZE << "instances";
 }
 
-void AudioManager::playSound(const QString& soundName) {
+void AudioManager::playSound(const QString &soundName) {
     if (!m_soundPools.contains(soundName)) {
         qWarning() << "Sound effect not found:" << soundName;
         return;
     }
 
-    SoundPool& pool = m_soundPools[soundName];
+    SoundPool &pool = m_soundPools[soundName];
 
     // 使用轮询方式选择下一个可用的音效实例
     // 这样可以避免同一个实例被重复调用play()导致阻塞
-    QSoundEffect* effect = pool.effects[pool.nextIndex];
+    QSoundEffect * effect = pool.effects[pool.nextIndex];
     pool.nextIndex = (pool.nextIndex + 1) % pool.effects.size();
 
     // 播放音效（非阻塞，因为使用不同实例）
     effect->play();
 }
 
-void AudioManager::playMusic(const QString& musicFile) {
+void AudioManager::playMusic(const QString &musicFile) {
     if (!QFile::exists(musicFile)) {
         qWarning() << "Music file not found:" << musicFile;
         return;
@@ -124,8 +124,8 @@ void AudioManager::setMusicVolume(int volume) {
 void AudioManager::setSoundVolume(int volume) {
     m_soundVolume = qBound(0, volume, 100);
     // 更新所有音效池中所有实例的音量
-    for (auto& pool : m_soundPools) {
-        for (QSoundEffect* effect : pool.effects) {
+    for (auto &pool: m_soundPools) {
+        for (QSoundEffect *effect: pool.effects) {
             effect->setVolume(m_soundVolume / 100.0);
         }
     }

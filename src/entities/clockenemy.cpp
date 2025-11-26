@@ -8,8 +8,7 @@
 #include "player.h"
 
 ClockEnemy::ClockEnemy(const QPixmap &pic, double scale)
-    : Enemy(pic, scale)
-{
+        : Enemy(pic, scale) {
     // 时钟怪物的基础属性（与普通敌人相同）
     setHealth(10);
     setContactDamage(2);
@@ -23,15 +22,13 @@ ClockEnemy::ClockEnemy(const QPixmap &pic, double scale)
     setZigzagAmplitude(60.0);
 }
 
-void ClockEnemy::onContactWithPlayer(Player *p)
-{
+void ClockEnemy::onContactWithPlayer(Player *p) {
     Q_UNUSED(p);
     // 接触时触发惊吓效果
     applyScareEffect();
 }
 
-void ClockEnemy::attackPlayer()
-{
+void ClockEnemy::attackPlayer() {
     if (!player)
         return;
 
@@ -41,11 +38,9 @@ void ClockEnemy::attackPlayer()
 
     // 近战攻击：检测碰撞
     QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item : collisions)
-    {
+    for (QGraphicsItem *item: collisions) {
         Player *p = dynamic_cast<Player *>(item);
-        if (p)
-        {
+        if (p) {
             p->takeDamage(contactDamage);
 
             // 触发惊吓效果（不可叠加）
@@ -56,8 +51,7 @@ void ClockEnemy::attackPlayer()
     }
 }
 
-void ClockEnemy::applyScareEffect()
-{
+void ClockEnemy::applyScareEffect() {
     if (!player || !scene())
         return;
 
@@ -71,14 +65,8 @@ void ClockEnemy::applyScareEffect()
 
     qDebug() << "时钟怪物触发惊吓效果！玩家移动速度增加但受伤提升150%，持续3秒";
 
-    // 设置效果冷却
+    // 立即设置效果冷却，防止重复触发（将在效果结束后解除）
     player->setEffectCooldown(true);
-    QPointer<Player> cooldownPtr = player;
-    QTimer::singleShot(500, [cooldownPtr]()
-                       {
-        if (cooldownPtr) {
-            cooldownPtr->setEffectCooldown(false);
-        } });
 
     // 显示"惊吓！！"文字提示
     QGraphicsTextItem *scareText = new QGraphicsTextItem("惊吓！！");
@@ -99,30 +87,36 @@ void ClockEnemy::applyScareEffect()
 
     // 创建文字跟随定时器，让文字跟随玩家移动
     QTimer *followTimer = new QTimer();
-    QObject::connect(followTimer, &QTimer::timeout, [playerPtr, scareText]()
-                     {
+    QObject::connect(followTimer, &QTimer::timeout, [playerPtr, scareText]() {
         if (playerPtr && scareText && scareText->scene()) {
             scareText->setPos(playerPtr->pos().x(), playerPtr->pos().y() - 40);
-        } });
+        }
+    });
     followTimer->start(16); // 每16ms更新位置
 
     // 3秒后恢复正常并删除文字
-    QTimer::singleShot(3000, [playerPtr, scareText, followTimer]()
-                       {
+    QTimer::singleShot(3000, [playerPtr, scareText, followTimer]() {
         // 停止跟随定时器
         if (followTimer) {
             followTimer->stop();
             delete followTimer;
         }
-        
+
         if (playerPtr) {
             playerPtr->setScared(false);
-            qDebug() << "惊吓效果结束，玩家恢复正常";
+            qDebug() << "惊吓效果结束，玩家恢复正常，3秒后可再次触发";
+            // 效果结束后3秒再解除冷却
+            QTimer::singleShot(3000, [playerPtr]() {
+                if (playerPtr) {
+                    playerPtr->setEffectCooldown(false);
+                }
+            });
         }
         if (scareText) {
             if (scareText->scene()) {
                 scareText->scene()->removeItem(scareText);
             }
             delete scareText;
-        } });
+        }
+    });
 }

@@ -10,8 +10,7 @@
  * @brief 配置管理器类 - 负责读取和提供游戏配置信息
  * 支持从JSON配置文件读取各种游戏设置
  */
-class ConfigManager
-{
+class ConfigManager {
 public:
     /**
      * @brief 获取单例实例
@@ -43,7 +42,7 @@ public:
     /**
      * @brief 获取尺寸配置
      */
-    int getSize(const QString &sizeName) const;
+    [[nodiscard]] int getSize(const QString &sizeName) const;
 
     /**
      * @brief 获取特定类型实体的尺寸
@@ -51,21 +50,21 @@ public:
      * @param typeName 具体类型名称，如 clock_normal, nightmare
      * @return 尺寸值，如果找不到则返回该分类的默认值
      */
-    int getEntitySize(const QString &category, const QString &typeName) const;
+    [[nodiscard]] int getEntitySize(const QString &category, const QString &typeName) const;
 
     /**
      * @brief 获取子弹尺寸
      * @param bulletType 子弹类型名称：player, sock_shooter, boss_washmachine 等
      * @return 尺寸值，如果找不到则返回默认值
      */
-    int getBulletSize(const QString &bulletType) const;
+    [[nodiscard]] int getBulletSize(const QString &bulletType) const;
 
     /**
      * @brief 获取游戏配置
      */
-    int getGameInt(const QString &key) const;
+    [[nodiscard]] int getGameInt(const QString &key) const;
 
-    double getGameDouble(const QString &key) const;
+    [[nodiscard]] double getGameDouble(const QString &key) const;
 
 private:
     ConfigManager() = default;

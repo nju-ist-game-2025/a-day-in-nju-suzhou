@@ -3,20 +3,20 @@
 #include <QPointer>
 #include <QTimer>
 
-Entity::Entity(QGraphicsPixmapItem* parent)
-    : QGraphicsPixmapItem(parent), crash_r(20), isFlashing(false) {
+Entity::Entity(QGraphicsPixmapItem *parent)
+        : QGraphicsPixmapItem(parent), crash_r(20), isFlashing(false) {
     setTransformationMode(Qt::SmoothTransformation);
     damageScale = 1.0;
     facingRight = true;
     flippingInProgress = false;
 }
 
-void Entity::setPixmap(const QPixmap& pix) {
+void Entity::setPixmap(const QPixmap &pix) {
     // 直接使用基类实现；player/enemy 可能直接调用这个接口
     QGraphicsPixmapItem::setPixmap(pix);
 }
 
-void Entity::setPixmapofDirs(QPixmap& downImg, QPixmap& upImg, QPixmap& leftImg, QPixmap& rightImg) {
+void Entity::setPixmapofDirs(QPixmap &downImg, QPixmap &upImg, QPixmap &leftImg, QPixmap &rightImg) {
     // 保存传入的四方向图，兼容旧代码
     down = downImg;
     up = upImg;
@@ -90,7 +90,7 @@ void Entity::setPos(qreal x, qreal y) {
     QGraphicsItem::setPos(x, y);
 }
 
-void Entity::setPos(const QPointF& pos) {
+void Entity::setPos(const QPointF &pos) {
     updateFacing();
     QGraphicsItem::setPos(pos);
 }
@@ -118,7 +118,8 @@ void Entity::flash() {
             // 恢复到捕获时的图片（保持当前尺寸）
             self->QGraphicsPixmapItem::setPixmap(original);
             self->isFlashing = false;
-        } });
+        }
+    });
 }
 
 void Entity::cancelFlash() {

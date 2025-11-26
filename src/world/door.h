@@ -6,20 +6,17 @@
 #include <QPropertyAnimation>
 #include <QTimer>
 
-class Door : public QObject, public QGraphicsPixmapItem
-{
-    Q_OBJECT
+class Door : public QObject, public QGraphicsPixmapItem {
+Q_OBJECT
 
 public:
-    enum DoorState
-    {
+    enum DoorState {
         Closed,
         Opening,
         Open
     };
 
-    enum Direction
-    {
+    enum Direction {
         Up,
         Down,
         Left,
@@ -27,16 +24,21 @@ public:
     };
 
     Door(Direction dir, QGraphicsItem *parent = nullptr);
+
     ~Door();
 
     void open();
+
     void setOpenState(); // 直接设置为打开状态（用于邻房间）
     bool isOpen() const { return m_state == Open; }
+
     DoorState state() const { return m_state; }
+
     Direction direction() const { return m_direction; } // 获取门的方向
 
 private:
     void loadImages();
+
     void playOpeningAnimation();
 
     Direction m_direction;
@@ -51,6 +53,7 @@ private:
     QPropertyAnimation *m_fadeAnimation;
 
 signals:
+
     void openingFinished();
 };
 

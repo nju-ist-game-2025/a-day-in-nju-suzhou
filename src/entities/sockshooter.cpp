@@ -7,14 +7,13 @@
 #include "projectile.h"
 
 SockShooter::SockShooter(const QPixmap &pic, double scale)
-    : Enemy(pic, scale),
-      m_shootTimer(nullptr),
-      m_facingRight(true),
-      m_bulletDamage(DEFAULT_BULLET_DAMAGE),
-      m_shootCooldown(DEFAULT_SHOOT_COOLDOWN),
-      m_bulletSpeed(DEFAULT_BULLET_SPEED),
-      m_bulletScale(DEFAULT_BULLET_SCALE)
-{
+        : Enemy(pic, scale),
+          m_shootTimer(nullptr),
+          m_facingRight(true),
+          m_bulletDamage(DEFAULT_BULLET_DAMAGE),
+          m_shootCooldown(DEFAULT_SHOOT_COOLDOWN),
+          m_bulletSpeed(DEFAULT_BULLET_SPEED),
+          m_bulletScale(DEFAULT_BULLET_SCALE) {
     // 设置基础属性
     setHealth(10);                         // 血量
     setContactDamage(0);                  // 无接触伤害！纯远程敌人
@@ -43,18 +42,15 @@ SockShooter::SockShooter(const QPixmap &pic, double scale)
              << " 接触伤害:" << contactDamage;
 }
 
-SockShooter::~SockShooter()
-{
-    if (m_shootTimer)
-    {
+SockShooter::~SockShooter() {
+    if (m_shootTimer) {
         m_shootTimer->stop();
         delete m_shootTimer;
         m_shootTimer = nullptr;
     }
 }
 
-void SockShooter::loadBulletPixmap()
-{
+void SockShooter::loadBulletPixmap() {
     // 从配置文件获取子弹大小
     int bulletSize = ConfigManager::instance().getBulletSize("sock_shooter");
     if (bulletSize <= 0)
@@ -63,43 +59,35 @@ void SockShooter::loadBulletPixmap()
     // 加载子弹图片
     QPixmap originalBullet("assets/items/bullet_sock_shooter.png");
 
-    if (originalBullet.isNull())
-    {
+    if (originalBullet.isNull()) {
         qWarning() << "无法加载 sock_shooter 子弹图片，使用默认黄色子弹";
         // 创建一个默认的黄色子弹
         m_bulletPixmap = QPixmap(bulletSize, bulletSize / 2);
         m_bulletPixmap.fill(Qt::yellow);
-    }
-    else
-    {
+    } else {
         // 缩放子弹图片到配置的大小
         m_bulletPixmap = originalBullet.scaled(bulletSize, bulletSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         qDebug() << "SockShooter 子弹图片加载成功，大小:" << m_bulletPixmap.size();
     }
 }
 
-void SockShooter::pauseTimers()
-{
+void SockShooter::pauseTimers() {
     Enemy::pauseTimers();
 
-    if (m_shootTimer && m_shootTimer->isActive())
-    {
+    if (m_shootTimer && m_shootTimer->isActive()) {
         m_shootTimer->stop();
     }
 }
 
-void SockShooter::resumeTimers()
-{
+void SockShooter::resumeTimers() {
     Enemy::resumeTimers();
 
-    if (m_shootTimer && !m_shootTimer->isActive())
-    {
+    if (m_shootTimer && !m_shootTimer->isActive()) {
         m_shootTimer->start(m_shootCooldown);
     }
 }
 
-void SockShooter::updateFacingDirection()
-{
+void SockShooter::updateFacingDirection() {
     if (!player)
         return;
 
@@ -112,39 +100,32 @@ void SockShooter::updateFacingDirection()
 
     // 设置 xdir 让 Entity 基类的 updateFacing() 处理图片翻转
     // 玩家在右边时 xdir > 0，在左边时 xdir < 0
-    if (dx > 0)
-    {
+    if (dx > 0) {
         xdir = 1; // 触发向右朝向
-    }
-    else if (dx < 0)
-    {
+    } else if (dx < 0) {
         xdir = -1; // 触发向左朝向
     }
 }
 
-void SockShooter::attackPlayer()
-{
+void SockShooter::attackPlayer() {
     // SockShooter 是纯远程敌人，不进行任何近战攻击
     // 完全重写基类方法，不调用基类实现
     // 射击由独立的 shootBullet() 定时器处理
 }
 
-void SockShooter::shootBullet()
-{
+void SockShooter::shootBullet() {
     // 暂停状态下不射击
     if (m_isPaused)
         return;
 
     // 检查是否在场景中
-    if (!scene())
-    {
+    if (!scene()) {
         qDebug() << "SockShooter::shootBullet - 不在场景中";
         return;
     }
 
     // 检查是否能看到玩家（在视野范围内）
-    if (!player)
-    {
+    if (!player) {
         qDebug() << "SockShooter::shootBullet - 没有玩家引用";
         return;
     }
