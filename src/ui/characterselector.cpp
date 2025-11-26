@@ -66,6 +66,21 @@ CharacterSelector::CharacterSelector(QWidget* parent)
     m_nameLabel->setAlignment(Qt::AlignCenter);
     m_nameLabel->setStyleSheet("color: #000000;");
 
+    // 能力说明
+    m_abilityLabel = new QLabel(this);
+    m_abilityLabel->setWordWrap(true);
+    QFont abilityFont;
+    abilityFont.setFamily("Microsoft YaHei");
+    abilityFont.setPointSize(14);
+    m_abilityLabel->setFont(abilityFont);
+    m_abilityLabel->setAlignment(Qt::AlignCenter);
+    m_abilityLabel->setStyleSheet(
+        "color: #1b5e20;"
+        "background-color: rgba(255, 255, 255, 120);"
+        "border: 2px solid #4CAF50;"
+        "border-radius: 8px;"
+        "padding: 10px;");
+
     // 角色选择按钮容器
     QWidget* characterContainer = new QWidget(this);
     m_characterLayout = new QHBoxLayout(characterContainer);
@@ -136,7 +151,8 @@ CharacterSelector::CharacterSelector(QWidget* parent)
     mainLayout->addSpacing(20);
     mainLayout->addWidget(m_previewLabel, 0, Qt::AlignCenter);
     mainLayout->addWidget(m_nameLabel);
-    mainLayout->addSpacing(20);
+    mainLayout->addWidget(m_abilityLabel);
+    mainLayout->addSpacing(10);
     mainLayout->addWidget(characterContainer);
     mainLayout->addSpacing(30);
     mainLayout->addLayout(buttonLayout);
@@ -153,12 +169,18 @@ CharacterSelector::CharacterSelector(QWidget* parent)
 }
 
 void CharacterSelector::loadCharacters() {
-    // 角色配置：名称和对应的图片文件名
-    QList<QPair<QString, QString>> characterConfigs = {
-        {"美少女", "beautifulGirl.png"},
-        {"高雅人士", "HighGracePeople.png"},
-        {"小蓝鲸", "njuFish.png"},
-        {"权服侠", "quanfuxia.png"}};
+    struct CharacterConfig {
+        QString name;
+        QString image;
+        QString ability;
+    };
+
+    // 角色配置：名称、图片与能力说明
+    QList<CharacterConfig> characterConfigs = {
+        {"美少女", "beautifulGirl.png", "子弹伤害翻倍，适合喜欢爆发输出的玩家。"},
+        {"高雅人士", "HighGracePeople.png", "初始心之容器 +2 且额外获得 2 点魂心，更耐打。"},
+        {"小蓝鲸", "njuFish.png", "移动速度 +25%，子弹速度 +20%，射击冷却 -40ms，灵活敏捷。"},
+        {"权服侠", "quanfuxia.png", "初始携带 2 枚炸弹、2 把钥匙和 1 点黑心，资源更充裕。"}};
 
     // 获取当前配置中的玩家角色路径
     QString currentPlayerPath = ConfigManager::instance().getAssetPath("player");
@@ -181,7 +203,7 @@ void CharacterSelector::loadCharacters() {
 
     for (int i = 0; i < characterConfigs.size(); ++i) {
         const auto& config = characterConfigs[i];
-        QString imagePath = QString("assets/player/%1").arg(config.second);
+        QString imagePath = QString("assets/player/%1").arg(config.image);
 
         // 检查文件是否存在
         if (!QFile::exists(imagePath)) {
@@ -190,8 +212,9 @@ void CharacterSelector::loadCharacters() {
         }
 
         CharacterInfo info;
-        info.name = config.first;
+        info.name = config.name;
         info.imagePath = imagePath;
+        info.ability = config.ability;
 
         // 创建角色选择按钮
         QPushButton* btn = new QPushButton(this);
@@ -225,6 +248,10 @@ void CharacterSelector::loadCharacters() {
 
     // 默认选择配置中的角色
     m_defaultSelectedIndex = defaultSelectedIndex;
+
+    if (m_abilityLabel) {
+        m_abilityLabel->setText("点击任意角色头像即可查看专属能力加成。");
+    }
 }
 
 void CharacterSelector::onCharacterClicked(int index) {
@@ -253,6 +280,14 @@ void CharacterSelector::updateSelection(int index) {
 
     // 更新名称
     m_nameLabel->setText(m_selectedName);
+
+    // 更新能力说明
+    if (m_abilityLabel) {
+        QString abilityText = m_characters[index].ability.isEmpty()
+                                  ? "该角色暂未配置能力说明。"
+                                  : QString("能力：%1").arg(m_characters[index].ability);
+        m_abilityLabel->setText(abilityText);
+    }
 }
 
 void CharacterSelector::onConfirmClicked() {
@@ -323,6 +358,11 @@ void CharacterSelector::resizeEvent(QResizeEvent* event) {
     buttonFont.setBold(true);
     m_confirmButton->setFont(buttonFont);
     m_backButton->setFont(buttonFont);
+
+    QFont abilityFont;
+    abilityFont.setFamily("Microsoft YaHei");
+    abilityFont.setPointSize(static_cast<int>(14 * scale));
+    m_abilityLabel->setFont(abilityFont);
 
     // 更新预览图
     if (m_selectedIndex >= 0 && m_selectedIndex < m_characters.size()) {

@@ -25,6 +25,7 @@ public:
 
     void paintEffects(QPainter *painter, const QString &text, int count, double duration, QColor color = Qt::black);
     void paintMinimap(QPainter *painter);
+    void paintTeleportCooldown(QPainter *painter);
 
     struct RoomNode
     {

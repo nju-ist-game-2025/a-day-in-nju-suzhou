@@ -3,6 +3,17 @@
 #include <QFile>
 #include "world/map.h"
 
+namespace {
+Map& sharedMapInstance() {
+    static Map map;
+    return map;
+}
+}  // namespace
+
+void clearMapWalls() {
+    sharedMapInstance().clear();
+}
+
 GameWindow::GameWindow(QWidget* parent)
     : QMainWindow(parent), m_selectedCharacter("assets/player/player.png") {
     // 设置窗口属性
@@ -94,7 +105,7 @@ void GameWindow::exitGame() {
 }
 
 void setupMap(QGraphicsScene* scene) {
-    static Map map;
+    Map& map = sharedMapInstance();
     const QString levelPath = QStringLiteral("assets/levels/level1_wall.json");
     // 墙壁配置是可选的，如果文件不存在也不影响游戏运行
     if (QFile::exists(levelPath)) {

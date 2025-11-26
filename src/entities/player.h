@@ -51,6 +51,7 @@ public:
     void keyReleaseEvent(QKeyEvent *event) override;
 
     void move() override;
+    void tryTeleport(); // Q键瞬移
 
     void setBulletPic(const QPixmap &pic) { pic_bullet = pic; };
 
@@ -88,6 +89,11 @@ public:
     [[nodiscard]] int getBlackHearts() const { return blackHearts; };
 
     void setShootType(int type) { shootType = type; };
+
+    int getTeleportCooldownMs() const { return m_teleportCooldownMs; }
+    int getTeleportRemainingMs() const;
+    double getTeleportReadyRatio() const;
+    bool isTeleportReady() const;
 
     void crashEnemy();
 
@@ -159,6 +165,12 @@ private:
     bool m_effectOnCooldown = false;    // 效果是否在冷却中
     double m_originalSpeed = 5.0;       // 惊吓前的原始速度
     double m_originalDamageScale = 1.0; // 惊吓前的原始伤害倍率
+    qint64 m_lastTeleportTime = 0;      // 上次瞬移时间
+    int m_teleportCooldownMs = 5000;    // 瞬移冷却（毫秒）
+    double m_teleportDistance = 120.0;  // 瞬移距离
+
+    QPointF currentMoveDirection() const;
+    QPointF clampPositionWithinRoom(const QPointF &candidate) const;
 
 protected:
     void focusOutEvent(QFocusEvent *event) override;

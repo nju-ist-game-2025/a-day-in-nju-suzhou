@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QFile>
+#include <QFileInfo>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPixmap>
@@ -110,6 +111,8 @@ void GameView::initGame() {
             hud = nullptr;
         }
 
+        // 在清空场景前，先移除全局地图中的墙体，避免重复释放
+        clearMapWalls();
         // scene->clear()会自动删除所有图形项（包括player和enemies）
         scene->clear();
         player = nullptr;  // 清空指针引用
@@ -141,6 +144,7 @@ void GameView::initGame() {
 
         // 创建玩家
         player = new Player(playerPixmap, 1.0);
+        applyCharacterAbility(player, characterPath);
 
         // 创建HUD
         hud = new HUD(player);
@@ -222,7 +226,6 @@ void GameView::onStoryFinished() {
         int playerSize = 60;  // 需要与initGame中的一致
         player->setPos(scene_bound_x / 2 - playerSize / 2, scene_bound_y / 2 - playerSize / 2);
         player->setZValue(100);
-        player->setShootCooldown(150);
     }
 
     // 将HUD添加到场景
@@ -314,6 +317,7 @@ void GameView::initAudio() {
     audio.preloadSound("chest_open", "assets/sounds/chest_open.wav");
     audio.preloadSound("door_open", "assets/sounds/door_open.wav");
     audio.preloadSound("enter_room", "assets/sounds/enter_room.wav");
+    audio.preloadSound("player_teleport", "assets/sounds/teleport.wav");
 
     // 播放背景音乐
     audio.playMusic("assets/music/background.mp3");
@@ -389,6 +393,43 @@ void GameView::keyReleaseEvent(QKeyEvent* event) {
     }
 
     QWidget::keyReleaseEvent(event);
+}
+
+void GameView::applyCharacterAbility(Player* player, const QString& characterPath) {
+    if (!player)
+        return;
+
+    const QString key = resolveCharacterKey(characterPath);
+    if (key.isEmpty())
+        return;
+
+    if (key == "beautifulGirl") {
+        player->setBulletHurt(player->getBulletHurt() * 2);
+        qDebug() << "角色加成: 美少女 - 子弹伤害翻倍";
+    } else if (key == "HighGracePeople") {
+        player->addRedContainers(2);
+        player->addRedHearts(2.0);
+        player->addSoulHearts(2);
+        qDebug() << "角色加成: 高雅人士 - 初始血量强化";
+    } else if (key == "njuFish") {
+        player->setSpeed(player->getSpeed() * 1.25);
+        player->setshootSpeed(player->getshootSpeed() * 1.2);
+        player->setShootCooldown(qMax(80, player->getShootCooldown() - 40));
+        qDebug() << "角色加成: 小蓝鲸 - 高机动与射速";
+    } else if (key == "quanfuxia") {
+        player->addBombs(2);
+        player->addKeys(2);
+        player->addBlackHearts(1);
+        qDebug() << "角色加成: 权服侠 - 初始资源富足";
+    }
+}
+
+QString GameView::resolveCharacterKey(const QString& characterPath) const {
+    if (characterPath.isEmpty())
+        return QString();
+
+    QFileInfo info(characterPath);
+    return info.baseName();
 }
 
 void GameView::updateHUD() {
