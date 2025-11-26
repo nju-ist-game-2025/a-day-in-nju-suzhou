@@ -49,7 +49,7 @@
           "count": 3
         },
         {
-          "type": "walker",
+          "type": "sock_shooter",
           "count": 3
         }
       ],
@@ -84,11 +84,11 @@
       "background": "map2",
       "enemies": [
         {
-          "type": "sock_normal",
+          "type": "walker",
           "count": 4
         },
         {
-          "type": "sock_angrily",
+          "type": "pants",
           "count": 3
         }
       ],
@@ -108,12 +108,16 @@
       "background": "map2",
       "enemies": [
         {
-          "type": "sock_normal",
-          "count": 4
+          "type": "sock_shooter",
+          "count": 6
         },
         {
           "type": "sock_angrily",
           "count": 1
+        },
+        {
+          "type": "sock_normal",
+          "count": 2
         }
       ],
       "hasBoss": false,
@@ -132,12 +136,16 @@
       "background": "map2",
       "enemies": [
         {
-          "type": "sock_normal",
-          "count": 4
+          "type": "sock_shooter",
+          "count": 3
+        },
+        {
+          "type": "pants",
+          "count": 1
         },
         {
           "type": "sock_angrily",
-          "count": 2
+          "count": 3
         }
       ],
       "hasBoss": false,
@@ -202,11 +210,23 @@
       "enemies": [
         {
           "type": "sock_normal",
-          "count": 4
+          "count": 2
         },
         {
           "type": "sock_angrily",
-          "count": 3
+          "count": 2
+        },
+        {
+          "type": "walker",
+          "count": 2
+        },
+        {
+          "type": "sock_shooter",
+          "count": 2
+        },
+        {
+          "type": "pants",
+          "count": 1
         }
       ],
       "hasBoss": true,

@@ -263,6 +263,27 @@ void PantsEnemy::onContactWithPlayer(Player *p)
     // 旋转伤害由 checkSpinningDamage() 单独处理
 }
 
+void PantsEnemy::takeDamage(int damage)
+{
+    // 先检查是否会导致死亡
+    int realDamage = qMax(1, damage);
+    if (health - realDamage <= 0)
+    {
+        // 即将死亡，先清理 spinning 资源（此时 scene() 还有效）
+        if (m_spinningCircle && scene())
+        {
+            scene()->removeItem(m_spinningCircle);
+            delete m_spinningCircle;
+            m_spinningCircle = nullptr;
+        }
+        // 停止旋转状态
+        m_isSpinning = false;
+    }
+
+    // 调用基类的 takeDamage 处理实际伤害和死亡逻辑
+    Enemy::takeDamage(damage);
+}
+
 void PantsEnemy::attackPlayer()
 {
     if (!player)

@@ -28,6 +28,7 @@ class Room : public QGraphicsScene
 
 public:
     Room();
+    ~Room(); // 析构函数，清理敌人和宝箱
 
     Room(Player *p, bool u, bool d, bool l, bool r);
 
