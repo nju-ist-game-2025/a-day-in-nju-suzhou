@@ -17,6 +17,7 @@
 #include "../entities/player.h"
 #include "../entities/projectile.h"
 #include "../entities/sockenemy.h"
+#include "../entities/sockshooter.h"
 #include "../entities/pillowenemy.h"
 #include "../entities/washmachineboss.h"
 #include "../items/chest.h"
@@ -246,8 +247,9 @@ bool Level::eventFilter(QObject *watched, QEvent *event)
             {
                 auto *keyEvent = dynamic_cast<QKeyEvent *>(event);
                 if (!m_skipRequested &&
-                keyEvent->modifiers().testFlag(Qt::ControlModifier) &&
-                keyEvent->key() == Qt::Key_S){
+                    keyEvent->modifiers().testFlag(Qt::ControlModifier) &&
+                    keyEvent->key() == Qt::Key_S)
+                {
                     m_skipRequested = true;
                     finishStory();
                     return true;
@@ -417,7 +419,7 @@ void Level::nextDialog()
 void Level::finishStory()
 {
     qDebug() << "剧情播放完毕";
-    m_skipRequested=false;
+    m_skipRequested = false;
     // 清理渐变背景
     if (m_textBackground)
     {
@@ -851,6 +853,10 @@ Enemy *Level::createEnemyByType(int levelNumber, const QString &enemyType, const
         else if (enemyType == "pants")
         {
             return new PantsEnemy(pic, scale);
+        }
+        else if (enemyType == "sock_shooter")
+        {
+            return new SockShooter(pic, scale);
         }
     }
 

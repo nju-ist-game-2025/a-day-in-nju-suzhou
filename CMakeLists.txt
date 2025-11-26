@@ -65,6 +65,8 @@ set(ENTITY_SOURCES
         src/entities/clockboom.h
         src/entities/sockenemy.cpp
         src/entities/sockenemy.h
+        src/entities/sockshooter.cpp
+        src/entities/sockshooter.h
         src/entities/pillowenemy.cpp
         src/entities/pillowenemy.h
         src/entities/pantsenemy.cpp
@@ -211,6 +213,33 @@ add_custom_target(copy_assets ALL
         COMMENT "Copying assets to build directory"
 )
 add_dependencies(game_final copy_assets)
+
+# 复制 Qt 多媒体插件到构建目录（解决 "No QtMultimedia backends found" 问题）
+if (WIN32 AND Qt6_FOUND)
+    # 获取 Qt 安装目录
+    get_target_property(QT_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
+    get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
+    get_filename_component(QT_DIR "${QT_BIN_DIR}" DIRECTORY)
+    
+    # 复制多媒体插件
+    add_custom_command(TARGET game_final POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:game_final>/multimedia"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${QT_DIR}/plugins/multimedia"
+            "$<TARGET_FILE_DIR:game_final>/multimedia"
+        COMMENT "Copying Qt multimedia plugins"
+    )
+    
+    # 复制 Qt6Multimedia.dll（如果存在）
+    if (EXISTS "${QT_BIN_DIR}/Qt6Multimedia.dll")
+        add_custom_command(TARGET game_final POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${QT_BIN_DIR}/Qt6Multimedia.dll"
+                "$<TARGET_FILE_DIR:game_final>/"
+            COMMENT "Copying Qt6Multimedia.dll"
+        )
+    endif()
+endif()
 
 if (QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(game_final)

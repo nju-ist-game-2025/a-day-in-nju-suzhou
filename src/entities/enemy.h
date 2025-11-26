@@ -156,12 +156,12 @@ protected:
     QPointF getRandomWanderPoint();
 
     // 移动模式实现方法
-    void executeMovement();  // 根据当前模式执行移动
-    void moveZigzag();       // Z字形移动
-    void moveCircle();       // 绕圈移动
-    void moveDash();         // 冲刺移动
-    void moveKeepDistance(); // 保持距离移动
-    void moveDiagonal();     // 斜向移动
+    virtual void executeMovement(); // 根据当前模式执行移动（可重写）
+    void moveZigzag();              // Z字形移动
+    void moveCircle();              // 绕圈移动
+    void moveDash();                // 冲刺移动
+    void moveKeepDistance();        // 保持距离移动
+    void moveDiagonal();            // 斜向移动
 };
 
 #endif // ENEMY_H

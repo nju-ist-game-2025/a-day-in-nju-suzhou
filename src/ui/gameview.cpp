@@ -167,10 +167,10 @@ void GameView::initGame()
         // 设置地图墙壁
         setupMap(scene);
 
-        // 加载子弹图片
-        int bulletSize = ConfigManager::instance().getSize("bullet");
+        // 加载子弹图片（使用新的子弹分类配置）
+        int bulletSize = ConfigManager::instance().getBulletSize("player");
         if (bulletSize <= 0)
-            bulletSize = 50; // 默认值
+            bulletSize = 20; // 默认值
         QPixmap bulletPixmap = ResourceFactory::createBulletImage(bulletSize);
         player->setBulletPic(bulletPixmap);
 
@@ -440,7 +440,8 @@ void GameView::keyReleaseEvent(QKeyEvent *event)
     QWidget::keyReleaseEvent(event);
 }
 
-void GameView::applyCharacterAbility(Player* player, const QString& characterPath) {
+void GameView::applyCharacterAbility(Player *player, const QString &characterPath)
+{
     if (!player)
         return;
 
@@ -448,20 +449,27 @@ void GameView::applyCharacterAbility(Player* player, const QString& characterPat
     if (key.isEmpty())
         return;
 
-    if (key == "beautifulGirl") {
+    if (key == "beautifulGirl")
+    {
         player->setBulletHurt(player->getBulletHurt() * 2);
         qDebug() << "角色加成: 美少女 - 子弹伤害翻倍";
-    } else if (key == "HighGracePeople") {
+    }
+    else if (key == "HighGracePeople")
+    {
         player->addRedContainers(2);
         player->addRedHearts(2.0);
         player->addSoulHearts(2);
         qDebug() << "角色加成: 高雅人士 - 初始血量强化";
-    } else if (key == "njuFish") {
+    }
+    else if (key == "njuFish")
+    {
         player->setSpeed(player->getSpeed() * 1.25);
         player->setshootSpeed(player->getshootSpeed() * 1.2);
         player->setShootCooldown(qMax(80, player->getShootCooldown() - 40));
         qDebug() << "角色加成: 小蓝鲸 - 高机动与射速";
-    } else if (key == "quanfuxia") {
+    }
+    else if (key == "quanfuxia")
+    {
         player->addBombs(2);
         player->addKeys(2);
         player->addBlackHearts(1);
@@ -469,7 +477,8 @@ void GameView::applyCharacterAbility(Player* player, const QString& characterPat
     }
 }
 
-QString GameView::resolveCharacterKey(const QString& characterPath) const {
+QString GameView::resolveCharacterKey(const QString &characterPath) const
+{
     if (characterPath.isEmpty())
         return QString();
 

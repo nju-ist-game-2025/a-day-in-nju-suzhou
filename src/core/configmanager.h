@@ -54,6 +54,13 @@ public:
     int getEntitySize(const QString &category, const QString &typeName) const;
 
     /**
+     * @brief 获取子弹尺寸
+     * @param bulletType 子弹类型名称：player, sock_shooter, boss_washmachine 等
+     * @return 尺寸值，如果找不到则返回默认值
+     */
+    int getBulletSize(const QString &bulletType) const;
+
+    /**
      * @brief 获取游戏配置
      */
     int getGameInt(const QString &key) const;

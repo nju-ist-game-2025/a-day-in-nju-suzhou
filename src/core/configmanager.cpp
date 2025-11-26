@@ -145,6 +145,43 @@ int ConfigManager::getEntitySize(const QString &category, const QString &typeNam
     return sizes.value(fallbackKey).toInt();
 }
 
+int ConfigManager::getBulletSize(const QString &bulletType) const
+{
+    if (!loaded)
+    {
+        qWarning() << "配置文件未加载";
+        return 20; // 默认子弹大小
+    }
+
+    QJsonObject sizes = configObject.value("sizes").toObject();
+
+    // 获取 bullets 分类
+    if (sizes.contains("bullets") && sizes.value("bullets").isObject())
+    {
+        QJsonObject bulletsObj = sizes.value("bullets").toObject();
+
+        // 先尝试获取具体类型的子弹尺寸
+        if (bulletsObj.contains(bulletType))
+        {
+            return bulletsObj.value(bulletType).toInt();
+        }
+
+        // 如果没有具体类型，返回默认值
+        if (bulletsObj.contains("default"))
+        {
+            return bulletsObj.value("default").toInt();
+        }
+    }
+
+    // 回退到旧的 bullet 配置（兼容性）
+    if (sizes.contains("bullet"))
+    {
+        return sizes.value("bullet").toInt();
+    }
+
+    return 20; // 最终默认值
+}
+
 int ConfigManager::getGameInt(const QString &key) const
 {
     if (!loaded)
