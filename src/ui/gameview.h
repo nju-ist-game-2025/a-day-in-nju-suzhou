@@ -28,6 +28,7 @@ class GameView : public QWidget {
     bool m_isInStoryMode;
     bool m_isPaused;                // 游戏是否暂停
     QString m_playerCharacterPath;  // 玩家角色图片路径
+    int m_startLevel = 1;           // 起始关卡（开发者模式）
 
    public:
     explicit GameView(QWidget* parent = nullptr);
@@ -36,6 +37,7 @@ class GameView : public QWidget {
 
     void initGame();
     void setPlayerCharacter(const QString& characterPath);  // 设置玩家角色
+    void setStartLevel(int level) { m_startLevel = level; }  // 设置起始关卡（开发者模式）
     HUD* getHUD() const { return hud; }
 
    protected:

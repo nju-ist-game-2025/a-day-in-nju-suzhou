@@ -22,6 +22,7 @@ GameWindow::GameWindow(QWidget* parent)
     connect(mainMenu, &MainMenu::selectCharacterClicked, this, &GameWindow::showCharacterSelector);  // 角色选择连接
     connect(mainMenu, &MainMenu::codexClicked, this, &GameWindow::showCodex);                        // 新增连接
     connect(mainMenu, &MainMenu::exitGameClicked, this, &GameWindow::exitGame);
+    connect(mainMenu, &MainMenu::devModeClicked, this, &GameWindow::startGameAtLevel);               // 开发者模式连接
 
     // 创建游戏视图
     gameView = new GameView(this);
@@ -64,6 +65,14 @@ void GameWindow::startGame() {
     gameView->initGame();
     stackedWidget->setCurrentWidget(gameView);
     gameView->setFocus();  // 确保游戏视图获得焦点以接收键盘事件
+}
+
+void GameWindow::startGameAtLevel(int level) {
+    qDebug() << "开发者模式: 跳转到第" << level << "关";
+    gameView->setStartLevel(level);
+    gameView->initGame();
+    stackedWidget->setCurrentWidget(gameView);
+    gameView->setFocus();
 }
 
 void GameWindow::showCodex() {

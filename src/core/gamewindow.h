@@ -21,6 +21,7 @@ class GameWindow : public QMainWindow {
     void showMainMenu();
 
     void startGame();
+    void startGameAtLevel(int level);  // 开发者模式：跳转到指定关卡
 
     void showCodex();                                        // 新增：显示图鉴
     void showCharacterSelector();                            // 显示角色选择

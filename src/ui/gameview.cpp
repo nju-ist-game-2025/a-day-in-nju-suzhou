@@ -189,7 +189,12 @@ void GameView::initGame() {
                 qDebug() << "GameView: Updating minimap for room" << roomIndex;
             } });
 
+        // 使用开发者设置的起始关卡（默认为1）
+        currentLevel = m_startLevel;
         level->init(currentLevel);
+        
+        // 重置起始关卡为1（下次正常开始游戏时从第1关开始）
+        m_startLevel = 1;
 
         // 初始化小地图
         if (hud)

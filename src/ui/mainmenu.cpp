@@ -2,6 +2,7 @@
 #include <QFile>
 #include <QFont>
 #include <QGraphicsDropShadowEffect>
+#include <QInputDialog>
 #include <QMessageBox>
 #include <QPalette>
 #include <QPixmap>
@@ -157,6 +158,28 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
     exitButton->setFont(buttonFont);
     exitButton->setStyleSheet(exitButtonStyle);
 
+    // 创建开发者模式按钮（橙色样式）
+    QString devButtonStyle =
+        "QPushButton {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FF9800, stop:1 #F57C00);"
+        "   color: white;"
+        "   border: 2px solid #E65100;"
+        "   border-radius: 10px;"
+        "   padding: 5px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFB74D, stop:1 #FFA726);"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F57C00, stop:1 #E65100);"
+        "   padding-top: 7px;"
+        "   padding-left: 7px;"
+        "}";
+    devModeButton = new QPushButton("开发者模式", this);
+    devModeButton->setFixedSize(220, 60);
+    devModeButton->setFont(buttonFont);
+    devModeButton->setStyleSheet(devButtonStyle);
+
     // 添加到布局
     mainLayout->addStretch();
     mainLayout->addWidget(titleLabel);
@@ -164,6 +187,7 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
     mainLayout->addWidget(startButton, 0, Qt::AlignCenter);
     mainLayout->addWidget(characterButton, 0, Qt::AlignCenter);  // 角色选择按钮
     mainLayout->addWidget(codexButton, 0, Qt::AlignCenter);      // 新增按钮
+    mainLayout->addWidget(devModeButton, 0, Qt::AlignCenter);    // 开发者模式按钮
     mainLayout->addWidget(exitButton, 0, Qt::AlignCenter);
     mainLayout->addStretch();
 
@@ -190,6 +214,21 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
     connect(characterButton, &QPushButton::clicked, this, &MainMenu::selectCharacterClicked);  // 角色选择连接
     connect(codexButton, &QPushButton::clicked, this, &MainMenu::codexClicked);                // 新增连接
     connect(exitButton, &QPushButton::clicked, this, &MainMenu::exitGameClicked);
+    
+    // 开发者模式按钮 - 弹出关卡选择对话框
+    connect(devModeButton, &QPushButton::clicked, this, [this]() {
+        QStringList levels;
+        levels << "第1关 - 时钟梦境" << "第2关 - 袜子王国" << "第3关 - 终极挑战";
+        
+        bool ok;
+        QString selectedLevel = QInputDialog::getItem(this, "开发者模式", 
+            "选择要跳转的关卡:", levels, 0, false, &ok);
+        
+        if (ok && !selectedLevel.isEmpty()) {
+            int levelNum = levels.indexOf(selectedLevel) + 1;
+            emit devModeClicked(levelNum);
+        }
+    });
 }
 
 void MainMenu::resizeEvent(QResizeEvent* event) {
@@ -218,6 +257,7 @@ void MainMenu::resizeEvent(QResizeEvent* event) {
     startButton->setFixedSize(buttonWidth, buttonHeight);
     characterButton->setFixedSize(buttonWidth, buttonHeight);
     codexButton->setFixedSize(buttonWidth, buttonHeight);
+    devModeButton->setFixedSize(buttonWidth, buttonHeight);
     exitButton->setFixedSize(buttonWidth, buttonHeight);
 
     // 缩放按钮字体
@@ -228,6 +268,7 @@ void MainMenu::resizeEvent(QResizeEvent* event) {
     startButton->setFont(buttonFont);
     characterButton->setFont(buttonFont);
     codexButton->setFont(buttonFont);
+    devModeButton->setFont(buttonFont);
     exitButton->setFont(buttonFont);
 
     // 标题：如果使用图片则缩放图片，否则缩放文本字体
