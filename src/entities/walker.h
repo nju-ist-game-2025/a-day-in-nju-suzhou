@@ -90,7 +90,7 @@ private:
     double m_walkerSpeed;       // 移动速度（默认：12.0，快速）
     int m_dirChangeInterval;    // 方向切换间隔（默认：3000ms）
     int m_trailSpawnInterval;   // 毒痕生成间隔（默认：100ms）
-    int m_trailDuration;        // 毒痕持续时间（默认：5000ms）
+    int m_trailDuration;        // 毒痕持续时间（默认：3000ms）
     double m_encourageDuration; // 鼓舞效果持续时间（默认：3秒）
     double m_poisonDuration;    // 中毒效果持续时间（默认：3秒）
 
@@ -98,7 +98,7 @@ private:
     static constexpr double DEFAULT_WALKER_SPEED = 12.0;
     static constexpr int DEFAULT_DIR_CHANGE_INTERVAL = 3000;  // 3秒
     static constexpr int DEFAULT_TRAIL_SPAWN_INTERVAL = 100;  // 100ms
-    static constexpr int DEFAULT_TRAIL_DURATION = 5000;       // 5秒
+    static constexpr int DEFAULT_TRAIL_DURATION = 3000;       // 3秒
     static constexpr double DEFAULT_ENCOURAGE_DURATION = 3.0; // 3秒
     static constexpr double DEFAULT_POISON_DURATION = 3.0;    // 3秒
     static constexpr double DEFAULT_VISION_RANGE = 1000.0;    // 超大视野（全图游走）
