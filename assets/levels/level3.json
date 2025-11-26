@@ -25,131 +25,63 @@
   ],
   "rooms": [
     {
-      "background": "map1",
-      "enemyCount": 4,
-      "enemies": [
-        {
-          "type": "sock_normal",
-          "count": 3
-        },
-        {
-          "type": "sock_angrily",
-          "count": 1
-        }
-      ],
+      "id": 0,
+      "name": "Room 1 - Initial",
+      "background": "classRoom",
+      "enemies": [],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": false,
       "doors": {
-        "up": -1,
-        "down": 1,
-        "left": -1,
-        "right": 2
+        "up": 4,
+        "down": -1,
+        "left": 1,
+        "right": -1
       }
     },
     {
+      "id": 1,
+      "name": "Room 2 - Combat",
       "background": "convexBook",
-      "enemyCount": 5,
       "enemies": [
         {
           "type": "sock_normal",
           "count": 3
-        },
-        {
-          "type": "sock_angrily",
-          "count": 2
         }
       ],
       "hasBoss": false,
       "hasChest": false,
       "isChestLocked": false,
       "doors": {
-        "up": 0,
-        "down": 3,
+        "up": -1,
+        "down": -1,
         "left": -1,
-        "right": -1
+        "right": 0
       }
     },
     {
-      "background": "map3",
-      "enemyCount": 4,
-      "enemies": [
-        {
-          "type": "sock_normal",
-          "count": 2
-        },
-        {
-          "type": "sock_angrily",
-          "count": 2
-        }
-      ],
+      "id": 2,
+      "name": "Room 3 - Special",
+      "background": "classRoom",
+      "enemies": [],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": true,
       "doors": {
         "up": -1,
-        "down": 4,
-        "left": 0,
-        "right": 5
-      }
-    },
-    {
-      "background": "map3",
-      "enemyCount": 6,
-      "enemies": [
-        {
-          "type": "sock_normal",
-          "count": 3
-        },
-        {
-          "type": "sock_angrily",
-          "count": 3
-        }
-      ],
-      "hasBoss": false,
-      "hasChest": false,
-      "isChestLocked": false,
-      "doors": {
-        "up": 1,
         "down": 6,
         "left": -1,
         "right": -1
       }
     },
     {
-      "background": "map3",
-      "enemyCount": 5,
+      "id": 3,
+      "name": "Room 4 - Combat",
+      "background": "convexBook",
       "enemies": [
         {
           "type": "sock_normal",
-          "count": 3
-        },
-        {
-          "type": "sock_angrily",
-          "count": 2
-        }
-      ],
-      "hasBoss": false,
-      "hasChest": true,
-      "isChestLocked": false,
-      "doors": {
-        "up": 2,
-        "down": 7,
-        "left": -1,
-        "right": -1
-      }
-    },
-    {
-      "background": "map3",
-      "enemyCount": 7,
-      "enemies": [
-        {
-          "type": "sock_normal",
-          "count": 4
-        },
-        {
-          "type": "sock_angrily",
-          "count": 3
+          "count": 7
         }
       ],
       "hasBoss": false,
@@ -158,157 +90,115 @@
       "doors": {
         "up": -1,
         "down": 8,
-        "left": 2,
+        "left": -1,
+        "right": 7
+      }
+    },
+    {
+      "id": 4,
+      "name": "Room 5 - Combat",
+      "background": "convexBook",
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 5
+        }
+      ],
+      "hasBoss": false,
+      "hasChest": false,
+      "isChestLocked": false,
+      "doors": {
+        "up": -1,
+        "down": 0,
+        "left": 5,
+        "right": 8
+      }
+    },
+    {
+      "id": 5,
+      "name": "Room 6 - Combat",
+      "background": "convexBook",
+      "enemies": [
+        {
+          "type": "sock_normal",
+          "count": 7
+        }
+      ],
+      "hasBoss": false,
+      "hasChest": false,
+      "isChestLocked": false,
+      "doors": {
+        "up": -1,
+        "down": -1,
+        "left": 6,
+        "right": 4
+      }
+    },
+    {
+      "id": 6,
+      "name": "Room 7 - Item",
+      "background": "classRoom",
+      "enemies": [],
+      "hasBoss": false,
+      "hasChest": true,
+      "isChestLocked": false,
+      "doors": {
+        "up": 2,
+        "down": -1,
+        "left": -1,
+        "right": 5
+      }
+    },
+    {
+      "id": 7,
+      "name": "Room 8 - Item",
+      "background": "classRoom",
+      "enemies": [],
+      "hasBoss": false,
+      "hasChest": true,
+      "isChestLocked": true,
+      "doors": {
+        "up": 9,
+        "down": -1,
+        "left": 3,
         "right": -1
       }
     },
     {
-      "background": "map3",
-      "enemyCount": 5,
-      "enemies": [
-        {
-          "type": "sock_normal",
-          "count": 3
-        },
-        {
-          "type": "sock_angrily",
-          "count": 2
-        }
-      ],
+      "id": 8,
+      "name": "Room 9 - Special",
+      "background": "classRoom",
+      "enemies": [],
       "hasBoss": false,
       "hasChest": true,
-      "isChestLocked": true,
+      "isChestLocked": false,
       "doors": {
         "up": 3,
-        "down": 9,
-        "left": -1,
-        "right": -1
-      }
-    },
-    {
-      "background": "map3",
-      "enemyCount": 6,
-      "enemies": [
-        {
-          "type": "sock_normal",
-          "count": 3
-        },
-        {
-          "type": "sock_angrily",
-          "count": 3
-        }
-      ],
-      "hasBoss": false,
-      "hasChest": false,
-      "isChestLocked": false,
-      "doors": {
-        "up": 4,
-        "down": 10,
-        "left": -1,
-        "right": -1
-      }
-    },
-    {
-      "background": "map3",
-      "enemyCount": 8,
-      "enemies": [
-        {
-          "type": "sock_normal",
-          "count": 4
-        },
-        {
-          "type": "sock_angrily",
-          "count": 4
-        }
-      ],
-      "hasBoss": false,
-      "hasChest": true,
-      "isChestLocked": false,
-      "doors": {
-        "up": 5,
-        "down": 11,
-        "left": -1,
-        "right": -1
-      }
-    },
-    {
-      "background": "map3",
-      "enemyCount": 6,
-      "enemies": [
-        {
-          "type": "sock_normal",
-          "count": 3
-        },
-        {
-          "type": "sock_angrily",
-          "count": 3
-        }
-      ],
-      "hasBoss": false,
-      "hasChest": false,
-      "isChestLocked": false,
-      "doors": {
-        "up": 6,
         "down": -1,
-        "left": -1,
+        "left": 4,
         "right": -1
       }
     },
     {
-      "background": "map3",
-      "enemyCount": 7,
+      "id": 9,
+      "name": "Room 10 - Special (Boss)",
+      "background": "convexBook",
       "enemies": [
         {
           "type": "sock_normal",
-          "count": 4
-        },
-        {
-          "type": "sock_angrily",
-          "count": 3
-        }
-      ],
-      "hasBoss": false,
-      "hasChest": true,
-      "isChestLocked": true,
-      "doors": {
-        "up": 7,
-        "down": -1,
-        "left": -1,
-        "right": -1
-      }
-    },
-    {
-      "background": "map3",
-      "enemyCount": 10,
-      "enemies": [
-        {
-          "type": "sock_normal",
-          "count": 5
-        },
-        {
-          "type": "sock_angrily",
-          "count": 5
+          "count": 12
         }
       ],
       "hasBoss": true,
       "bossDialog": [
-        "（智科er蹲手蹄脚爬上最顶层）",
-        "**智科er** \n（看着眼前的教室大门）",
-        "**智科er** \n 这里就是...\u6700后一关？",
-        "（门缓缓打开，黑板上写满了复杂的公式）",
-        "【教室Boss】\n『欢迎来到期末考场』",
-        "【教室Boss】\n『这里是检验你一学期学习成果的地方』",
-        "**智科er** \n（双手紧握）",
-        "**智科er** \n 我...\u6211已\u7ecf复习好了！",
-        "【教室Boss】\n『是吗？那就让我看看你的实力！』",
-        "【教室Boss】\n『这是你的最终考验！』",
-        "（最终Boss战开始！）"
+        "（Boss战即将开始）"
       ],
+      "bossDialogBackground": "assets/boss_dia/boss1.png",
       "hasChest": true,
       "isChestLocked": false,
       "doors": {
-        "up": 8,
-        "down": -1,
+        "up": -1,
+        "down": 7,
         "left": -1,
         "right": -1
       }
