@@ -189,8 +189,9 @@ void WashMachineBoss::enterPhase2() {
         qWarning() << "[WashMachine] 愤怒图片为空，无法切换！";
     }
 
-    // 切换到冲刺模式
+    // 切换到冲刺模式，设置全屏视野
     setMovementPattern(MOVE_DASH);
+    setVisionRange(10000);   // 全屏视野，无论玩家在哪里都攻击
     setDashChargeTime(800);
     setDashSpeed(7.0);
     setContactDamage(5);
@@ -279,9 +280,10 @@ void WashMachineBoss::onDialogFinished() {
 
     // 切换到冲刺模式（和第二阶段一样）
     setMovementPattern(MOVE_DASH);
-    setDashChargeTime(600);  // 蓄力时间更短
-    setDashSpeed(8.0);       // 冲刺速度更快
-    setContactDamage(6);     // 接触伤害更高
+    setVisionRange(10000);    // 全屏视野，无论玩家在哪里都攻击
+    setDashChargeTime(600);   // 蓄力时间更短
+    setDashSpeed(8.0);        // 冲刺速度更快
+    setContactDamage(6);      // 接触伤害更高
 
     // 清理旋转臭袜子
     cleanupOrbitingSocks();
@@ -325,6 +327,25 @@ void WashMachineBoss::onBossDefeated() {
 
     // 清理旋转臭袜子
     cleanupOrbitingSocks();
+
+    // 清理所有子弹和毒气，防止对话时玩家被击中
+    QGraphicsScene* currentScene = scene();
+    if (currentScene) {
+        QList<QGraphicsItem*> allItems = currentScene->items();
+        for (QGraphicsItem* item : allItems) {
+            // 删除所有Projectile（水柱）
+            if (Projectile* projectile = dynamic_cast<Projectile*>(item)) {
+                currentScene->removeItem(projectile);
+                projectile->deleteLater();
+            }
+            // 删除所有ToxicGas（毒气团）
+            else if (ToxicGas* gas = dynamic_cast<ToxicGas*>(item)) {
+                currentScene->removeItem(gas);
+                gas->deleteLater();
+            }
+        }
+        qDebug() << "[WashMachine] 已清理所有子弹和毒气";
+    }
 
     // 播放死亡音效
     AudioManager::instance().playSound("enemy_death");
@@ -459,8 +480,8 @@ void WashMachineBoss::startSummonCycle() {
         connect(m_summonTimer, &QTimer::timeout, this, &WashMachineBoss::summonOrbitingSock);
     }
 
-    // 每30秒召唤一只（初始袜子由summonInitialSocks处理）
-    m_summonTimer->start(30000);
+    // 每10秒召唤一只（初始袜子由summonInitialSocks处理）
+    m_summonTimer->start(10000);
 }
 
 void WashMachineBoss::summonInitialSocks() {
@@ -499,6 +520,12 @@ void WashMachineBoss::summonOrbitingSock() {
     // 注意：不检查 m_isTransitioning，因为 summonInitialSocks 需要在转换期间召唤
     if (m_phase != 2 || m_isPaused || m_isAbsorbing || m_waitingForDialog)
         return;
+
+    // 检查袜子数量上限（6只）
+    if (m_orbitingSocks.size() >= 6) {
+        qDebug() << "[WashMachine] 臭袜子已达到上限(6只)，不再召唤";
+        return;
+    }
 
     QGraphicsScene* currentScene = scene();
     if (!currentScene)
@@ -657,7 +684,7 @@ void WashMachineBoss::resumeTimers() {
             m_waterAttackTimer->start(3000);
     } else if (m_phase == 2) {
         if (m_summonTimer)
-            m_summonTimer->start(30000);
+            m_summonTimer->start(10000);
     } else if (m_phase == 3) {
         if (m_toxicGasTimer)
             m_toxicGasTimer->start(5000);  // 扩散攻击
