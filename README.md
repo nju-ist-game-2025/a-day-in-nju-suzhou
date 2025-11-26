@@ -87,6 +87,10 @@ our_game/
 
 **详细指南**：查看 [RESOURCE_GUIDE.md](RESOURCE_GUIDE.md)
 
+### 音效资源
+
+- `assets/sounds/teleport.wav` - 玩家瞬移时的音效
+
 ## 🎯 游戏操作
 
 - **方向键** ↑↓←→ - 移动玩家
@@ -95,6 +99,7 @@ our_game/
     - S - 向下射击
     - A - 向左射击
     - D - 向右射击
+- **Q** - 在移动时使用一次瞬移，冷却5秒
 - **ESC** - 返回主菜单
 
 ## 🧬 角色能力加成

@@ -317,6 +317,7 @@ void GameView::initAudio() {
     audio.preloadSound("chest_open", "assets/sounds/chest_open.wav");
     audio.preloadSound("door_open", "assets/sounds/door_open.wav");
     audio.preloadSound("enter_room", "assets/sounds/enter_room.wav");
+    audio.preloadSound("player_teleport", "assets/sounds/teleport.wav");
 
     // 播放背景音乐
     audio.playMusic("assets/music/background.mp3");

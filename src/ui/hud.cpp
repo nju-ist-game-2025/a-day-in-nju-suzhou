@@ -137,6 +137,7 @@ void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
     paintKey(painter);
     paintSoul(painter);
     paintBlack(painter);
+    paintTeleportCooldown(painter);
     paintMinimap(painter);
 }
 
@@ -181,6 +182,46 @@ void HUD::paintBlack(QPainter *painter)
     QString Text = QString("🖤黑心数：%1").arg(player->getBlackHearts());
     painter->drawText(QRect(12, Y, textAreaWidth - 12, Height),
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
+}
+
+void HUD::paintTeleportCooldown(QPainter *painter)
+{
+    if (!player)
+        return;
+
+    const QRectF gaugeRect(450, 5, 70, 70);
+    painter->setBrush(QColor(10, 20, 30, 160));
+    painter->setPen(QPen(QColor(70, 120, 200), 2));
+    painter->drawEllipse(gaugeRect);
+
+    QRectF arcRect = gaugeRect.adjusted(6, 6, -6, -6);
+    double ratio = player->getTeleportReadyRatio();
+    ratio = qBound(0.0, ratio, 1.0);
+    painter->setPen(QPen(QColor(130, 220, 255), 4));
+    painter->drawArc(arcRect, 90 * 16, static_cast<int>(-ratio * 360 * 16));
+
+    QFont font = painter->font();
+    font.setPointSize(10);
+    font.setBold(true);
+    painter->setFont(font);
+    painter->setPen(Qt::white);
+
+    QString centerText;
+    if (player->isTeleportReady())
+    {
+        centerText = "Q瞬移\nREADY";
+    }
+    else
+    {
+        double seconds = player->getTeleportRemainingMs() / 1000.0;
+        centerText = QString("Q\n%1s").arg(seconds, 0, 'f', 1);
+    }
+    painter->drawText(gaugeRect, Qt::AlignCenter, centerText);
+
+    font.setPointSize(9);
+    font.setBold(false);
+    painter->setFont(font);
+    painter->drawText(gaugeRect.adjusted(0, 62, 0, 0), Qt::AlignHCenter | Qt::AlignTop, "");
 }
 
 void HUD::paintEffects(QPainter *painter, const QString &text, int count, double duration, QColor color)
