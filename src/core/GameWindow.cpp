@@ -4,18 +4,18 @@
 #include "world/map.h"
 
 namespace {
-    Map &sharedMapInstance() {
-        static Map map;
-        return map;
-    }
+Map& sharedMapInstance() {
+    static Map map;
+    return map;
+}
 }  // namespace
 
 void clearMapWalls() {
     sharedMapInstance().clear();
 }
 
-GameWindow::GameWindow(QWidget *parent)
-        : QMainWindow(parent), m_selectedCharacter("assets/player/player.png") {
+GameWindow::GameWindow(QWidget* parent)
+    : QMainWindow(parent), m_selectedCharacter("assets/player/player.png") {
     // 设置窗口属性
     setWindowTitle("智科er的一天");
 
@@ -33,7 +33,7 @@ GameWindow::GameWindow(QWidget *parent)
     connect(mainMenu, &MainMenu::selectCharacterClicked, this, &GameWindow::showCharacterSelector);  // 角色选择连接
     connect(mainMenu, &MainMenu::codexClicked, this, &GameWindow::showCodex);                        // 新增连接
     connect(mainMenu, &MainMenu::exitGameClicked, this, &GameWindow::exitGame);
-    connect(mainMenu, &MainMenu::devModeClicked, this, &GameWindow::startGameAtLevel);               // 开发者模式连接
+    connect(mainMenu, &MainMenu::devModeClicked, this, &GameWindow::startGameAtLevel);  // 开发者模式连接
 
     // 创建游戏视图
     gameView = new GameView(this);
@@ -78,9 +78,10 @@ void GameWindow::startGame() {
     gameView->setFocus();  // 确保游戏视图获得焦点以接收键盘事件
 }
 
-void GameWindow::startGameAtLevel(int level) {
-    qDebug() << "开发者模式: 跳转到第" << level << "关";
+void GameWindow::startGameAtLevel(int level, int maxHealth, int bulletDamage, bool skipToBoss) {
+    qDebug() << "开发者模式: 跳转到第" << level << "关, 血量上限:" << maxHealth << ", 子弹伤害:" << bulletDamage << ", 直接进入Boss房:" << skipToBoss;
     gameView->setStartLevel(level);
+    gameView->setDevModeSettings(maxHealth, bulletDamage, skipToBoss);
     gameView->initGame();
     stackedWidget->setCurrentWidget(gameView);
     gameView->setFocus();
@@ -94,7 +95,7 @@ void GameWindow::showCharacterSelector() {
     stackedWidget->setCurrentWidget(characterSelector);
 }
 
-void GameWindow::onCharacterSelected(const QString &characterPath) {
+void GameWindow::onCharacterSelected(const QString& characterPath) {
     m_selectedCharacter = characterPath;
     gameView->setPlayerCharacter(characterPath);
     showMainMenu();
@@ -104,8 +105,8 @@ void GameWindow::exitGame() {
     close();
 }
 
-void setupMap(QGraphicsScene *scene) {
-    Map & map = sharedMapInstance();
+void setupMap(QGraphicsScene* scene) {
+    Map& map = sharedMapInstance();
     const QString levelPath = QStringLiteral("assets/levels/level1_wall.json");
     // 墙壁配置是可选的，如果文件不存在也不影响游戏运行
     if (QFile::exists(levelPath)) {

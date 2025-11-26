@@ -1,4 +1,7 @@
 #include "mainmenu.h"
+#include <QCheckBox>
+#include <QComboBox>
+#include <QDialog>
 #include <QFile>
 #include <QFont>
 #include <QGraphicsDropShadowEffect>
@@ -7,16 +10,17 @@
 #include <QPalette>
 #include <QPixmap>
 #include <QResizeEvent>
+#include <QSpinBox>
 #include <QTimer>
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 
-MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
+MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
     // 设置最小窗口大小，允许调整
     setMinimumSize(800, 600);
 
     // 创建主布局
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setAlignment(Qt::AlignCenter);
     mainLayout->setSpacing(30);
 
@@ -38,7 +42,7 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
 
     if (!titlePixmap.isNull()) {
         // 使用图片作为标题
-        m_titlePixmap = titlePixmap; // 保存原始图用于缩放
+        m_titlePixmap = titlePixmap;  // 保存原始图用于缩放
         m_useTitleImage = true;
 
         QTimer::singleShot(0, this, &MainMenu::adjustTitlePixmap);
@@ -55,7 +59,7 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
     }
 
     // 添加标题阴影效果
-    QGraphicsDropShadowEffect *shadowEffect = new QGraphicsDropShadowEffect(this);
+    QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect(this);
     shadowEffect->setBlurRadius(5);
     shadowEffect->setColor(QColor(0, 0, 0, 150));
     shadowEffect->setOffset(3, 3);
@@ -63,72 +67,72 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
 
     // 通用按钮样式
     QString buttonStyle =
-            "QPushButton {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4CAF50, stop:1 #388E3C);"
-            "   color: white;"
-            "   border: 2px solid #2E7D32;"
-            "   border-radius: 10px;"
-            "   padding: 5px;"
-            "}"
-            "QPushButton:hover {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #66BB6A, stop:1 #43A047);"
-            "}"
-            "QPushButton:pressed {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #388E3C, stop:1 #2E7D32);"
-            "   padding-top: 7px;"
-            "   padding-left: 7px;"
-            "}";
+        "QPushButton {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4CAF50, stop:1 #388E3C);"
+        "   color: white;"
+        "   border: 2px solid #2E7D32;"
+        "   border-radius: 10px;"
+        "   padding: 5px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #66BB6A, stop:1 #43A047);"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #388E3C, stop:1 #2E7D32);"
+        "   padding-top: 7px;"
+        "   padding-left: 7px;"
+        "}";
 
     QString codexButtonStyle =
-            "QPushButton {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2196F3, stop:1 #1976D2);"
-            "   color: white;"
-            "   border: 2px solid #1565C0;"
-            "   border-radius: 10px;"
-            "   padding: 5px;"
-            "}"
-            "QPushButton:hover {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #42A5F5, stop:1 #1E88E5);"
-            "}"
-            "QPushButton:pressed {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1976D2, stop:1 #1565C0);"
-            "   padding-top: 7px;"
-            "   padding-left: 7px;"
-            "}";
+        "QPushButton {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2196F3, stop:1 #1976D2);"
+        "   color: white;"
+        "   border: 2px solid #1565C0;"
+        "   border-radius: 10px;"
+        "   padding: 5px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #42A5F5, stop:1 #1E88E5);"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1976D2, stop:1 #1565C0);"
+        "   padding-top: 7px;"
+        "   padding-left: 7px;"
+        "}";
 
     QString characterButtonStyle =
-            "QPushButton {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #9C27B0, stop:1 #7B1FA2);"
-            "   color: white;"
-            "   border: 2px solid #6A1B9A;"
-            "   border-radius: 10px;"
-            "   padding: 5px;"
-            "}"
-            "QPushButton:hover {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #AB47BC, stop:1 #8E24AA);"
-            "}"
-            "QPushButton:pressed {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #7B1FA2, stop:1 #6A1B9A);"
-            "   padding-top: 7px;"
-            "   padding-left: 7px;"
-            "}";
+        "QPushButton {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #9C27B0, stop:1 #7B1FA2);"
+        "   color: white;"
+        "   border: 2px solid #6A1B9A;"
+        "   border-radius: 10px;"
+        "   padding: 5px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #AB47BC, stop:1 #8E24AA);"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #7B1FA2, stop:1 #6A1B9A);"
+        "   padding-top: 7px;"
+        "   padding-left: 7px;"
+        "}";
 
     QString exitButtonStyle =
-            "QPushButton {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f44336, stop:1 #d32f2f);"
-            "   color: white;"
-            "   border: 2px solid #c62828;"
-            "   border-radius: 10px;"
-            "   padding: 5px;"
-            "}"
-            "QPushButton:hover {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ef5350, stop:1 #e53935);"
-            "}"
-            "QPushButton:pressed {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d32f2f, stop:1 #c62828);"
-            "   padding-top: 7px;"
-            "   padding-left: 7px;"
-            "}";
+        "QPushButton {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f44336, stop:1 #d32f2f);"
+        "   color: white;"
+        "   border: 2px solid #c62828;"
+        "   border-radius: 10px;"
+        "   padding: 5px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ef5350, stop:1 #e53935);"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d32f2f, stop:1 #c62828);"
+        "   padding-top: 7px;"
+        "   padding-left: 7px;"
+        "}";
 
     // 创建开始游戏按钮
     startButton = new QPushButton("开始游戏", this);
@@ -160,34 +164,37 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
 
     // 创建开发者模式按钮（橙色样式）
     QString devButtonStyle =
-            "QPushButton {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FF9800, stop:1 #F57C00);"
-            "   color: white;"
-            "   border: 2px solid #E65100;"
-            "   border-radius: 10px;"
-            "   padding: 5px;"
-            "}"
-            "QPushButton:hover {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFB74D, stop:1 #FFA726);"
-            "}"
-            "QPushButton:pressed {"
-            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F57C00, stop:1 #E65100);"
-            "   padding-top: 7px;"
-            "   padding-left: 7px;"
-            "}";
+        "QPushButton {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FF9800, stop:1 #F57C00);"
+        "   color: white;"
+        "   border: 2px solid #E65100;"
+        "   border-radius: 10px;"
+        "   padding: 5px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFB74D, stop:1 #FFA726);"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F57C00, stop:1 #E65100);"
+        "   padding-top: 7px;"
+        "   padding-left: 7px;"
+        "}";
     devModeButton = new QPushButton("开发者模式", this);
     devModeButton->setFixedSize(220, 60);
     devModeButton->setFont(buttonFont);
     devModeButton->setStyleSheet(devButtonStyle);
+
+    // 根据配置文件决定是否显示开发者模式按钮
+    devModeButton->setVisible(ConfigManager::instance().isDevModeEnabled());
 
     // 添加到布局
     mainLayout->addStretch();
     mainLayout->addWidget(titleLabel);
     mainLayout->addSpacing(50);
     mainLayout->addWidget(startButton, 0, Qt::AlignCenter);
-    mainLayout->addWidget(characterButton, 0, Qt::AlignCenter); // 角色选择按钮
-    mainLayout->addWidget(codexButton, 0, Qt::AlignCenter);     // 新增按钮
-    mainLayout->addWidget(devModeButton, 0, Qt::AlignCenter);   // 开发者模式按钮
+    mainLayout->addWidget(characterButton, 0, Qt::AlignCenter);  // 角色选择按钮
+    mainLayout->addWidget(codexButton, 0, Qt::AlignCenter);      // 新增按钮
+    mainLayout->addWidget(devModeButton, 0, Qt::AlignCenter);    // 开发者模式按钮
     mainLayout->addWidget(exitButton, 0, Qt::AlignCenter);
     mainLayout->addStretch();
 
@@ -203,8 +210,7 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
         palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
         setAutoFillBackground(true);
         setPalette(palette);
-    }
-    catch (const QString &error) {
+    } catch (const QString& error) {
         QMessageBox::critical(this, "资源加载失败", error);
         // 背景加载失败，使用默认颜色
         setStyleSheet("background-color: #2c3e50;");
@@ -212,27 +218,80 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
 
     // 连接信号和槽
     connect(startButton, &QPushButton::clicked, this, &MainMenu::startGameClicked);
-    connect(characterButton, &QPushButton::clicked, this, &MainMenu::selectCharacterClicked); // 角色选择连接
-    connect(codexButton, &QPushButton::clicked, this, &MainMenu::codexClicked);               // 新增连接
+    connect(characterButton, &QPushButton::clicked, this, &MainMenu::selectCharacterClicked);  // 角色选择连接
+    connect(codexButton, &QPushButton::clicked, this, &MainMenu::codexClicked);                // 新增连接
     connect(exitButton, &QPushButton::clicked, this, &MainMenu::exitGameClicked);
 
-    // 开发者模式按钮 - 弹出关卡选择对话框
+    // 开发者模式按钮 - 弹出配置对话框
     connect(devModeButton, &QPushButton::clicked, this, [this]() {
-        QStringList levels;
-        levels << "第1关 - 时钟梦境" << "第2关 - 袜子王国" << "第3关 - 终极挑战";
+        // 创建配置对话框
+        QDialog dialog(this);
+        dialog.setWindowTitle("开发者模式设置");
+        dialog.setFixedSize(350, 300);
 
-        bool ok;
-        QString selectedLevel = QInputDialog::getItem(this, "开发者模式",
-                                                      "选择要跳转的关卡:", levels, 0, false, &ok);
+        QVBoxLayout* layout = new QVBoxLayout(&dialog);
 
-        if (ok && !selectedLevel.isEmpty()) {
-            int levelNum = levels.indexOf(selectedLevel) + 1;
-            emit devModeClicked(levelNum);
+        // 关卡选择
+        QHBoxLayout* levelLayout = new QHBoxLayout();
+        QLabel* levelLabel = new QLabel("起始关卡:", &dialog);
+        QComboBox* levelCombo = new QComboBox(&dialog);
+        levelCombo->addItem("第1关 - 时钟梦境", 1);
+        levelCombo->addItem("第2关 - 袜子王国", 2);
+        levelCombo->addItem("第3关 - 终极挑战", 3);
+        levelCombo->setCurrentIndex(0);
+        levelLayout->addWidget(levelLabel);
+        levelLayout->addWidget(levelCombo);
+        layout->addLayout(levelLayout);
+
+        // 血量上限
+        QHBoxLayout* healthLayout = new QHBoxLayout();
+        QLabel* healthLabel = new QLabel("血量上限:", &dialog);
+        QSpinBox* healthSpin = new QSpinBox(&dialog);
+        healthSpin->setRange(1, 9999);
+        healthSpin->setValue(3);  // 默认值
+        healthLayout->addWidget(healthLabel);
+        healthLayout->addWidget(healthSpin);
+        layout->addLayout(healthLayout);
+
+        // 子弹伤害
+        QHBoxLayout* damageLayout = new QHBoxLayout();
+        QLabel* damageLabel = new QLabel("子弹伤害:", &dialog);
+        QSpinBox* damageSpin = new QSpinBox(&dialog);
+        damageSpin->setRange(1, 999);
+        damageSpin->setValue(1);  // 默认值
+        damageLayout->addWidget(damageLabel);
+        damageLayout->addWidget(damageSpin);
+        layout->addLayout(damageLayout);
+
+        // 直接进入Boss房选项
+        QHBoxLayout* bossLayout = new QHBoxLayout();
+        QCheckBox* skipToBossCheck = new QCheckBox("直接进入Boss房", &dialog);
+        skipToBossCheck->setChecked(false);
+        bossLayout->addWidget(skipToBossCheck);
+        layout->addLayout(bossLayout);
+
+        // 按钮
+        QHBoxLayout* buttonLayout = new QHBoxLayout();
+        QPushButton* startBtn = new QPushButton("开始游戏", &dialog);
+        QPushButton* cancelBtn = new QPushButton("取消", &dialog);
+        buttonLayout->addWidget(startBtn);
+        buttonLayout->addWidget(cancelBtn);
+        layout->addLayout(buttonLayout);
+
+        connect(startBtn, &QPushButton::clicked, &dialog, &QDialog::accept);
+        connect(cancelBtn, &QPushButton::clicked, &dialog, &QDialog::reject);
+
+        if (dialog.exec() == QDialog::Accepted) {
+            int levelNum = levelCombo->currentData().toInt();
+            int maxHealth = healthSpin->value();
+            int bulletDamage = damageSpin->value();
+            bool skipToBoss = skipToBossCheck->isChecked();
+            emit devModeClicked(levelNum, maxHealth, bulletDamage, skipToBoss);
         }
     });
 }
 
-void MainMenu::resizeEvent(QResizeEvent *event) {
+void MainMenu::resizeEvent(QResizeEvent* event) {
     QWidget::resizeEvent(event);
 
     // 重新加载并缩放背景图片
@@ -244,8 +303,7 @@ void MainMenu::resizeEvent(QResizeEvent *event) {
                                                                               Qt::SmoothTransformation)));
             setPalette(palette);
         }
-    }
-    catch (const QString &) {
+    } catch (const QString&) {
         // 背景加载失败，保持当前样式
     }
 
@@ -286,7 +344,7 @@ void MainMenu::resizeEvent(QResizeEvent *event) {
     }
 }
 
-void MainMenu::showEvent(QShowEvent *event) {
+void MainMenu::showEvent(QShowEvent* event) {
     QWidget::showEvent(event);
     if (m_useTitleImage && !m_titlePixmap.isNull()) {
         adjustTitlePixmap();
@@ -297,8 +355,8 @@ void MainMenu::adjustTitlePixmap() {
     if (!m_useTitleImage || m_titlePixmap.isNull())
         return;
 
-    const double widthRatio = 0.95;  // 宽度占窗口宽度的比例
-    const double heightRatio = 0.45; // 增大高度占比以让图片更显眼
+    const double widthRatio = 0.95;   // 宽度占窗口宽度的比例
+    const double heightRatio = 0.45;  // 增大高度占比以让图片更显眼
 
     QSize targetSize(static_cast<int>(width() * widthRatio), static_cast<int>(height() * heightRatio));
 

@@ -20,8 +20,7 @@
 #include "level.h"
 #include "pausemenu.h"
 
-GameView::GameView(QWidget *parent) : QWidget(parent), player(nullptr), level(nullptr), m_pauseMenu(nullptr),
-                                      m_isPaused(false), m_playerCharacterPath("assets/player/player.png") {
+GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr), level(nullptr), m_pauseMenu(nullptr), m_isPaused(false), m_playerCharacterPath("assets/player/player.png") {
     // 维持基础可玩尺寸，同时允许继续放大
     setMinimumSize(scene_bound_x, scene_bound_y);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -51,7 +50,7 @@ GameView::GameView(QWidget *parent) : QWidget(parent), player(nullptr), level(nu
     scene->setBackgroundBrush(Qt::NoBrush);
 
     // 设置布局
-    QVBoxLayout *layout = new QVBoxLayout(this);
+    QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(view);
 
@@ -68,7 +67,7 @@ GameView::~GameView() {
     }
 }
 
-void GameView::setPlayerCharacter(const QString &characterPath) {
+void GameView::setPlayerCharacter(const QString& characterPath) {
     m_playerCharacterPath = characterPath;
 }
 
@@ -116,7 +115,7 @@ void GameView::initGame() {
         clearMapWalls();
         // scene->clear()会自动删除所有图形项（包括player和enemies）
         scene->clear();
-        player = nullptr; // 清空指针引用
+        player = nullptr;  // 清空指针引用
 
         // ===== 第三步：重新初始化游戏 =====
         // 预加载爆炸动画帧（只在首次加载）
@@ -130,7 +129,7 @@ void GameView::initGame() {
         // 加载玩家图片（优先使用配置文件中的角色，其次使用选定的角色）
         int playerSize = ConfigManager::instance().getSize("player");
         if (playerSize <= 0)
-            playerSize = 60; // 默认值
+            playerSize = 60;  // 默认值
         QPixmap playerPixmap;
 
         // 从配置文件获取角色路径
@@ -138,8 +137,7 @@ void GameView::initGame() {
         QString characterPath = configCharacterPath.isEmpty() ? m_playerCharacterPath : configCharacterPath;
 
         if (!characterPath.isEmpty() && QFile::exists(characterPath)) {
-            playerPixmap = QPixmap(characterPath).scaled(playerSize, playerSize, Qt::KeepAspectRatio,
-                                                         Qt::SmoothTransformation);
+            playerPixmap = QPixmap(characterPath).scaled(playerSize, playerSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         } else {
             playerPixmap = ResourceFactory::createPlayerImage(playerSize);
         }
@@ -147,6 +145,15 @@ void GameView::initGame() {
         // 创建玩家
         player = new Player(playerPixmap, 1.0);
         applyCharacterAbility(player, characterPath);
+
+        // 应用开发者模式设置（如果启用）
+        if (m_isDevMode) {
+            // 直接设置血量上限（无限制）
+            player->setMaxHealth(m_devMaxHealth);
+            // 设置子弹伤害
+            player->setBulletHurt(m_devBulletDamage);
+            qDebug() << "开发者模式: 应用血量上限" << m_devMaxHealth << ", 子弹伤害" << m_devBulletDamage;
+        }
 
         // 创建HUD
         hud = new HUD(player);
@@ -157,7 +164,7 @@ void GameView::initGame() {
         // 加载子弹图片（使用新的子弹分类配置）
         int bulletSize = ConfigManager::instance().getBulletSize("player");
         if (bulletSize <= 0)
-            bulletSize = 20; // 默认值
+            bulletSize = 20;  // 默认值
         QPixmap bulletPixmap = ResourceFactory::createBulletImage(bulletSize);
         player->setBulletPic(bulletPixmap);
 
@@ -174,11 +181,16 @@ void GameView::initGame() {
         updateHUD();
 
         // 初始化关卡变量
-        currentLevel = 1; // 从第一关开始
+        currentLevel = 1;  // 从第一关开始
         isLevelTransition = false;
 
         // 创建关卡
         level = new Level(player, scene, this);
+
+        // 如果是开发者模式且选择直接进入Boss房
+        if (m_isDevMode && m_devSkipToBoss) {
+            level->setSkipToBoss(true);
+        }
 
         // 连接信号
         connect(level, &Level::enemiesCleared, this, &GameView::onEnemiesCleared);
@@ -203,6 +215,10 @@ void GameView::initGame() {
         // 重置起始关卡为1（下次正常开始游戏时从第1关开始）
         m_startLevel = 1;
 
+        // 重置开发者模式标志（下次正常开始游戏时不应用开发者设置）
+        m_isDevMode = false;
+        m_devSkipToBoss = false;
+
         // 初始化小地图
         if (hud)
             hud->updateMinimap(0, QVector<int>());
@@ -211,8 +227,7 @@ void GameView::initGame() {
 
         // 确保初始化后视图立即拉伸到当前窗口大小
         adjustViewToWindow();
-    }
-    catch (const QString &error) {
+    } catch (const QString& error) {
         QMessageBox::critical(this, "资源加载失败", error);
         emit backToMenu();
     }
@@ -227,7 +242,7 @@ void GameView::onStoryFinished() {
         scene->addItem(player);
 
         // 设置玩家初始位置（屏幕中央）
-        int playerSize = 60; // 需要与initGame中的一致
+        int playerSize = 60;  // 需要与initGame中的一致
         player->setPos(scene_bound_x / 2 - playerSize / 2, scene_bound_y / 2 - playerSize / 2);
         player->setZValue(100);
     }
@@ -250,7 +265,7 @@ void GameView::onLevelCompleted() {
         return;
     isLevelTransition = true;
 
-    QGraphicsTextItem *levelTextItem = new QGraphicsTextItem(QString("关卡完成！准备进入下一关..."));
+    QGraphicsTextItem* levelTextItem = new QGraphicsTextItem(QString("关卡完成！准备进入下一关..."));
     levelTextItem->setDefaultTextColor(Qt::black);
     levelTextItem->setFont(QFont("Arial", 20, QFont::Bold));
     levelTextItem->setPos(200, 200);
@@ -313,7 +328,7 @@ void GameView::advanceToNextLevel() {
 }
 
 void GameView::initAudio() {
-    AudioManager &audio = AudioManager::instance();
+    AudioManager& audio = AudioManager::instance();
 
     // 预加载音效
     audio.preloadSound("player_shoot", "assets/sounds/shoot.wav");
@@ -330,16 +345,16 @@ void GameView::initAudio() {
     qDebug() << "音频系统初始化完成";
 }
 
-void GameView::mousePressEvent(QMouseEvent *event) {
+void GameView::mousePressEvent(QMouseEvent* event) {
     // 剧情模式下，任何鼠标点击都继续对话
     if (level && m_isInStoryMode) {
         level->nextDialog();
-        event->accept(); // 标记事件已处理
+        event->accept();  // 标记事件已处理
         return;
     }
 }
 
-void GameView::keyPressEvent(QKeyEvent *event) {
+void GameView::keyPressEvent(QKeyEvent* event) {
     if (!event)
         return;
 
@@ -359,7 +374,7 @@ void GameView::keyPressEvent(QKeyEvent *event) {
         // 剧情模式下，空格键或回车键继续对话
         if (event->key() == Qt::Key_Space || event->key() == Qt::Key_Return) {
             level->nextDialog();
-            return; // 事件已处理，不传递给玩家
+            return;  // 事件已处理，不传递给玩家
         }
         return;
     }
@@ -374,7 +389,7 @@ void GameView::keyPressEvent(QKeyEvent *event) {
     }
     // 同时传递给当前房间（用于触发切换检测）
     if (level) {
-        Room *r = level->currentRoom();
+        Room* r = level->currentRoom();
         if (r)
             QCoreApplication::sendEvent(r, event);
     }
@@ -382,7 +397,7 @@ void GameView::keyPressEvent(QKeyEvent *event) {
     QWidget::keyPressEvent(event);
 }
 
-void GameView::keyReleaseEvent(QKeyEvent *event) {
+void GameView::keyReleaseEvent(QKeyEvent* event) {
     if (!event)
         return;
 
@@ -392,7 +407,7 @@ void GameView::keyReleaseEvent(QKeyEvent *event) {
     }
     // 同时传递给当前房间，更新按键释放状态
     if (level) {
-        Room *r = level->currentRoom();
+        Room* r = level->currentRoom();
         if (r)
             QCoreApplication::sendEvent(r, event);
     }
@@ -400,7 +415,7 @@ void GameView::keyReleaseEvent(QKeyEvent *event) {
     QWidget::keyReleaseEvent(event);
 }
 
-void GameView::applyCharacterAbility(Player *player, const QString &characterPath) {
+void GameView::applyCharacterAbility(Player* player, const QString& characterPath) {
     if (!player)
         return;
 
@@ -429,7 +444,7 @@ void GameView::applyCharacterAbility(Player *player, const QString &characterPat
     }
 }
 
-QString GameView::resolveCharacterKey(const QString &characterPath) const {
+QString GameView::resolveCharacterKey(const QString& characterPath) const {
     if (characterPath.isEmpty())
         return QString();
 
@@ -476,9 +491,9 @@ void GameView::handlePlayerDeath() {
         msgBox.setIcon(QMessageBox::Information);
 
         // 添加三个按钮
-        QPushButton *retryButton = msgBox.addButton("再试一次", QMessageBox::ActionRole);
-        QPushButton *menuButton = msgBox.addButton("返回主菜单", QMessageBox::ActionRole);
-        QPushButton *quitButton = msgBox.addButton("退出游戏", QMessageBox::ActionRole);
+        QPushButton* retryButton = msgBox.addButton("再试一次", QMessageBox::ActionRole);
+        QPushButton* menuButton = msgBox.addButton("返回主菜单", QMessageBox::ActionRole);
+        QPushButton* quitButton = msgBox.addButton("退出游戏", QMessageBox::ActionRole);
 
         msgBox.exec();
 
@@ -522,11 +537,11 @@ void GameView::onEnemiesCleared(int roomIndex, bool up, bool down, bool left, bo
         text += QString("右侧 ");
     if (up || down || left || right)
         text += QString("房间的门已打开");
-    QGraphicsTextItem *hint = new QGraphicsTextItem(text);
+    QGraphicsTextItem* hint = new QGraphicsTextItem(text);
     hint->setDefaultTextColor(Qt::red);
     hint->setFont(QFont("Arial", 16, QFont::Bold));
     hint->setPos(150, 250);
-    hint->setZValue(1000); // 确保在最上层
+    hint->setZValue(1000);  // 确保在最上层
     scene->addItem(hint);
 
     // 3秒后自动消失
@@ -543,11 +558,11 @@ void GameView::onBossDoorsOpened() {
 
     // 在战斗房间文案下一行显示boss门开启提示（深紫色）
     QString text = "所有普通房间已肃清！boss房间开启，祝你好运";
-    QGraphicsTextItem *hint = new QGraphicsTextItem(text);
-    hint->setDefaultTextColor(QColor(75, 0, 130)); // 深紫色
+    QGraphicsTextItem* hint = new QGraphicsTextItem(text);
+    hint->setDefaultTextColor(QColor(75, 0, 130));  // 深紫色
     hint->setFont(QFont("Arial", 16, QFont::Bold));
-    hint->setPos(150, 280); // 在战斗文案（y=250）下方30像素
-    hint->setZValue(1000);  // 确保在最上层
+    hint->setPos(150, 280);  // 在战斗文案（y=250）下方30像素
+    hint->setZValue(1000);   // 确保在最上层
     scene->addItem(hint);
 
     // 3秒后自动消失
@@ -626,12 +641,12 @@ void GameView::resumeGame() {
     setFocus();
 }
 
-void GameView::showEvent(QShowEvent *event) {
+void GameView::showEvent(QShowEvent* event) {
     QWidget::showEvent(event);
     adjustViewToWindow();
 }
 
-void GameView::resizeEvent(QResizeEvent *event) {
+void GameView::resizeEvent(QResizeEvent* event) {
     QWidget::resizeEvent(event);
     adjustViewToWindow();
 }

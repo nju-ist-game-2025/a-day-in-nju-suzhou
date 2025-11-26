@@ -16,15 +16,15 @@ const int bomb_r = 60;
 const int bombHurt = 1;
 
 class Player : public Entity {
-Q_OBJECT
+    Q_OBJECT
     int redContainers;
     double redHearts;
     int soulHearts;
     int blackHearts;                   // 是否短暂无敌，防止持续攻击
     QMap<int, bool> shootKeysPressed;  // 射击按键状态
-    QTimer *keysTimer;
-    QTimer *crashTimer;
-    QTimer *shootTimer;  // 射击检测定时器（持续检测）
+    QTimer* keysTimer;
+    QTimer* crashTimer;
+    QTimer* shootTimer;  // 射击检测定时器（持续检测）
     int shootCooldown;   // 射击冷却时间（毫秒）
     int shootType;       // 0=普通, 1=激光
     QPixmap pic_bullet;
@@ -39,21 +39,21 @@ Q_OBJECT
     int bulletHurt;  // 玩家子弹伤害，可配置
     bool isDead;     // 玩家是否已死亡
 
-public:
+   public:
     friend class Item;
 
     QMap<int, bool> keysPressed;
 
-    explicit Player(const QPixmap &pic_player, double scale = 1.0);
+    explicit Player(const QPixmap& pic_player, double scale = 1.0);
 
-    void keyPressEvent(QKeyEvent *event) override;  // 控制移动
-    void keyReleaseEvent(QKeyEvent *event) override;
+    void keyPressEvent(QKeyEvent* event) override;  // 控制移动
+    void keyReleaseEvent(QKeyEvent* event) override;
 
     void move() override;
 
     void tryTeleport();  // Q键瞬移
 
-    void setBulletPic(const QPixmap &pic) { pic_bullet = pic; };
+    void setBulletPic(const QPixmap& pic) { pic_bullet = pic; };
 
     void setShootCooldown(int milliseconds) { shootCooldown = milliseconds; }  // 设置射击冷却时间
     [[nodiscard]] int getShootCooldown() const { return shootCooldown; };
@@ -63,6 +63,12 @@ public:
     [[nodiscard]] double getCurrentHealth() const { return redHearts; }
 
     [[nodiscard]] double getMaxHealth() const { return redContainers; }
+
+    // 开发者模式：直接设置血量上限（无限制）
+    void setMaxHealth(int maxHealth) {
+        redContainers = maxHealth;
+        redHearts = maxHealth;
+    }
 
     void addRedContainers(int n) {
         if (redContainers + n <= max_red_contain)
@@ -156,14 +162,14 @@ public:
 
     bool isPaused() const { return m_isPaused; }
 
-signals:
+   signals:
 
     void playerDied();  // 玩家死亡信号
     void healthChanged(float current, float max);
 
     void playerDamaged();
 
-private:
+   private:
     bool m_canMove = true;               // 是否可以移动
     bool m_canShoot = true;              // 是否可以射击
     bool m_isPaused = false;             // 是否暂停
@@ -177,10 +183,10 @@ private:
 
     QPointF currentMoveDirection() const;
 
-    QPointF clampPositionWithinRoom(const QPointF &candidate) const;
+    QPointF clampPositionWithinRoom(const QPointF& candidate) const;
 
-protected:
-    void focusOutEvent(QFocusEvent *event) override;
+   protected:
+    void focusOutEvent(QFocusEvent* event) override;
 };
 
 #endif  // PLAYER_H

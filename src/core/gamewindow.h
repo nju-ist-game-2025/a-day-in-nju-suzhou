@@ -9,34 +9,34 @@
 #include "../ui/mainmenu.h"
 
 class GameWindow : public QMainWindow {
-Q_OBJECT
+    Q_OBJECT
 
-public:
-    GameWindow(QWidget *parent = nullptr);
+   public:
+    GameWindow(QWidget* parent = nullptr);
 
     ~GameWindow();
 
-private slots:
+   private slots:
 
     void showMainMenu();
 
     void startGame();
 
-    void startGameAtLevel(int level);  // 开发者模式：跳转到指定关卡
+    void startGameAtLevel(int level, int maxHealth, int bulletDamage, bool skipToBoss);  // 开发者模式
 
     void showCodex();                                        // 新增：显示图鉴
     void showCharacterSelector();                            // 显示角色选择
-    void onCharacterSelected(const QString &characterPath);  // 角色选择完成
+    void onCharacterSelected(const QString& characterPath);  // 角色选择完成
     void exitGame();
 
     void onRequestRestart();
 
-private:
-    QStackedWidget *stackedWidget;
-    MainMenu *mainMenu;
-    GameView *gameView;
-    Codex *codex;
-    CharacterSelector *characterSelector;
+   private:
+    QStackedWidget* stackedWidget;
+    MainMenu* mainMenu;
+    GameView* gameView;
+    Codex* codex;
+    CharacterSelector* characterSelector;
     QString m_selectedCharacter;  // 保存选择的角色路径
 };
 

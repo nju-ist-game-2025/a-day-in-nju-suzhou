@@ -5,12 +5,12 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 
-ConfigManager &ConfigManager::instance() {
+ConfigManager& ConfigManager::instance() {
     static ConfigManager instance;
     return instance;
 }
 
-bool ConfigManager::loadConfig(const QString &configPath) {
+bool ConfigManager::loadConfig(const QString& configPath) {
     QFile configFile(configPath);
     if (!configFile.open(QIODevice::ReadOnly)) {
         qWarning() << "无法打开配置文件:" << configPath;
@@ -39,7 +39,7 @@ bool ConfigManager::loadConfig(const QString &configPath) {
     return true;
 }
 
-QString ConfigManager::getAssetPath(const QString &assetName) const {
+QString ConfigManager::getAssetPath(const QString& assetName) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return {};
@@ -49,7 +49,7 @@ QString ConfigManager::getAssetPath(const QString &assetName) const {
     return assets.value(assetName).toString();
 }
 
-void ConfigManager::setAssetPath(const QString &assetName, const QString &path) {
+void ConfigManager::setAssetPath(const QString& assetName, const QString& path) {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return;
@@ -60,7 +60,7 @@ void ConfigManager::setAssetPath(const QString &assetName, const QString &path) 
     configObject["assets"] = assets;
 }
 
-bool ConfigManager::saveConfig(const QString &configPath) {
+bool ConfigManager::saveConfig(const QString& configPath) {
     if (!loaded) {
         qWarning() << "配置文件未加载，无法保存";
         return false;
@@ -80,7 +80,7 @@ bool ConfigManager::saveConfig(const QString &configPath) {
     return true;
 }
 
-int ConfigManager::getSize(const QString &sizeName) const {
+int ConfigManager::getSize(const QString& sizeName) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return 0;
@@ -90,7 +90,7 @@ int ConfigManager::getSize(const QString &sizeName) const {
     return sizes.value(sizeName).toInt();
 }
 
-int ConfigManager::getEntitySize(const QString &category, const QString &typeName) const {
+int ConfigManager::getEntitySize(const QString& category, const QString& typeName) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return 0;
@@ -126,10 +126,10 @@ int ConfigManager::getEntitySize(const QString &category, const QString &typeNam
     return sizes.value(fallbackKey).toInt();
 }
 
-int ConfigManager::getBulletSize(const QString &bulletType) const {
+int ConfigManager::getBulletSize(const QString& bulletType) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
-        return 20; // 默认子弹大小
+        return 20;  // 默认子弹大小
     }
 
     QJsonObject sizes = configObject.value("sizes").toObject();
@@ -154,10 +154,10 @@ int ConfigManager::getBulletSize(const QString &bulletType) const {
         return sizes.value("bullet").toInt();
     }
 
-    return 20; // 最终默认值
+    return 20;  // 最终默认值
 }
 
-int ConfigManager::getGameInt(const QString &key) const {
+int ConfigManager::getGameInt(const QString& key) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return 0;
@@ -167,7 +167,7 @@ int ConfigManager::getGameInt(const QString &key) const {
     return game.value(key).toInt();
 }
 
-double ConfigManager::getGameDouble(const QString &key) const {
+double ConfigManager::getGameDouble(const QString& key) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return 0.0;
@@ -175,4 +175,14 @@ double ConfigManager::getGameDouble(const QString &key) const {
 
     QJsonObject game = configObject.value("game").toObject();
     return game.value(key).toDouble();
+}
+
+bool ConfigManager::isDevModeEnabled() const {
+    if (!loaded) {
+        qWarning() << "配置文件未加载";
+        return false;
+    }
+
+    QJsonObject devMode = configObject.value("developer_mode").toObject();
+    return devMode.value("enabled").toBool(false);
 }
