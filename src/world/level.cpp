@@ -1,5 +1,6 @@
 #include "level.h"
 #include <QDebug>
+#include <QFile>
 #include <QGraphicsScene>
 #include <QMessageBox>
 #include <QPointer>
@@ -20,6 +21,7 @@
 #include "../entities/projectile.h"
 #include "../entities/sockenemy.h"
 #include "../entities/sockshooter.h"
+#include "../entities/usagi.h"
 #include "../entities/walker.h"
 #include "../entities/washmachineboss.h"
 #include "../items/chest.h"
@@ -234,7 +236,8 @@ void Level::initializeLevelAfterStory(const LevelConfig& config) {
 
 // 事件过滤器：处理对话框的点击和键盘事件
 bool Level::eventFilter(QObject* watched, QEvent* event) {
-    if (watched == m_scene && m_dialogBox && !m_isStoryFinished) {
+    // 检查对话是否正在进行（使用 m_dialogText 判断，因为透明背景时 m_dialogBox 为 nullptr）
+    if (watched == m_scene && m_dialogText && !m_isStoryFinished) {
         if (event->type() == QEvent::GraphicsSceneMousePress ||
             event->type() == QEvent::KeyPress) {
             if (event->type() == QEvent::KeyPress) {
@@ -276,39 +279,47 @@ void Level::showStoryDialog(const QStringList& dialogs, bool isBossDialog, const
     // 发送对话开始信号
     emit dialogStarted();
 
-    QString imagePath;
-    // 如果指定了自定义背景，使用自定义背景
-    if (!customBackground.isEmpty()) {
-        imagePath = customBackground;
+    // 检查是否使用透明背景（不显示背景图片，保持游戏画面可见）
+    bool useTransparentBackground = (customBackground == "transparent");
+
+    if (!useTransparentBackground) {
+        QString imagePath;
+        // 如果指定了自定义背景，使用自定义背景
+        if (!customBackground.isEmpty()) {
+            imagePath = customBackground;
+        } else {
+            // 使用默认背景
+            if (m_levelNumber == 1)
+                imagePath = "assets/galgame/l1.png";
+            else if (m_levelNumber == 2)
+                imagePath = "assets/galgame/l2.png";
+            else
+                imagePath = "assets/galgame/l3.png";
+        }
+
+        // 检查文件是否存在
+        QFile file(imagePath);
+        if (!file.exists()) {
+            qWarning() << "图片文件不存在:" << imagePath;
+            return;
+        }
+
+        // 加载图片
+        QPixmap bgPixmap(imagePath);
+        if (bgPixmap.isNull()) {
+            qWarning() << "加载图片失败:" << imagePath;
+            return;
+        }
+
+        // 创建图片项
+        m_dialogBox = new QGraphicsPixmapItem(bgPixmap.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+        m_dialogBox->setPos(0, 0);
+        m_dialogBox->setZValue(10000);
+        m_scene->addItem(m_dialogBox);
     } else {
-        // 使用默认背景
-        if (m_levelNumber == 1)
-            imagePath = "assets/galgame/l1.png";
-        else if (m_levelNumber == 2)
-            imagePath = "assets/galgame/l2.png";
-        else
-            imagePath = "assets/galgame/l3.png";
+        // 透明背景模式：不创建背景图片，m_dialogBox 保持 nullptr
+        m_dialogBox = nullptr;
     }
-
-    // 检查文件是否存在
-    QFile file(imagePath);
-    if (!file.exists()) {
-        qWarning() << "图片文件不存在:" << imagePath;
-        return;
-    }
-
-    // 加载图片
-    QPixmap bgPixmap(imagePath);
-    if (bgPixmap.isNull()) {
-        qWarning() << "加载图片失败:" << imagePath;
-        return;
-    }
-
-    // 创建图片项
-    m_dialogBox = new QGraphicsPixmapItem(bgPixmap.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    m_dialogBox->setPos(0, 0);
-    m_dialogBox->setZValue(10000);
-    m_scene->addItem(m_dialogBox);
 
     QPixmap gradientPixmap(800, 250);
     gradientPixmap.fill(Qt::transparent);
@@ -1479,6 +1490,9 @@ void Level::onEnemyDying(Enemy* enemy) {
         return;
     }
 
+    // 检查是否是Boss死亡
+    bool isBoss = dynamic_cast<Boss*>(enemy) != nullptr;
+
     // 使用 QPointer 包装目标并用 removeAll 安全移除
     QPointer<Enemy> target(enemy);
     m_currentEnemies.removeAll(target);
@@ -1517,10 +1531,25 @@ void Level::onEnemyDying(Enemy* enemy) {
     // qDebug() << "当前房间" << m_currentRoomIndex << "敌人数量:" << (cur ? cur->currentEnemies.size() : -1);
 
     if (cur && cur->currentEnemies.isEmpty()) {
+        // 检查是否是Boss房间
+        LevelConfig config;
+        if (config.loadFromFile(m_levelNumber)) {
+            const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
+
+            // 如果是Boss房间且Boss被击败，启动奖励流程而不是直接打开门
+            if (roomCfg.hasBoss && isBoss) {
+                qDebug() << "[Level] Boss被击败，启动奖励流程";
+                m_bossDefeated = true;
+                // 延迟启动奖励流程，等待Boss死亡动画完成
+                QTimer::singleShot(1500, this, &Level::startBossRewardSequence);
+                return;  // 不执行正常的开门逻辑
+            }
+        }
+
+        // 非Boss房间，正常开门
         openDoors(cur);
 
         // 在战斗房间清空敌人后，检查是否满足打开boss门的条件
-        LevelConfig config;
         if (config.loadFromFile(m_levelNumber)) {
             const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
             if (!roomCfg.hasBoss && m_hasEncounteredBossDoor && !m_bossDoorsAlreadyOpened) {
@@ -2361,4 +2390,62 @@ void Level::onAbsorbAnimationStep() {
             item->setScale(scale);
         }
     }
+}
+
+// ==================== Boss奖励机制（乌萨奇） ====================
+
+void Level::startBossRewardSequence() {
+    if (m_rewardSequenceActive)
+        return;
+
+    m_rewardSequenceActive = true;
+    qDebug() << "[Level] 开始Boss奖励流程";
+
+    // 获取当前房间的奖励配置
+    QVector<BossRewardItem> rewardItems;
+    LevelConfig config;
+    if (config.loadFromFile(m_levelNumber)) {
+        const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
+        rewardItems = roomCfg.bossRewardItems;
+    }
+
+    // 创建乌萨奇（它会自己处理整个奖励流程）
+    m_usagi = new Usagi(m_scene, m_player, m_levelNumber, rewardItems, this);
+
+    // 连接信号
+    connect(m_usagi, &Usagi::requestShowDialog, this, &Level::onUsagiRequestShowDialog);
+    connect(m_usagi, &Usagi::rewardSequenceCompleted, this, &Level::onUsagiRewardCompleted);
+
+    // 启动奖励流程
+    m_usagi->startRewardSequence();
+}
+
+void Level::onUsagiRequestShowDialog(const QStringList& dialog) {
+    qDebug() << "[Level] 乌萨奇请求显示对话";
+
+    // 显示对话（使用透明背景，保持游戏画面可见）
+    showStoryDialog(dialog, false, "transparent");
+
+    // 对话结束后通知乌萨奇
+    disconnect(this, &Level::storyFinished, nullptr, nullptr);
+    connect(this, &Level::storyFinished, this, [this]() {
+        if (m_usagi) {
+            m_usagi->onDialogFinished();
+        } }, Qt::SingleShotConnection);
+}
+
+void Level::onUsagiRewardCompleted() {
+    qDebug() << "[Level] 乌萨奇奖励流程完成，打开Boss房门";
+
+    // 打开门
+    Room* cur = m_rooms[m_currentRoomIndex];
+    if (cur) {
+        openDoors(cur);
+    }
+
+    // 发送关卡完成信号
+    emit levelCompleted(m_levelNumber);
+
+    m_rewardSequenceActive = false;
+    m_usagi = nullptr;
 }

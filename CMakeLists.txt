@@ -79,6 +79,8 @@ set(ENTITY_SOURCES
         src/entities/orbitingsock.h
         src/entities/walker.cpp
         src/entities/walker.h
+        src/entities/usagi.cpp
+        src/entities/usagi.h
 )
 
 set(WORLD_SOURCES

@@ -228,6 +228,24 @@
         "（Boss战即将开始）"
       ],
       "bossDialogBackground": "assets/boss_dia/boss1.png",
+      "bossRewardItems": [
+        {
+          "type": "damage_up",
+          "value": 1.1
+        },
+        {
+          "type": "speed_up",
+          "value": 1.1
+        },
+        {
+          "type": "red_heart",
+          "value": 2
+        },
+        {
+          "type": "bomb",
+          "value": 2
+        }
+      ],
       "hasChest": true,
       "isChestLocked": false,
       "doors": {

@@ -244,6 +244,32 @@
         "（战斗开始！）"
       ],
       "bossDialogBackground": "assets/boss_dia/boss2_1.png",
+      "bossRewardItems": [
+        {
+          "type": "damage_up",
+          "value": 1.15
+        },
+        {
+          "type": "speed_up",
+          "value": 1.1
+        },
+        {
+          "type": "shoot_speed_up",
+          "value": 1.15
+        },
+        {
+          "type": "red_heart",
+          "value": 2
+        },
+        {
+          "type": "bomb",
+          "value": 3
+        },
+        {
+          "type": "key",
+          "value": 2
+        }
+      ],
       "hasChest": true,
       "isChestLocked": false,
       "doors": {

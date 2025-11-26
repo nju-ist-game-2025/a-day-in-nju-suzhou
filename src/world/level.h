@@ -20,6 +20,8 @@ class WashMachineBoss;
 
 class Chest;
 
+class Usagi;
+
 class QGraphicsScene;
 
 class Level : public QObject {
@@ -123,6 +125,11 @@ class Level : public QObject {
 
     void onWashMachineBossRequestAbsorb();
 
+    // Boss奖励机制（乌萨奇）
+    void startBossRewardSequence();
+    void onUsagiRequestShowDialog(const QStringList& dialog);
+    void onUsagiRewardCompleted();
+
     int m_levelNumber;
     QVector<Room*> m_rooms;
     int m_currentRoomIndex;
@@ -178,6 +185,11 @@ class Level : public QObject {
     QVector<double> m_absorbAngles;
     QPointF m_absorbCenter;
     int m_absorbAnimationStep = 0;
+
+    // Boss奖励机制相关
+    QPointer<Usagi> m_usagi;
+    bool m_bossDefeated = false;          // Boss是否已被击败
+    bool m_rewardSequenceActive = false;  // 奖励流程是否激活
 
    public slots:
     void onDialogClicked();
