@@ -112,8 +112,8 @@ SockNormal::SockNormal(const QPixmap &pic, double scale)
 SockAngrily::SockAngrily(const QPixmap &pic, double scale)
         : SockEnemy(pic, scale) {
     // 愤怒袜子的属性（伤害和移速提升150%）
-    setHealth(10);
-    setContactDamage(1 + static_cast<int>(1 * 0.5));
+    setHealth(18);
+    setContactDamage(2);
     setVisionRange(250.0);
     setAttackRange(40.0);
     setAttackCooldown(1000);

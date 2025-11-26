@@ -3,7 +3,34 @@
 
 Room::Room() {}
 
-Room::Room(Player *p, bool u, bool d, bool l, bool r) : up(u), down(d), left(l), right(r), door_size(100) {
+Room::~Room()
+{
+    // 清理敌人（停止定时器并删除）
+    for (QPointer<Enemy> enemyPtr : currentEnemies)
+    {
+        if (Enemy *enemy = enemyPtr.data())
+        {
+            // 断开所有信号连接
+            disconnect(enemy, nullptr, nullptr, nullptr);
+            delete enemy;
+        }
+    }
+    currentEnemies.clear();
+
+    // 清理宝箱
+    for (QPointer<Chest> chestPtr : currentChests)
+    {
+        if (Chest *chest = chestPtr.data())
+        {
+            disconnect(chest, nullptr, nullptr, nullptr);
+            delete chest;
+        }
+    }
+    currentChests.clear();
+}
+
+Room::Room(Player *p, bool u, bool d, bool l, bool r) : up(u), down(d), left(l), right(r), door_size(100)
+{
     player = p;
     change_x = 0;
     change_y = 0;

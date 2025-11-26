@@ -28,7 +28,7 @@ Walker::Walker(const QPixmap &pic, double scale)
           m_encourageDuration(DEFAULT_ENCOURAGE_DURATION),
           m_poisonDuration(DEFAULT_POISON_DURATION) {
     // 设置基础属性
-    setHealth(10);                        // 血量适中
+    setHealth(8);                        // 血量适中
     setContactDamage(0);                  // 无接触伤害！
     setVisionRange(DEFAULT_VISION_RANGE); // 超大视野范围（全图游走）
     setAttackRange(0);                    // 无攻击范围（不主动攻击）
