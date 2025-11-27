@@ -34,10 +34,10 @@ Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap &pic_
     {
         // 按比例缩放（保持宽高比）
         this->setPixmap(pic_bullet.scaled(
-            pic_bullet.width() * scale,
-            pic_bullet.height() * scale,
-            Qt::KeepAspectRatio,
-            Qt::SmoothTransformation));
+                pic_bullet.width() * scale,
+                pic_bullet.height() * scale,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation));
     }
 
     this->setPos(pos);

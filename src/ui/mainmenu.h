@@ -8,32 +8,32 @@
 #include <QWidget>
 
 class MainMenu : public QWidget {
-    Q_OBJECT
+Q_OBJECT
 
-   private:
-    QPushButton* startButton;
-    QPushButton* characterButton;  // 角色选择按钮
-    QPushButton* codexButton;
-    QPushButton* devModeButton;  // 开发者模式按钮
-    QPushButton* exitButton;
-    QLabel* titleLabel;
+private:
+    QPushButton *startButton;
+    QPushButton *characterButton;  // 角色选择按钮
+    QPushButton *codexButton;
+    QPushButton *devModeButton;  // 开发者模式按钮
+    QPushButton *exitButton;
+    QLabel *titleLabel;
     QPixmap m_titlePixmap;
     bool m_useTitleImage = false;
     QString m_backgroundPath;
 
-   public:
-    explicit MainMenu(QWidget* parent = nullptr);
+public:
+    explicit MainMenu(QWidget *parent = nullptr);
 
-   protected:
-    void resizeEvent(QResizeEvent* event) override;
+protected:
+    void resizeEvent(QResizeEvent *event) override;
 
-    void showEvent(QShowEvent* event) override;
+    void showEvent(QShowEvent *event) override;
 
-   private:
+private:
     // 调整标题图片的大小以适应当前窗口尺寸
     void adjustTitlePixmap();
 
-   signals:
+signals:
 
     void startGameClicked();
 

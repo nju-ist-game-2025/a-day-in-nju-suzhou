@@ -11,8 +11,8 @@
 #include "constants.h"
 
 class Entity : public QObject, public QGraphicsPixmapItem {
-    Q_OBJECT
-   protected:
+Q_OBJECT
+protected:
     int xdir{}, ydir{};            // 移动方向（由 player/enemy 维护）
     int curr_xdir{}, curr_ydir{};  // 目前朝向（可选使用）
     double speed{};
@@ -35,11 +35,11 @@ class Entity : public QObject, public QGraphicsPixmapItem {
     bool maskNeedsUpdate = true;  // 掩码是否需要更新
     int alphaThreshold = 50;      // Alpha 阈值，大于此值视为不透明
 
-   public:
+public:
     int crash_r;
     double damageScale;
 
-    explicit Entity(QGraphicsPixmapItem* parent = nullptr);
+    explicit Entity(QGraphicsPixmapItem *parent = nullptr);
 
     [[nodiscard]] double getSpeed() const { return speed; };
 
@@ -56,10 +56,10 @@ class Entity : public QObject, public QGraphicsPixmapItem {
     virtual void move() = 0;
 
     // 保留原接口（player/enemy 可能会调用）
-    void setPixmapofDirs(QPixmap& down, QPixmap& up, QPixmap& left, QPixmap& right);
+    void setPixmapofDirs(QPixmap &down, QPixmap &up, QPixmap &left, QPixmap &right);
 
     // 覆写 setPixmap，保持对 base 图的设置权限（仍调用基类实现）
-    void setPixmap(const QPixmap& pix);
+    void setPixmap(const QPixmap &pix);
 
     virtual void takeDamage(int damage);
 
@@ -76,24 +76,24 @@ class Entity : public QObject, public QGraphicsPixmapItem {
     // 重载 setPos，以便在每次位置更新时检查并调整朝向
     void setPos(qreal x, qreal y);
 
-    void setPos(const QPointF& pos);
+    void setPos(const QPointF &pos);
 
     // 碰撞检测相关方法
     void generateCollisionMask();                                                          // 生成碰撞掩码
     void preloadCollisionMask() { generateCollisionMask(); }                               // 预加载碰撞掩码（游戏启动时调用）
-    const QImage& getCollisionMask();                                                      // 获取碰撞掩码（惰性生成）
+    const QImage &getCollisionMask();                                                      // 获取碰撞掩码（惰性生成）
     void invalidateCollisionMask() { maskNeedsUpdate = true; }                             // 标记掩码需要更新
     bool hasCollisionMask() const { return !collisionMask.isNull() && !maskNeedsUpdate; }  // 检查掩码是否已加载
 
     // 获取实际pixmap的场景边界框（不包含boundingRect扩展的区域，如血条）
     QRectF pixmapSceneBoundingRect() const;
 
-    static bool pixelCollision(Entity* a, Entity* b);  // Entity 之间的像素级碰撞检测
+    static bool pixelCollision(Entity *a, Entity *b);  // Entity 之间的像素级碰撞检测
 
     // 通用像素级碰撞检测（用于非Entity对象如ExamPaper）
-    static bool pixelCollisionWithPixmapItem(Entity* entity, QGraphicsPixmapItem* item, int alphaThreshold = 50);
+    static bool pixelCollisionWithPixmapItem(Entity *entity, QGraphicsPixmapItem *item, int alphaThreshold = 50);
 
-   protected:
+protected:
     // 检查 xdir，必要时基于当前 pixmap 做水平镜像从而切换朝向
     void updateFacing();
 };

@@ -14,7 +14,7 @@ class WashMachineBoss;
  * - 当Boss死亡或袜子被击杀时消失
  */
 class OrbitingSock : public SockEnemy {
-    Q_OBJECT
+Q_OBJECT
 
 public:
     explicit OrbitingSock(const QPixmap &pic, WashMachineBoss *master, double scale = 1.0);

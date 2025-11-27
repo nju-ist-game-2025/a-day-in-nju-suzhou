@@ -88,7 +88,7 @@ CharacterSelector::CharacterSelector(QWidget *parent)
             "}");
 
     // 角色选择按钮容器
-    QWidget * characterContainer = new QWidget(this);
+    QWidget *characterContainer = new QWidget(this);
     m_characterLayout = new QHBoxLayout(characterContainer);
     m_characterLayout->setAlignment(Qt::AlignCenter);
     m_characterLayout->setSpacing(20);

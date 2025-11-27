@@ -12,6 +12,7 @@
 #include "../world/levelconfig.h"
 
 class Player;
+
 class Chest;
 
 /**
@@ -24,9 +25,9 @@ class Chest;
  * 4. 玩家打开所有宝箱后通知门打开
  */
 class Usagi : public QObject, public QGraphicsPixmapItem {
-    Q_OBJECT
+Q_OBJECT
 
-   public:
+public:
     /**
      * @brief 创建乌萨奇并启动奖励流程
      * @param scene 游戏场景
@@ -35,46 +36,59 @@ class Usagi : public QObject, public QGraphicsPixmapItem {
      * @param rewardItems Boss奖励道具配置
      * @param parent 父对象
      */
-    explicit Usagi(QGraphicsScene* scene, Player* player, int levelNumber, const QVector<BossRewardItem>& rewardItems, QObject* parent = nullptr);
+    explicit Usagi(QGraphicsScene *scene, Player *player, int levelNumber, const QVector<BossRewardItem> &rewardItems,
+                   QObject *parent = nullptr);
+
     ~Usagi() override;
 
     // 开始整个奖励流程
     void startRewardSequence();
 
-   signals:
+signals:
+
     // 整个奖励流程完成（所有宝箱打开），门可以打开了
     void rewardSequenceCompleted();
 
     // 请求显示对话（发送给Level处理）
-    void requestShowDialog(const QStringList& dialog);
+    void requestShowDialog(const QStringList &dialog);
 
-   public slots:
+public slots:
+
     // Level的对话结束后调用
     void onDialogFinished();
 
-   private slots:
-    void onFallTimer();
-    void onDisappearTimer();
-    void onChestOpened(Chest* chest);
+private slots:
 
-   private:
+    void onFallTimer();
+
+    void onDisappearTimer();
+
+    void onChestOpened(Chest *chest);
+
+private:
     // 内部方法
     void loadUsagiImage();
+
     void startFalling();
+
     void onLanded();
+
     void startDisappearing();
+
     void spawnRewardChests();
+
     void checkAllChestsOpened();
+
     QStringList generateCongratsDialog();
 
-   private:
-    QGraphicsScene* m_scene;
+private:
+    QGraphicsScene *m_scene;
     QPointer<Player> m_player;
     int m_levelNumber;
     QVector<BossRewardItem> m_rewardItems;
 
-    QTimer* m_fallTimer;
-    QTimer* m_disappearTimer;
+    QTimer *m_fallTimer;
+    QTimer *m_disappearTimer;
 
     QPointF m_targetPos;    // 目标落地位置
     double m_fallSpeed;     // 下落速度

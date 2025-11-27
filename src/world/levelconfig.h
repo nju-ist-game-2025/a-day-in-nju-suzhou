@@ -9,8 +9,7 @@
 /**
  * @brief 敌人配置结构
  */
-struct EnemySpawnConfig
-{
+struct EnemySpawnConfig {
     QString type; // 敌人类型（如 "clock_normal", "clock_boom", "sock_normal"）
     int count;    // 生成数量
 
@@ -22,20 +21,19 @@ struct EnemySpawnConfig
 /**
  * @brief Boss奖励道具配置结构
  */
-struct BossRewardItem
-{
+struct BossRewardItem {
     QString type; // 道具类型：damage_up, speed_up, shoot_speed_up, bullet_speed_up, red_heart, bomb, key
     double value; // 道具数值（倒率或数量）
 
     BossRewardItem() : value(1.0) {}
+
     BossRewardItem(const QString &t, double v) : type(t), value(v) {}
 };
 
 /**
  * @brief 房间配置结构
  */
-struct RoomConfig
-{
+struct RoomConfig {
     QString backgroundImage;                 // 房间背景图片路径（相对 assets/）
     int enemyCount;                          // 房间内敌人数量（保留用于兼容，实际由enemies决定）
     QVector<EnemySpawnConfig> enemies;       // 敌人生成配置列表
@@ -60,23 +58,22 @@ struct RoomConfig
     int doorRight; // 右门连接到的房间索引
 
     RoomConfig()
-        : enemyCount(0),
-          hasChest(false),
-          isChestLocked(false),
-          hasBoss(false),
-          isEliteRoom(false),
-          doorUp(-1),
-          doorDown(-1),
-          doorLeft(-1),
-          doorRight(-1) {}
+            : enemyCount(0),
+              hasChest(false),
+              isChestLocked(false),
+              hasBoss(false),
+              isEliteRoom(false),
+              doorUp(-1),
+              doorDown(-1),
+              doorLeft(-1),
+              doorRight(-1) {}
 };
 
 /**
  * @brief 关卡配置类
  * 用于从 JSON 文件加载关卡的房间布局和配置
  */
-class LevelConfig
-{
+class LevelConfig {
 public:
     LevelConfig();
 

@@ -6,6 +6,7 @@
 #include <QKeyEvent>
 #include <QList>
 #include <QWidget>
+#include <QPushButton>
 #include "../entities/enemy.h"
 #include "../entities/player.h"
 #include "ui/hud.h"
@@ -15,18 +16,18 @@ class Level;
 class PauseMenu;
 
 class GameView : public QWidget {
-    Q_OBJECT
+Q_OBJECT
 
-   private:
-    QGraphicsView* view;
-    QGraphicsScene* scene;
-    Player* player;
-    Level* level;  // 关卡管理器
-    HUD* hud{};
-    PauseMenu* m_pauseMenu;  // 暂停菜单
-    int currentLevel;        // 添加当前关卡变量
-    bool isLevelTransition;  // 防止重复触发
-    bool m_isInStoryMode;
+private:
+    QGraphicsView *view;
+    QGraphicsScene *scene;
+    Player *player;
+    Level *level;  // 关卡管理器
+    HUD *hud{};
+    PauseMenu *m_pauseMenu;  // 暂停菜单
+    int currentLevel{};        // 添加当前关卡变量
+    bool isLevelTransition{};  // 防止重复触发
+    bool m_isInStoryMode{};
     bool m_isPaused;                // 游戏是否暂停
     QString m_playerCharacterPath;  // 玩家角色图片路径
     int m_startLevel = 1;           // 起始关卡（开发者模式）
@@ -35,14 +36,14 @@ class GameView : public QWidget {
     int m_devBulletDamage = 1;      // 开发者模式子弹伤害
     bool m_devSkipToBoss = false;   // 开发者模式直接进入Boss房
 
-   public:
-    explicit GameView(QWidget* parent = nullptr);
+public:
+    explicit GameView(QWidget *parent = nullptr);
 
     ~GameView() override;
 
     void initGame();
 
-    void setPlayerCharacter(const QString& characterPath);                       // 设置玩家角色
+    void setPlayerCharacter(const QString &characterPath);                       // 设置玩家角色
     void setStartLevel(int level) { m_startLevel = level; }                      // 设置起始关卡（开发者模式）
     void setDevModeSettings(int maxHealth, int bulletDamage, bool skipToBoss) {  // 设置开发者模式参数
         m_devMaxHealth = maxHealth;
@@ -50,20 +51,21 @@ class GameView : public QWidget {
         m_devSkipToBoss = skipToBoss;
         m_isDevMode = true;
     }
-    HUD* getHUD() const { return hud; }
 
-   protected:
-    void showEvent(QShowEvent* event) override;
+    [[nodiscard]] HUD *getHUD() const { return hud; }
 
-    void mousePressEvent(QMouseEvent* event) override;
+protected:
+    void showEvent(QShowEvent *event) override;
 
-    void keyPressEvent(QKeyEvent* event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 
-    void keyReleaseEvent(QKeyEvent* event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
-    void resizeEvent(QResizeEvent* event) override;  // 处理窗口大小变化
+    void keyReleaseEvent(QKeyEvent *event) override;
 
-   private:
+    void resizeEvent(QResizeEvent *event) override;  // 处理窗口大小变化
+
+private:
     void adjustViewToWindow();
 
     void initAudio();
@@ -71,20 +73,25 @@ class GameView : public QWidget {
     void togglePause();  // 切换暂停状态
     void resumeGame();   // 继续游戏
     void pauseGame();    // 暂停游戏
-    void applyCharacterAbility(Player* player, const QString& characterPath);
+    void applyCharacterAbility(Player *player, const QString &characterPath);
 
-    QString resolveCharacterKey(const QString& characterPath) const;
+    [[nodiscard]] QString resolveCharacterKey(const QString &characterPath) const;
+    QGraphicsRectItem* m_deathOverlay = nullptr;
+    QPushButton *m_retryButton = nullptr;
+    QPushButton *m_menuButton2 = nullptr;
+    QPushButton *m_quitButton2 = nullptr;
+    QGraphicsProxyWidget *m_retryProxy = nullptr;
+    QGraphicsProxyWidget *m_menuProxy2 = nullptr;
+    QGraphicsProxyWidget *m_quitProxy2 = nullptr;
 
-   private slots:
+private slots:
 
     void
     updateHUD();  // 更新HUD
     void
     handlePlayerDeath();  // 处理玩家死亡
-    void
-    restartGame();  // 重新开始游戏（槽）
-    void
-    quitGame();  // 退出游戏（槽）
+    // 重新开始游戏（槽）
+    // 退出游戏（槽）
     void onEnemiesCleared(int roomIndex, bool up = false, bool down = false, bool left = false,
                           bool right = false);  // 房间敌人清空提示
     void
@@ -96,11 +103,13 @@ class GameView : public QWidget {
 
     void onStoryFinished();
 
-   signals:
+signals:
 
     void backToMenu();
 
     void requestRestart();
+
+    void showVictoryUI();
 };
 
 #endif  // GAMEVIEW_H

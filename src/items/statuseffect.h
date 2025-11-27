@@ -9,39 +9,39 @@
 #include "player.h"
 
 class StatusEffect : public QObject {
-    Q_OBJECT
+Q_OBJECT
     double duration;  // 状态效果持续时间，以秒计
-    QTimer* effTimer;
+    QTimer *effTimer;
 
-   protected:
+protected:
     QPointer<Entity> target;  // 使用 QPointer 自动处理对象销毁
 
-   public:
-    explicit StatusEffect(double dur, QObject* parent = nullptr);
+public:
+    explicit StatusEffect(double dur, QObject *parent = nullptr);
 
-    void applyTo(Entity* tgt);  // 应用效果到实体
+    void applyTo(Entity *tgt);  // 应用效果到实体
     // virtual void update(float deltaTime);//更新效果
     void expire();  // 过期或移除
-    virtual void onApplyEffect(Entity* target) {};
+    virtual void onApplyEffect(Entity *target) {};
 
-    virtual void onRemoveEffect(Entity* target) {};
+    virtual void onRemoveEffect(Entity *target) {};
 
     static void
-    showFloatText(QGraphicsScene* scene, const QString& text, const QPointF& position, const QColor& color = Qt::black);
+    showFloatText(QGraphicsScene *scene, const QString &text, const QPointF &position, const QColor &color = Qt::black);
 
-   signals:
+signals:
 };
 
 // 速度
 class SpeedEffect : public StatusEffect {
-   protected:
+protected:
     double multiplier;  // 速度倍数，<1减速，>1加速
     bool showText;      // 是否显示文字提示
-   public:
+public:
     SpeedEffect(double duration, double mul, bool showTextHint = true)
-        : StatusEffect(duration), multiplier(mul), showText(showTextHint) {}
+            : StatusEffect(duration), multiplier(mul), showText(showTextHint) {}
 
-    void onApplyEffect(Entity* target) override {
+    void onApplyEffect(Entity *target) override {
         if (!target)
             return;
         target->setSpeed(target->getSpeed() * multiplier);
@@ -53,7 +53,7 @@ class SpeedEffect : public StatusEffect {
         }
     }
 
-    void onRemoveEffect(Entity* target) override {
+    void onRemoveEffect(Entity *target) override {
         if (!target)
             return;
         target->setSpeed(target->getSpeed() / multiplier);
@@ -62,10 +62,10 @@ class SpeedEffect : public StatusEffect {
 
 // 鼓舞效果（Walker毒痕专用）- 增加移速但使用不同的文字提示
 class EncourageEffect : public SpeedEffect {
-   public:
+public:
     EncourageEffect(double duration, double mul)
-        : SpeedEffect(duration, mul, false) {}  // 不显示默认的速度提升文字
-    void onApplyEffect(Entity* target) override {
+            : SpeedEffect(duration, mul, false) {}  // 不显示默认的速度提升文字
+    void onApplyEffect(Entity *target) override {
         if (!target)
             return;
         target->setSpeed(target->getSpeed() * multiplier);
@@ -78,11 +78,11 @@ class EncourageEffect : public SpeedEffect {
 class bulletSpeedEffect : public StatusEffect {
     double multiplier;
 
-   public:
+public:
     bulletSpeedEffect(double duration, double mul)
-        : StatusEffect(duration), multiplier(mul) {}
+            : StatusEffect(duration), multiplier(mul) {}
 
-    void onApplyEffect(Entity* target) override {
+    void onApplyEffect(Entity *target) override {
         if (!target)
             return;
         target->setshootSpeed(target->getshootSpeed() * multiplier);
@@ -92,7 +92,7 @@ class bulletSpeedEffect : public StatusEffect {
             showFloatText(target->scene(), QString("短暂子弹速度下降↓"), target->pos());
     }
 
-    void onRemoveEffect(Entity* target) override {
+    void onRemoveEffect(Entity *target) override {
         if (!target)
             return;
         target->setshootSpeed(target->getshootSpeed() / multiplier);
@@ -104,16 +104,16 @@ class shootSpeedEffect : public StatusEffect {
     double multiplier;
     int temp;
 
-   public:
+public:
     shootSpeedEffect(double duration, double mul)
-        : StatusEffect(duration), multiplier(mul) {}
+            : StatusEffect(duration), multiplier(mul) {}
 
-    void onApplyEffect(Entity* target) override {
+    void onApplyEffect(Entity *target) override {
         if (!target)
             return;
-        if (auto p = dynamic_cast<Player*>(target)) {
+        if (auto p = dynamic_cast<Player *>(target)) {
             temp = p->getShootCooldown();
-            p->setShootCooldown((int)(temp / multiplier));
+            p->setShootCooldown((int) (temp / multiplier));
             if (multiplier > 1)
                 showFloatText(target->scene(), QString("🔫短暂射速提升↑"), target->pos());
             else if (multiplier < 1)
@@ -121,10 +121,10 @@ class shootSpeedEffect : public StatusEffect {
         }
     }
 
-    void onRemoveEffect(Entity* target) override {
+    void onRemoveEffect(Entity *target) override {
         if (!target)
             return;
-        if (auto p = dynamic_cast<Player*>(target))
+        if (auto p = dynamic_cast<Player *>(target))
             p->setShootCooldown(temp);
     }
 };
@@ -132,11 +132,11 @@ class shootSpeedEffect : public StatusEffect {
 // 伤害提升/降低
 class DamageEffect : public StatusEffect {
     double multiplier;  // 伤害倍数
-   public:
+public:
     DamageEffect(double duration, double mul)
-        : StatusEffect(duration), multiplier(mul) {};
+            : StatusEffect(duration), multiplier(mul) {};
 
-    void onApplyEffect(Entity* target) override {
+    void onApplyEffect(Entity *target) override {
         if (!target)
             return;
         target->setHurt(target->getHurt() * multiplier);
@@ -146,7 +146,7 @@ class DamageEffect : public StatusEffect {
             showFloatText(target->scene(), QString("⚔️短暂伤害下降↓"), target->pos(), Qt::red);
     }
 
-    void onRemoveEffect(Entity* target) override {
+    void onRemoveEffect(Entity *target) override {
         if (!target)
             return;
         target->setHurt(target->getHurt() / multiplier);
@@ -157,13 +157,13 @@ class DamageEffect : public StatusEffect {
 class soulHeartEffect : public StatusEffect {
     int hearts;
 
-   public:
-    soulHeartEffect(Player* pl, int n) : StatusEffect(1), hearts(n) {
-                                             // 构造函数不再直接应用效果，而是通过 onApplyEffect
-                                         };
+public:
+    soulHeartEffect(Player *pl, int n) : StatusEffect(1), hearts(n) {
+        // 构造函数不再直接应用效果，而是通过 onApplyEffect
+    };
 
-    void onApplyEffect(Entity* target) override {
-        if (auto pl = dynamic_cast<Player*>(target)) {
+    void onApplyEffect(Entity *target) override {
+        if (auto pl = dynamic_cast<Player *>(target)) {
             pl->addSoulHearts(hearts);
             StatusEffect::showFloatText(pl->scene(), QString("♥ ++魂心"), pl->pos(), Qt::green);
         }
@@ -173,13 +173,13 @@ class soulHeartEffect : public StatusEffect {
 class blackHeartEffect : public StatusEffect {
     int hearts;
 
-   public:
-    blackHeartEffect(Player* pl, int n) : StatusEffect(1), hearts(n) {
-                                              // 构造函数不再直接应用效果
-                                          };
+public:
+    blackHeartEffect(Player *pl, int n) : StatusEffect(1), hearts(n) {
+        // 构造函数不再直接应用效果
+    };
 
-    void onApplyEffect(Entity* target) override {
-        if (auto pl = dynamic_cast<Player*>(target)) {
+    void onApplyEffect(Entity *target) override {
+        if (auto pl = dynamic_cast<Player *>(target)) {
             pl->addBlackHearts(hearts);
             StatusEffect::showFloatText(pl->scene(), QString("♥ ++黑心"), pl->pos(), Qt::darkGray);
         }
@@ -190,18 +190,18 @@ class blackHeartEffect : public StatusEffect {
 class decDamage : public StatusEffect {
     double scale;
 
-   public:
+public:
     decDamage(double duration, double s)
-        : StatusEffect(duration), scale(s) {};
+            : StatusEffect(duration), scale(s) {};
 
-    void onApplyEffect(Entity* target) override {
+    void onApplyEffect(Entity *target) override {
         if (!target)
             return;
         target->damageScale = scale;
         showFloatText(target->scene(), QString("🛡️短暂伤害减免"), target->pos(), Qt::green);
     }
 
-    void onRemoveEffect(Entity* target) override {
+    void onRemoveEffect(Entity *target) override {
         if (!target)
             return;
         target->damageScale = 1.0;
@@ -211,24 +211,24 @@ class decDamage : public StatusEffect {
 // 中毒(一段时间内持续减血)
 class PoisonEffect : public StatusEffect {
     int damage;
-    QTimer* poisonTimer;
+    QTimer *poisonTimer;
     // Entity* target; // 使用基类的 QPointer<Entity> target
 
-   public:
-    PoisonEffect(Entity* target_, double duration, int damage_);
+public:
+    PoisonEffect(Entity *target_, double duration, int damage_);
 
     void emitApplyEffect() {
         if (target)
             this->onApplyEffect(target);
     };
 
-    void onApplyEffect(Entity* target) override {
+    void onApplyEffect(Entity *target) override {
         if (!target)
             return;
 
         // 对玩家使用 forceTakeDamage（无视无敌，不触发新无敌）
         // 但如果玩家处于持久无敌状态（如被吸纳），跳过伤害
-        if (Player* player = dynamic_cast<Player*>(target)) {
+        if (Player *player = dynamic_cast<Player *>(target)) {
             if (player->isInvincible()) {
                 // 玩家无敌时不造成伤害，但不停止中毒计时器
                 return;
@@ -246,7 +246,7 @@ class PoisonEffect : public StatusEffect {
         }
     }
 
-    void onRemoveEffect(Entity* target) override {
+    void onRemoveEffect(Entity *target) override {
         if (!target)
             return;
         if (!poisonTimer)
@@ -257,17 +257,17 @@ class PoisonEffect : public StatusEffect {
 
 // 无敌
 class InvincibleEffect : public StatusEffect {
-   public:
+public:
     InvincibleEffect(double duration) : StatusEffect(duration) {};
 
-    void onApplyEffect(Entity* target) override {
+    void onApplyEffect(Entity *target) override {
         if (!target)
             return;
         target->setInvincible(true);
         showFloatText(target->scene(), QString("🛡️短暂无敌"), target->pos(), Qt::darkYellow);
     }
 
-    void onRemoveEffect(Entity* target) override {
+    void onRemoveEffect(Entity *target) override {
         if (!target)
             return;
         target->setInvincible(false);

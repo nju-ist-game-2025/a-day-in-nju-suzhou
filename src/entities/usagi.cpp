@@ -8,20 +8,20 @@
 #include "../items/item.h"
 #include "player.h"
 
-Usagi::Usagi(QGraphicsScene *scene, Player *player, int levelNumber, const QVector<BossRewardItem> &rewardItems, QObject *parent)
-    : QObject(parent),
-      QGraphicsPixmapItem(),
-      m_scene(scene),
-      m_player(player),
-      m_levelNumber(levelNumber),
-      m_rewardItems(rewardItems),
-      m_fallTimer(nullptr),
-      m_disappearTimer(nullptr),
-      m_fallSpeed(5.0),
-      m_hasLanded(false),
-      m_isDisappearing(false),
-      m_opacity(1.0)
-{
+Usagi::Usagi(QGraphicsScene *scene, Player *player, int levelNumber, const QVector<BossRewardItem> &rewardItems,
+             QObject *parent)
+        : QObject(parent),
+          QGraphicsPixmapItem(),
+          m_scene(scene),
+          m_player(player),
+          m_levelNumber(levelNumber),
+          m_rewardItems(rewardItems),
+          m_fallTimer(nullptr),
+          m_disappearTimer(nullptr),
+          m_fallSpeed(5.0),
+          m_hasLanded(false),
+          m_isDisappearing(false),
+          m_opacity(1.0) {
     setZValue(100); // 显示在最上层
 
     // 加载乌萨奇图片
@@ -36,47 +36,38 @@ Usagi::Usagi(QGraphicsScene *scene, Player *player, int levelNumber, const QVect
     qDebug() << "[Usagi] 创建乌萨奇，目标位置:" << m_targetPos;
 }
 
-Usagi::~Usagi()
-{
-    if (m_fallTimer)
-    {
+Usagi::~Usagi() {
+    if (m_fallTimer) {
         m_fallTimer->stop();
         delete m_fallTimer;
     }
-    if (m_disappearTimer)
-    {
+    if (m_disappearTimer) {
         m_disappearTimer->stop();
         delete m_disappearTimer;
     }
     qDebug() << "[Usagi] 乌萨奇已销毁";
 }
 
-void Usagi::loadUsagiImage()
-{
+void Usagi::loadUsagiImage() {
     QPixmap usagiPix;
     QStringList possiblePaths = {
-        "assets/usagi/usagi.png",
-        "../assets/usagi/usagi.png",
-        "../../our_game/assets/usagi/usagi.png"};
+            "assets/usagi/usagi.png",
+            "../assets/usagi/usagi.png",
+            "../../our_game/assets/usagi/usagi.png"};
 
-    for (const QString &path : possiblePaths)
-    {
-        if (QFile::exists(path))
-        {
+    for (const QString &path: possiblePaths) {
+        if (QFile::exists(path)) {
             usagiPix = QPixmap(path);
             break;
         }
     }
 
-    if (usagiPix.isNull())
-    {
+    if (usagiPix.isNull()) {
         // 使用默认的灰色方块作为占位符
         usagiPix = QPixmap(80, 80);
         usagiPix.fill(Qt::magenta);
         qWarning() << "[Usagi] 无法加载乌萨奇图片，使用占位符";
-    }
-    else
-    {
+    } else {
         // 缩放乌萨奇图片
         usagiPix = usagiPix.scaled(80, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     }
@@ -84,13 +75,11 @@ void Usagi::loadUsagiImage()
     setPixmap(usagiPix);
 }
 
-void Usagi::startRewardSequence()
-{
+void Usagi::startRewardSequence() {
     qDebug() << "[Usagi] 开始Boss奖励流程";
 
     // 添加到场景
-    if (m_scene)
-    {
+    if (m_scene) {
         m_scene->addItem(this);
     }
 
@@ -98,8 +87,7 @@ void Usagi::startRewardSequence()
     startFalling();
 }
 
-void Usagi::startFalling()
-{
+void Usagi::startFalling() {
     if (m_hasLanded)
         return;
 
@@ -110,12 +98,9 @@ void Usagi::startFalling()
     m_fallTimer->start(16); // 约60fps
 }
 
-void Usagi::onFallTimer()
-{
-    if (m_hasLanded)
-    {
-        if (m_fallTimer)
-        {
+void Usagi::onFallTimer() {
+    if (m_hasLanded) {
+        if (m_fallTimer) {
             m_fallTimer->stop();
         }
         return;
@@ -125,13 +110,11 @@ void Usagi::onFallTimer()
     double newY = currentPos.y() + m_fallSpeed;
 
     // 检查是否到达目标位置
-    if (newY >= m_targetPos.y())
-    {
+    if (newY >= m_targetPos.y()) {
         newY = m_targetPos.y();
         m_hasLanded = true;
 
-        if (m_fallTimer)
-        {
+        if (m_fallTimer) {
             m_fallTimer->stop();
         }
 
@@ -142,8 +125,7 @@ void Usagi::onFallTimer()
     setPos(currentPos.x(), newY);
 }
 
-void Usagi::onLanded()
-{
+void Usagi::onLanded() {
     qDebug() << "[Usagi] 显示恭喜对话";
 
     // 生成对话并请求Level显示
@@ -151,74 +133,64 @@ void Usagi::onLanded()
     emit requestShowDialog(dialog);
 }
 
-QStringList Usagi::generateCongratsDialog()
-{
+QStringList Usagi::generateCongratsDialog() {
     QStringList dialog;
 
-    if (m_levelNumber == 1)
-    {
+    if (m_levelNumber == 1) {
         dialog = {
-            "【乌萨奇】\n『哇哦！恭喜你！』",
-            "【乌萨奇】\n『你成功打败了梦魇！』",
-            "【乌萨奇】\n『看来你已经准备好面对新的一天了呢～』",
-            "**智科er** \n 你...你是谁？",
-            "【乌萨奇】\n『我是乌萨奇！是来给你送奖励的！』",
-            "【乌萨奇】\n『作为战胜梦魇的奖励，这两个宝箱送给你～』",
-            "【乌萨奇】\n『打开它们，然后继续你的旅程吧！』",
-            "（乌萨奇消失了，留下了两个宝箱）"};
-    }
-    else if (m_levelNumber == 2)
-    {
+                "【乌萨奇】\n『哇哦！恭喜你！』",
+                "【乌萨奇】\n『你成功打败了梦魇！』",
+                "【乌萨奇】\n『看来你已经准备好面对新的一天了呢～』",
+                "**智科er** \n 你...你是谁？",
+                "【乌萨奇】\n『我是乌萨奇！是来给你送奖励的！』",
+                "【乌萨奇】\n『作为战胜梦魇的奖励，这两个宝箱送给你～』",
+                "【乌萨奇】\n『打开它们，然后继续你的旅程吧！』",
+                "（乌萨奇消失了，留下了两个宝箱）"};
+    } else if (m_levelNumber == 2) {
         dialog = {
-            "【乌萨奇】\n『太厉害了！』",
-            "【乌萨奇】\n『你成功拯救了洗衣机！』",
-            "【乌萨奇】\n『那台可怜的洗衣机终于可以安息了～』",
-            "**智科er** \n 乌萨奇？你又出现了！",
-            "【乌萨奇】\n『当然啦！每次你战胜Boss我都会来的！』",
-            "【乌萨奇】\n『这是你的奖励～希望这些能帮助你继续前进！』",
-            "【乌萨奇】\n『记得要好好爱护公共设施哦～』",
-            "（乌萨奇消失了，留下了两个宝箱）"};
-    }
-    else if (m_levelNumber == 3)
-    {
+                "【乌萨奇】\n『太厉害了！』",
+                "【乌萨奇】\n『你成功拯救了洗衣机！』",
+                "【乌萨奇】\n『那台可怜的洗衣机终于可以安息了～』",
+                "**智科er** \n 乌萨奇？你又出现了！",
+                "【乌萨奇】\n『当然啦！每次你战胜Boss我都会来的！』",
+                "【乌萨奇】\n『这是你的奖励～希望这些能帮助你继续前进！』",
+                "【乌萨奇】\n『记得要好好爱护公共设施哦～』",
+                "（乌萨奇消失了，留下了两个宝箱）"};
+    } else if (m_levelNumber == 3) {
         dialog = {
-            "【乌萨奇】\n『哇啊啊啊！！！』",
-            "【乌萨奇】\n『你居然打败了奶牛张老师！！！』",
-            "【乌萨奇】\n『概率论的噩梦终于结束了呢～』",
-            "**智科er** \n 乌萨奇...这次真的太难了...",
-            "【乌萨奇】\n『辛苦啦！你真的超级厉害！』",
-            "【乌萨奇】\n『根据我的计算，通关概率只有0.01%呢～』",
-            "**智科er** \n 那我岂不是...",
-            "【乌萨奇】\n『你就是那个传说中的欧皇！』",
-            "【乌萨奇】\n『好啦好啦，这是你应得的奖励～』",
-            "【乌萨奇】\n『对了对了，告诉你一个秘密...』",
-            "【乌萨奇】\n『其实这只是第一个版本哦！』",
-            "【乌萨奇】\n『后续还会有更多的Boss和关卡等着你～』",
-            "**智科er** \n 还有？！",
-            "【乌萨奇】\n『期待下次见面吧！拜拜～』",
-            "（乌萨奇开心地消失了）",
-            "（恭喜你通关了游戏！感谢游玩！）"};
-    }
-    else
-    {
+                "【乌萨奇】\n『哇啊啊啊！！！』",
+                "【乌萨奇】\n『你居然打败了奶牛张老师！！！』",
+                "【乌萨奇】\n『概率论的噩梦终于结束了呢～』",
+                "**智科er** \n 乌萨奇...这次真的太难了...",
+                "【乌萨奇】\n『辛苦啦！你真的超级厉害！』",
+                "【乌萨奇】\n『根据我的计算，通关概率只有0.01%呢～』",
+                "**智科er** \n 那我岂不是...",
+                "【乌萨奇】\n『你就是那个传说中的欧皇！』",
+                "【乌萨奇】\n『好啦好啦，这是你应得的奖励～』",
+                "【乌萨奇】\n『对了对了，告诉你一个秘密...』",
+                "【乌萨奇】\n『其实这只是第一个版本哦！』",
+                "【乌萨奇】\n『后续还会有更多的Boss和关卡等着你～』",
+                "**智科er** \n 还有？！",
+                "【乌萨奇】\n『期待下次见面吧！拜拜～』",
+                "（乌萨奇开心地消失了）",
+                "（恭喜你通关了游戏！感谢游玩！）"};
+    } else {
         dialog = {
-            "【乌萨奇】\n『恭喜通关！』",
-            "【乌萨奇】\n『你真的很厉害呢！』",
-            "【乌萨奇】\n『这是给你的奖励～』",
-            "（乌萨奇消失了，留下了两个宝箱）"};
+                "【乌萨奇】\n『恭喜通关！』",
+                "【乌萨奇】\n『你真的很厉害呢！』",
+                "【乌萨奇】\n『这是给你的奖励～』",
+                "（乌萨奇消失了，留下了两个宝箱）"};
     }
 
     return dialog;
 }
 
-void Usagi::onDialogFinished()
-{
+void Usagi::onDialogFinished() {
     qDebug() << "[Usagi] 对话结束，开始消失";
     startDisappearing();
 }
 
-void Usagi::startDisappearing()
-{
+void Usagi::startDisappearing() {
     if (m_isDisappearing)
         return;
 
@@ -230,23 +202,19 @@ void Usagi::startDisappearing()
     m_disappearTimer->start(50); // 渐隐速度
 }
 
-void Usagi::onDisappearTimer()
-{
+void Usagi::onDisappearTimer() {
     m_opacity -= 0.05;
 
-    if (m_opacity <= 0)
-    {
+    if (m_opacity <= 0) {
         m_opacity = 0;
-        if (m_disappearTimer)
-        {
+        if (m_disappearTimer) {
             m_disappearTimer->stop();
         }
 
         qDebug() << "[Usagi] 乌萨奇已消失，生成奖励宝箱";
 
         // 从场景移除自身
-        if (scene())
-        {
+        if (scene()) {
             scene()->removeItem(this);
         }
 
@@ -259,10 +227,8 @@ void Usagi::onDisappearTimer()
     setOpacity(m_opacity);
 }
 
-void Usagi::spawnRewardChests()
-{
-    if (!m_player || !m_scene)
-    {
+void Usagi::spawnRewardChests() {
+    if (!m_player || !m_scene) {
         qWarning() << "[Usagi] 无法生成宝箱：player或scene为空";
         emit rewardSequenceCompleted();
         return;
@@ -270,8 +236,7 @@ void Usagi::spawnRewardChests()
 
     // 创建Boss特供宝箱图片
     QPixmap chestPix = ResourceFactory::createBossChestImage(50);
-    if (chestPix.isNull())
-    {
+    if (chestPix.isNull()) {
         qWarning() << "[Usagi] 无法创建Boss宝箱图片，跳过奖励";
         emit rewardSequenceCompleted();
         return;
@@ -284,42 +249,27 @@ void Usagi::spawnRewardChests()
     // 根据配置创建道具
     QVector<Item *> rewardItemObjects;
 
-    for (const BossRewardItem &reward : m_rewardItems)
-    {
+    for (const BossRewardItem &reward: m_rewardItems) {
         Item *item = nullptr;
-        if (reward.type == "damage_up")
-        {
+        if (reward.type == "damage_up") {
             item = new DamageUpItem("伤害提升", reward.value);
-        }
-        else if (reward.type == "speed_up")
-        {
+        } else if (reward.type == "speed_up") {
             item = new SpeedUpItem("速度提升", reward.value);
-        }
-        else if (reward.type == "shoot_speed_up")
-        {
+        } else if (reward.type == "shoot_speed_up") {
             item = new ShootSpeedUpItem("射速提升", reward.value);
-        }
-        else if (reward.type == "bullet_speed_up")
-        {
+        } else if (reward.type == "bullet_speed_up") {
             item = new BulletSpeedUpItem("子弹速度提升", reward.value);
-        }
-        else if (reward.type == "red_heart")
-        {
+        } else if (reward.type == "red_heart") {
             item = new RedHeartContainerItem("红心容器", static_cast<int>(reward.value));
             // } else if (reward.type == "bomb") {  // 已移除炸弹
             //     item = new BombItem("炸弹", static_cast<int>(reward.value));
-        }
-        else if (reward.type == "key")
-        {
+        } else if (reward.type == "key") {
             item = new KeyItem("钥匙", static_cast<int>(reward.value));
-        }
-        else if (reward.type == "brimstone")
-        {
+        } else if (reward.type == "brimstone") {
             item = new BrimstoneItem("硫磺火");
         }
 
-        if (item)
-        {
+        if (item) {
             rewardItemObjects.append(item);
         }
     }
@@ -338,14 +288,10 @@ void Usagi::spawnRewardChests()
     m_rewardChests.append(QPointer<Chest>(chest2));
 
     // 分配道具到两个宝箱（轮流分配）
-    for (int i = 0; i < rewardItemObjects.size(); ++i)
-    {
-        if (i % 2 == 0)
-        {
+    for (int i = 0; i < rewardItemObjects.size(); ++i) {
+        if (i % 2 == 0) {
             chest1->addItem(rewardItemObjects[i]);
-        }
-        else
-        {
+        } else {
             chest2->addItem(rewardItemObjects[i]);
         }
     }
@@ -357,8 +303,7 @@ void Usagi::spawnRewardChests()
     qDebug() << "[Usagi] Boss特供宝箱已生成，共2个（每个额外+3血量）";
 }
 
-void Usagi::onChestOpened(Chest *chest)
-{
+void Usagi::onChestOpened(Chest *chest) {
     qDebug() << "[Usagi] 奖励宝箱被打开";
 
     // 从列表中移除
@@ -369,25 +314,20 @@ void Usagi::onChestOpened(Chest *chest)
     checkAllChestsOpened();
 }
 
-void Usagi::checkAllChestsOpened()
-{
+void Usagi::checkAllChestsOpened() {
     // 清理已失效的指针
     m_rewardChests.erase(
-        std::remove_if(m_rewardChests.begin(), m_rewardChests.end(),
-                       [](const QPointer<Chest> &ptr)
-                       { return ptr.isNull(); }),
-        m_rewardChests.end());
+            std::remove_if(m_rewardChests.begin(), m_rewardChests.end(),
+                           [](const QPointer<Chest> &ptr) { return ptr.isNull(); }),
+            m_rewardChests.end());
 
-    if (m_rewardChests.isEmpty())
-    {
+    if (m_rewardChests.isEmpty()) {
         qDebug() << "[Usagi] 所有奖励宝箱已打开，通知Level打开门";
         emit rewardSequenceCompleted();
 
         // 删除自身
         deleteLater();
-    }
-    else
-    {
+    } else {
         qDebug() << "[Usagi] 还有" << m_rewardChests.size() << "个奖励宝箱未打开";
     }
 }

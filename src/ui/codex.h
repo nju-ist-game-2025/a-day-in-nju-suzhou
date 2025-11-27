@@ -13,79 +13,96 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+// Boss阶段图片信息
+struct PhaseImage {
+    QString imagePath;  // 图片路径
+    QString phaseName;  // 阶段名称
+};
+
 // 图鉴条目数据结构
 struct CodexEntry {
-    QString name;          // 名称
-    QString imagePath;     // 图片路径
-    int health;            // 血量（-1表示无血量显示，如玩家）
-    QString attackMethod;  // 攻击方式
-    QString skills;        // 技能
-    QString traits;        // 特性
-    QString weakness;      // 弱点
-    QString backstory;     // 背景故事
-    bool isCharacter;      // 是否为玩家/NPC（只显示背景故事）
+    QString name;                   // 名称
+    QString imagePath;              // 图片路径
+    int health;                     // 血量（-1表示无血量显示，如玩家）
+    QString attackMethod;           // 攻击方式
+    QString skills;                 // 技能
+    QString traits;                 // 特性
+    QString weakness;               // 弱点
+    QString backstory;              // 背景故事
+    bool isCharacter;               // 是否为玩家/NPC（只显示背景故事）
+    QList<PhaseImage> phaseImages;  // Boss各阶段图片（可选）
 };
 
 // 图鉴条目卡片组件
 class CodexCard : public QWidget {
-    Q_OBJECT
-   public:
-    explicit CodexCard(const CodexEntry& entry, QWidget* parent = nullptr);
+Q_OBJECT
+public:
+    explicit CodexCard(const CodexEntry &entry, QWidget *parent = nullptr);
 
-   signals:
-    void clicked(const CodexEntry& entry);
+signals:
 
-   protected:
-    void mousePressEvent(QMouseEvent* event) override;
-    void enterEvent(QEnterEvent* event) override;
-    void leaveEvent(QEvent* event) override;
+    void clicked(const CodexEntry &entry);
 
-   private:
+protected:
+    void mousePressEvent(QMouseEvent *event) override;
+
+    void enterEvent(QEnterEvent *event) override;
+
+    void leaveEvent(QEvent *event) override;
+
+private:
     CodexEntry m_entry;
-    QLabel* m_imageLabel;
-    QLabel* m_nameLabel;
+    QLabel *m_imageLabel;
+    QLabel *m_nameLabel;
 };
 
 // 详细信息弹窗
 class CodexDetailDialog : public QDialog {
-    Q_OBJECT
-   public:
-    explicit CodexDetailDialog(const CodexEntry& entry, QWidget* parent = nullptr);
+Q_OBJECT
+public:
+    explicit CodexDetailDialog(const CodexEntry &entry, QWidget *parent = nullptr);
 };
 
 // 主图鉴类
 class Codex : public QWidget {
-    Q_OBJECT
+Q_OBJECT
 
-   public:
-    explicit Codex(QWidget* parent = nullptr);
+public:
+    explicit Codex(QWidget *parent = nullptr);
 
-   public slots:
+public slots:
+
     void returnToMenu();
 
-   signals:
+signals:
+
     void backToMenu();
 
-   private:
+private:
     void setupUI();
+
     void loadBossData();
+
     void loadEnemyData();
+
     void loadPlayerData();
+
     void loadUsagiData();
 
-    QWidget* createCategoryPage(const QList<CodexEntry>& entries);
-    void showEntryDetail(const CodexEntry& entry);
+    QWidget *createCategoryPage(const QList<CodexEntry> &entries);
 
-    QTabWidget* tabWidget;
-    QPushButton* backButton;
+    void showEntryDetail(const CodexEntry &entry);
+
+    QTabWidget *tabWidget;
+    QPushButton *backButton;
 
     QList<CodexEntry> m_bossEntries;
     QList<CodexEntry> m_enemyEntries;
     QList<CodexEntry> m_playerEntries;
     QList<CodexEntry> m_usagiEntries;
 
-   protected:
-    void resizeEvent(QResizeEvent* event) override;
+protected:
+    void resizeEvent(QResizeEvent *event) override;
 };
 
 #endif  // CODEX_H

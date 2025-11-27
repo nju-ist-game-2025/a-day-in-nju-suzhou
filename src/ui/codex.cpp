@@ -10,12 +10,12 @@
 
 // ==================== CodexCard 实现 ====================
 
-CodexCard::CodexCard(const CodexEntry& entry, QWidget* parent)
-    : QWidget(parent), m_entry(entry) {
+CodexCard::CodexCard(const CodexEntry &entry, QWidget *parent)
+        : QWidget(parent), m_entry(entry) {
     setFixedSize(120, 150);
     setCursor(Qt::PointingHandCursor);
 
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(5, 5, 5, 5);
     layout->setSpacing(5);
     layout->setAlignment(Qt::AlignCenter);
@@ -33,7 +33,8 @@ CodexCard::CodexCard(const CodexEntry& entry, QWidget* parent)
         m_imageLabel->setPixmap(pixmap);
     } else {
         m_imageLabel->setText("?");
-        m_imageLabel->setStyleSheet("background-color: rgba(220,220,220,220); border-radius: 10px; font-size: 24px; color: #333;");
+        m_imageLabel->setStyleSheet(
+                "background-color: rgba(220,220,220,220); border-radius: 10px; font-size: 24px; color: #333;");
     }
 
     // 名称标签
@@ -52,67 +53,69 @@ CodexCard::CodexCard(const CodexEntry& entry, QWidget* parent)
 
     // 默认样式 - 蓝色主题
     setStyleSheet(
-        "CodexCard {"
-        "   background-color: rgba(100, 149, 237, 220);"
-        "   border: 2px solid rgba(70, 130, 220, 255);"
-        "   border-radius: 15px;"
-        "}");
+            "CodexCard {"
+            "   background-color: rgba(100, 149, 237, 220);"
+            "   border: 2px solid rgba(70, 130, 220, 255);"
+            "   border-radius: 15px;"
+            "}");
 }
 
-void CodexCard::mousePressEvent(QMouseEvent* event) {
+void CodexCard::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         emit clicked(m_entry);
     }
     QWidget::mousePressEvent(event);
 }
 
-void CodexCard::enterEvent(QEnterEvent* event) {
+void CodexCard::enterEvent(QEnterEvent *event) {
     setStyleSheet(
-        "CodexCard {"
-        "   background-color: rgba(65, 105, 225, 240);"
-        "   border: 2px solid rgba(30, 90, 200, 255);"
-        "   border-radius: 15px;"
-        "}");
+            "CodexCard {"
+            "   background-color: rgba(65, 105, 225, 240);"
+            "   border: 2px solid rgba(30, 90, 200, 255);"
+            "   border-radius: 15px;"
+            "}");
     QWidget::enterEvent(event);
 }
 
-void CodexCard::leaveEvent(QEvent* event) {
+void CodexCard::leaveEvent(QEvent *event) {
     setStyleSheet(
-        "CodexCard {"
-        "   background-color: rgba(100, 149, 237, 220);"
-        "   border: 2px solid rgba(70, 130, 220, 255);"
-        "   border-radius: 15px;"
-        "}");
+            "CodexCard {"
+            "   background-color: rgba(100, 149, 237, 220);"
+            "   border: 2px solid rgba(70, 130, 220, 255);"
+            "   border-radius: 15px;"
+            "}");
     QWidget::leaveEvent(event);
 }
 
 // ==================== CodexDetailDialog 实现 ====================
 
-CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
-    : QDialog(parent) {
+CodexDetailDialog::CodexDetailDialog(const CodexEntry &entry, QWidget *parent)
+        : QDialog(parent) {
     setWindowTitle(entry.name);
     setMinimumSize(500, 400);
     setMaximumSize(600, 600);
-    setStyleSheet("QDialog { background-color: rgba(230, 240, 255, 255); border: 2px solid rgba(100, 149, 237, 200); border-radius: 10px; }");
+    setStyleSheet(
+            "QDialog { background-color: rgba(230, 240, 255, 255); border: 2px solid rgba(100, 149, 237, 200); border-radius: 10px; }");
 
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(20, 20, 20, 20);
     mainLayout->setSpacing(15);
 
     // 顶部：图片和名称
-    QHBoxLayout* headerLayout = new QHBoxLayout();
+    QHBoxLayout *headerLayout = new QHBoxLayout();
 
-    QLabel* imageLabel = new QLabel(this);
+    QLabel *imageLabel = new QLabel(this);
     imageLabel->setFixedSize(100, 100);
     imageLabel->setAlignment(Qt::AlignCenter);
-    imageLabel->setStyleSheet("background-color: rgba(255, 255, 255, 220); border: 2px solid rgba(100, 149, 237, 200); border-radius: 15px;");
+    imageLabel->setStyleSheet(
+            "background-color: rgba(255, 255, 255, 220); border: 2px solid rgba(100, 149, 237, 200); border-radius: 15px;");
     QPixmap pixmap(entry.imagePath);
     if (!pixmap.isNull()) {
         pixmap = pixmap.scaled(90, 90, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         imageLabel->setPixmap(pixmap);
     }
 
-    QLabel* nameLabel = new QLabel(entry.name, this);
+    QLabel *nameLabel = new QLabel(entry.name, this);
     QFont nameFont;
     nameFont.setFamily("Microsoft YaHei");
     nameFont.setPointSize(24);
@@ -128,21 +131,21 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
     mainLayout->addLayout(headerLayout);
 
     // 分隔线
-    QFrame* line = new QFrame(this);
+    QFrame *line = new QFrame(this);
     line->setFrameShape(QFrame::HLine);
     line->setStyleSheet("background-color: rgba(100, 149, 237, 150);");
     mainLayout->addWidget(line);
 
     // 详情内容
-    QScrollArea* scrollArea = new QScrollArea(this);
+    QScrollArea *scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
     scrollArea->setStyleSheet(
-        "QScrollArea { background: transparent; border: none; }"
-        "QScrollBar:vertical { background: rgba(100, 149, 237, 50); width: 10px; border-radius: 5px; }"
-        "QScrollBar::handle:vertical { background: rgba(70, 130, 220, 150); border-radius: 5px; }");
+            "QScrollArea { background: transparent; border: none; }"
+            "QScrollBar:vertical { background: rgba(100, 149, 237, 50); width: 10px; border-radius: 5px; }"
+            "QScrollBar::handle:vertical { background: rgba(70, 130, 220, 150); border-radius: 5px; }");
 
-    QWidget* contentWidget = new QWidget();
-    QVBoxLayout* contentLayout = new QVBoxLayout(contentWidget);
+    QWidget *contentWidget = new QWidget();
+    QVBoxLayout *contentLayout = new QVBoxLayout(contentWidget);
     contentLayout->setSpacing(6);
 
     QFont labelFont;
@@ -155,13 +158,13 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
     QString valueStyle = "color: #2c3e50; padding: 6px 0px 12px 16px;";
 
     // 辅助lambda：创建一个属性组（标题+内容）
-    auto addInfoSection = [&](const QString& icon, const QString& title, const QString& value) {
-        QLabel* titleLabel = new QLabel(icon + " " + title, contentWidget);
+    auto addInfoSection = [&](const QString &icon, const QString &title, const QString &value) {
+        QLabel *titleLabel = new QLabel(icon + " " + title, contentWidget);
         titleLabel->setFont(labelFont);
         titleLabel->setStyleSheet(labelStyle);
         contentLayout->addWidget(titleLabel);
 
-        QLabel* valueLabel = new QLabel(value, contentWidget);
+        QLabel *valueLabel = new QLabel(value, contentWidget);
         valueLabel->setFont(labelFont);
         valueLabel->setStyleSheet(valueStyle);
         valueLabel->setWordWrap(true);
@@ -185,6 +188,51 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
         if (!entry.weakness.isEmpty()) {
             addInfoSection("💔", "弱点", entry.weakness);
         }
+
+        // 显示Boss各阶段图片
+        if (!entry.phaseImages.isEmpty()) {
+            QLabel* phaseTitle = new QLabel("🎭 形态一览", contentWidget);
+            phaseTitle->setFont(labelFont);
+            phaseTitle->setStyleSheet(labelStyle);
+            contentLayout->addWidget(phaseTitle);
+
+            QHBoxLayout* phaseLayout = new QHBoxLayout();
+            phaseLayout->setSpacing(15);
+            phaseLayout->setContentsMargins(16, 6, 0, 12);
+
+            for (const PhaseImage& phase : entry.phaseImages) {
+                QVBoxLayout* phaseItemLayout = new QVBoxLayout();
+                phaseItemLayout->setSpacing(5);
+                phaseItemLayout->setAlignment(Qt::AlignCenter);
+
+                QLabel* phaseImageLabel = new QLabel(contentWidget);
+                phaseImageLabel->setFixedSize(70, 70);
+                phaseImageLabel->setAlignment(Qt::AlignCenter);
+                phaseImageLabel->setStyleSheet("background-color: rgba(255, 255, 255, 200); border: 1px solid rgba(100, 149, 237, 150); border-radius: 8px;");
+                QPixmap phasePix(phase.imagePath);
+                if (!phasePix.isNull()) {
+                    phasePix = phasePix.scaled(60, 60, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                    phaseImageLabel->setPixmap(phasePix);
+                }
+
+                QLabel* phaseNameLabel = new QLabel(phase.phaseName, contentWidget);
+                phaseNameLabel->setAlignment(Qt::AlignCenter);
+                QFont phaseFont;
+                phaseFont.setFamily("Microsoft YaHei");
+                phaseFont.setPointSize(9);
+                phaseNameLabel->setFont(phaseFont);
+                phaseNameLabel->setStyleSheet("color: #4a6fa5;");
+
+                phaseItemLayout->addWidget(phaseImageLabel);
+                phaseItemLayout->addWidget(phaseNameLabel);
+                phaseLayout->addLayout(phaseItemLayout);
+            }
+            phaseLayout->addStretch();
+
+            QWidget* phaseContainer = new QWidget(contentWidget);
+            phaseContainer->setLayout(phaseLayout);
+            contentLayout->addWidget(phaseContainer);
+        }
     }
 
     // 背景故事（所有条目都有）
@@ -195,7 +243,7 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
     mainLayout->addWidget(scrollArea);
 
     // 关闭按钮
-    QPushButton* closeBtn = new QPushButton("关闭", this);
+    QPushButton *closeBtn = new QPushButton("关闭", this);
     closeBtn->setFixedSize(120, 40);
     QFont btnFont;
     btnFont.setFamily("Microsoft YaHei");
@@ -203,15 +251,15 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
     btnFont.setBold(true);
     closeBtn->setFont(btnFont);
     closeBtn->setStyleSheet(
-        "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4a90d9, stop:1 #2980b9);"
-        "   color: white;"
-        "   border: 2px solid #2471a3;"
-        "   border-radius: 10px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #5dade2, stop:1 #4a90d9);"
-        "}");
+            "QPushButton {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4a90d9, stop:1 #2980b9);"
+            "   color: white;"
+            "   border: 2px solid #2471a3;"
+            "   border-radius: 10px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #5dade2, stop:1 #4a90d9);"
+            "}");
     connect(closeBtn, &QPushButton::clicked, this, &QDialog::accept);
 
     mainLayout->addWidget(closeBtn, 0, Qt::AlignCenter);
@@ -219,7 +267,7 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
 
 // ==================== Codex 主类实现 ====================
 
-Codex::Codex(QWidget* parent) : QWidget(parent) {
+Codex::Codex(QWidget *parent) : QWidget(parent) {
     setupUI();
     loadBossData();
     loadEnemyData();
@@ -236,12 +284,12 @@ Codex::Codex(QWidget* parent) : QWidget(parent) {
 void Codex::setupUI() {
     setMinimumSize(800, 600);
 
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(20, 20, 20, 20);
     mainLayout->setSpacing(20);
 
     // 标题
-    QLabel* titleLabel = new QLabel("游戏图鉴", this);
+    QLabel *titleLabel = new QLabel("游戏图鉴", this);
     QFont titleFont;
     titleFont.setFamily("Microsoft YaHei");
     titleFont.setPointSize(28);
@@ -253,29 +301,29 @@ void Codex::setupUI() {
     // 标签页组件
     tabWidget = new QTabWidget(this);
     tabWidget->setStyleSheet(
-        "QTabWidget::pane {"
-        "   border: 2px solid rgba(100, 149, 237, 200);"
-        "   border-radius: 10px;"
-        "   background-color: rgba(255, 255, 255, 230);"
-        "}"
-        "QTabBar::tab {"
-        "   background: rgba(180, 200, 230, 220);"
-        "   color: #1a1a1a;"
-        "   padding: 10px 25px;"
-        "   margin-right: 5px;"
-        "   border-top-left-radius: 10px;"
-        "   border-top-right-radius: 10px;"
-        "   font-family: 'Microsoft YaHei';"
-        "   font-size: 14px;"
-        "   font-weight: bold;"
-        "}"
-        "QTabBar::tab:selected {"
-        "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4a90d9, stop:1 #2980b9);"
-        "   color: white;"
-        "}"
-        "QTabBar::tab:hover:!selected {"
-        "   background: rgba(150, 180, 220, 240);"
-        "}");
+            "QTabWidget::pane {"
+            "   border: 2px solid rgba(100, 149, 237, 200);"
+            "   border-radius: 10px;"
+            "   background-color: rgba(255, 255, 255, 230);"
+            "}"
+            "QTabBar::tab {"
+            "   background: rgba(180, 200, 230, 220);"
+            "   color: #1a1a1a;"
+            "   padding: 10px 25px;"
+            "   margin-right: 5px;"
+            "   border-top-left-radius: 10px;"
+            "   border-top-right-radius: 10px;"
+            "   font-family: 'Microsoft YaHei';"
+            "   font-size: 14px;"
+            "   font-weight: bold;"
+            "}"
+            "QTabBar::tab:selected {"
+            "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4a90d9, stop:1 #2980b9);"
+            "   color: white;"
+            "}"
+            "QTabBar::tab:hover:!selected {"
+            "   background: rgba(150, 180, 220, 240);"
+            "}");
 
     // 返回按钮
     backButton = new QPushButton("返回主菜单", this);
@@ -286,18 +334,18 @@ void Codex::setupUI() {
     btnFont.setBold(true);
     backButton->setFont(btnFont);
     backButton->setStyleSheet(
-        "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #e67e22, stop:1 #d35400);"
-        "   color: white;"
-        "   border: 2px solid #a04000;"
-        "   border-radius: 10px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f39c12, stop:1 #e67e22);"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d35400, stop:1 #a04000);"
-        "}");
+            "QPushButton {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #e67e22, stop:1 #d35400);"
+            "   color: white;"
+            "   border: 2px solid #a04000;"
+            "   border-radius: 10px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f39c12, stop:1 #e67e22);"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d35400, stop:1 #a04000);"
+            "}");
 
     mainLayout->addWidget(titleLabel);
     mainLayout->addWidget(tabWidget);
@@ -313,24 +361,24 @@ void Codex::setupUI() {
         palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
         setAutoFillBackground(true);
         setPalette(palette);
-    } catch (const QString&) {
+    } catch (const QString &) {
         setStyleSheet("background-color: #2c3e50;");
     }
 }
 
-QWidget* Codex::createCategoryPage(const QList<CodexEntry>& entries) {
-    QScrollArea* scrollArea = new QScrollArea();
+QWidget *Codex::createCategoryPage(const QList<CodexEntry> &entries) {
+    QScrollArea *scrollArea = new QScrollArea();
     scrollArea->setWidgetResizable(true);
     scrollArea->setStyleSheet(
-        "QScrollArea { background: transparent; border: none; }"
-        "QScrollBar:vertical { background: rgba(100, 149, 237, 80); width: 12px; border-radius: 6px; }"
-        "QScrollBar::handle:vertical { background: rgba(70, 130, 220, 180); border-radius: 6px; min-height: 30px; }"
-        "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }");
+            "QScrollArea { background: transparent; border: none; }"
+            "QScrollBar:vertical { background: rgba(100, 149, 237, 80); width: 12px; border-radius: 6px; }"
+            "QScrollBar::handle:vertical { background: rgba(70, 130, 220, 180); border-radius: 6px; min-height: 30px; }"
+            "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }");
 
-    QWidget* contentWidget = new QWidget();
+    QWidget *contentWidget = new QWidget();
     contentWidget->setStyleSheet("background: transparent;");
 
-    QGridLayout* gridLayout = new QGridLayout(contentWidget);
+    QGridLayout *gridLayout = new QGridLayout(contentWidget);
     gridLayout->setContentsMargins(30, 30, 30, 30);
     gridLayout->setHorizontalSpacing(25);
     gridLayout->setVerticalSpacing(25);
@@ -339,8 +387,8 @@ QWidget* Codex::createCategoryPage(const QList<CodexEntry>& entries) {
     int row = 0;
     int maxCols = 5;  // 每行最多5个卡片
 
-    for (const CodexEntry& entry : entries) {
-        CodexCard* card = new CodexCard(entry, contentWidget);
+    for (const CodexEntry &entry: entries) {
+        CodexCard *card = new CodexCard(entry, contentWidget);
         connect(card, &CodexCard::clicked, this, &Codex::showEntryDetail);
         gridLayout->addWidget(card, row, col, Qt::AlignLeft | Qt::AlignTop);
 
@@ -365,7 +413,7 @@ QWidget* Codex::createCategoryPage(const QList<CodexEntry>& entries) {
     return scrollArea;
 }
 
-void Codex::showEntryDetail(const CodexEntry& entry) {
+void Codex::showEntryDetail(const CodexEntry &entry) {
     CodexDetailDialog dialog(entry, this);
     dialog.exec();
 }
@@ -382,6 +430,9 @@ void Codex::loadBossData() {
     nightmare.weakness = "炸弹闹钟可对其造成50点伤害";
     nightmare.backstory = "梦魇讨厌清晨，恨到它会在你睡得正香时把你从美梦中拽出来。它不在乎你有没有睡够，不在乎你是否还想再躺五分钟。它只知道，是时候起床了。\n\n其实呢，梦魇一直暗暗地渴望着你能早点入睡——这样它就能更早地来折磨你了。";
     nightmare.isCharacter = false;
+    nightmare.phaseImages = {
+        {"assets/boss/Nightmare/Nightmare.png", "一阶段"},
+        {"assets/boss/Nightmare/Nightmare2.png", "二阶段"}};
     m_bossEntries.append(nightmare);
 
     // 洗衣机Boss
@@ -395,6 +446,10 @@ void Codex::loadBossData() {
     washmachine.weakness = "变异前的吸收阶段完全无敌，需要等待变异完成";
     washmachine.backstory = "洗衣机情不自禁地转动着滚筒。是什么节奏呢？嗨，是同学们塞进来的臭袜子散发的独特韵律，这种频率的震动，只有洗衣机才能感受到。\n\n它曾经只是一台普通的公共洗衣机，直到有一天，一个同学往里面塞了三天没洗的袜子和一周没换的内裤。从那以后，洗衣机就变了。";
     washmachine.isCharacter = false;
+    washmachine.phaseImages = {
+        {"assets/boss/WashMachine/WashMachineNormally.png", "普通"},
+        {"assets/boss/WashMachine/WashMachineAngrily.png", "愤怒"},
+        {"assets/boss/WashMachine/WashMachineMutated.png", "变异"}};
     m_bossEntries.append(washmachine);
 
     // 奶牛张Boss
@@ -408,6 +463,10 @@ void Codex::loadBossData() {
     teacher.weakness = "弹幕服从正态分布，站在边缘位置可以降低命中概率";
     teacher.backstory = "奶牛张很凶悍，他是在概率论的海洋中成长的。他不在乎任何人的看法，无论是学霸还是学渣，他发出的考卷，是为了让所有人知道什么叫做正态分布。\n\n其实呢，奶牛张一直暗暗地希望有人能理解他的极大似然估计。他即将调往北京，对此表示喜忧参半。";
     teacher.isCharacter = false;
+    teacher.phaseImages = {
+        {"assets/boss/Teacher/cow.png", "授课"},
+        {"assets/boss/Teacher/cowAngry.png", "期中考试"},
+        {"assets/boss/Teacher/cowFinal.png", "方差爆炸"}};
     m_bossEntries.append(teacher);
 }
 
@@ -495,7 +554,7 @@ void Codex::loadEnemyData() {
     digitalSystem.skills = "【成长】随时间逐渐变大，体型和伤害同步增加";
     digitalSystem.traits = "绕圈移动模式，初始较小但会不断成长";
     digitalSystem.weakness = "尽早击杀，避免它成长到难以对付的程度";
-    digitalSystem.backstory = "数字系统是概率论课本里逃出来的一道习题。它不断地成长，就像你对它的恐惧一样。\n\n据说只要你看懂了它，它就会消失。可惜没人看懂过。";
+    digitalSystem.backstory = "数字系统是从《数字系统设计基础》这门课里跑出来的。它不断地成长，就像你对它的恐惧一样。\n\n据说只要你看懂了它，它就会消失。可惜没人看懂过。";
     digitalSystem.isCharacter = false;
     m_enemyEntries.append(digitalSystem);
 
@@ -564,7 +623,7 @@ void Codex::loadUsagiData() {
     usagi.imagePath = "assets/usagi/usagi.png";
     usagi.health = -1;
     usagi.isCharacter = true;
-    usagi.backstory = "乌萨奇是一只神秘的兔子，它会在每关通关后从天而降，为勇敢的玩家送上奖励。没人知道它从哪里来，也没人知道它为什么要帮助玩家。\n\n其实乌萨奇是程设课老师的微信头像。是的，你没有看错。这只可爱的兔子每天都在老师的头像里，看着每一个提交作业的学生。\n\n老师的微信签名是：\"很外向，说悄悄话都要用音响\"。乌萨奇觉得这很有道理。\n\n它喜欢说\"哇哦\"和\"～\"，喜欢给人惊喜，喜欢看到玩家打败Boss时的喜悦表情。它相信，每一个勇敢面对挑战的人，都值得被奖励。";
+    usagi.backstory = "乌萨奇总是在Boss倒下的那一刻从天而降。没人知道她是怎么算准时机的，大概是因为她一直在某个地方默默注视着每一个挑战者。\n\n她喜欢说\"哇哦\"，喜欢用\"～\"结尾，喜欢计算那些不可能的概率。她说通关概率只有0.01%，但她相信每个站在她面前的人都是那个0.01%。\n\n据说乌萨奇很外向，连说悄悄话都要用音响。没人知道这是不是真的，因为没人听过她小声说话。\n\n每次她消失之前，都会留下两个宝箱。有时候她还会叮嘱你好好爱护公共设施——虽然你刚刚把一台洗衣机打爆了。";
     m_usagiEntries.append(usagi);
 }
 
@@ -572,18 +631,18 @@ void Codex::returnToMenu() {
     emit backToMenu();
 }
 
-void Codex::resizeEvent(QResizeEvent* event) {
+void Codex::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
 
     // 更新背景图片
     try {
         // 图鉴页面专用背景
         QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage(
-            "background_codex", event->size().width(), event->size().height());
+                "background_codex", event->size().width(), event->size().height());
         QPalette palette;
         palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
         setPalette(palette);
-    } catch (const QString&) {
+    } catch (const QString &) {
         // 保持默认背景
     }
 

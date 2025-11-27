@@ -18,12 +18,12 @@ class Player;
  *   - 圆的大小随杨林的缩放而变化（基本上是能包住自己的最小圆）
  *   - 开局10秒后释放第一次，之后每30秒释放一次，每次持续5秒
  */
-class YanglinEnemy : public ScalingEnemy
-{
-    Q_OBJECT
+class YanglinEnemy : public ScalingEnemy {
+Q_OBJECT
 
 public:
     explicit YanglinEnemy(const QPixmap &pic, double scale = 1.0);
+
     ~YanglinEnemy() override;
 
     // 重写受伤方法
@@ -31,12 +31,14 @@ public:
 
     // 暂停/恢复定时器
     void pauseTimers() override;
+
     void resumeTimers() override;
 
 protected:
     void attackPlayer() override;
 
 private slots:
+
     void onSpinningTimer();  // 技能冷却定时器（每30秒）
     void onSpinningUpdate(); // 旋转动画更新
     void onSpinningEnd();    // 技能结束
