@@ -8,13 +8,15 @@
 #include "entity.h"
 
 class Projectile : public Entity {
-    QTimer *moveTimer;
-    QTimer *crashTimer;
-    int mode;           // Player发出：0, Enemy发出：1
-    bool isDestroying;  // 标记对象正在销毁，防止重复操作
-    bool m_isPaused;    // 暂停状态
-public:
-    Projectile(int _mode, double _hurt, QPointF pos, const QPixmap &pic_bullet, double scale = 1.0);
+    QTimer* moveTimer;
+    QTimer* crashTimer;
+    int mode;              // Player发出：0, Enemy发出：1
+    bool isDestroying;     // 标记对象正在销毁，防止重复操作
+    bool m_isPaused;       // 暂停状态
+    bool m_isFrostBullet;  // 是否为寒冰子弹
+
+   public:
+    Projectile(int _mode, double _hurt, QPointF pos, const QPixmap& pic_bullet, double scale = 1.0);
 
     ~Projectile();
 
@@ -33,6 +35,10 @@ public:
     void setPaused(bool paused);
 
     bool isPaused() const { return m_isPaused; }
+
+    // 寒冰子弹
+    void setIsFrostBullet(bool isFrost) { m_isFrostBullet = isFrost; }
+    bool isFrostBullet() const { return m_isFrostBullet; }
 };
 
 #endif  // PROJECTILE_H

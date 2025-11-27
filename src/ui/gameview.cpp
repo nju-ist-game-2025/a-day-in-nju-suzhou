@@ -262,6 +262,9 @@ void GameView::initGame() {
         // 连接玩家受伤信号到HUD闪烁
         connect(player, &Player::playerDamaged, hud, &HUD::triggerDamageFlash);
 
+        // 连接黑心复活信号
+        connect(player, &Player::blackHeartReviveStarted, this, &GameView::onBlackHeartRevive);
+
         // 初始更新HUD
         updateHUD();
 
@@ -330,6 +333,9 @@ void GameView::onStoryFinished() {
         int playerSize = 60;  // 需要与initGame中的一致
         player->setPos(scene_bound_x / 2 - playerSize / 2, scene_bound_y / 2 - playerSize / 2);
         player->setZValue(100);
+
+        // 初始化护盾显示（如果有护盾的话）
+        player->updateShieldDisplay();
     }
 
     // 将HUD添加到场景
@@ -634,8 +640,8 @@ void GameView::applyCharacterAbility(Player* player, const QString& characterPat
     } else if (key == "HighGracePeople") {
         player->addRedContainers(2);
         player->addRedHearts(2.0);
-        player->addSoulHearts(2);
-        qDebug() << "角色加成: 高雅人士 - 初始血量强化";
+        player->addShield(2);
+        qDebug() << "角色加成: 高雅人士 - 初始血量强化+2护盾";
     } else if (key == "njuFish") {
         player->setSpeed(player->getSpeed() * 1.25);
         player->setshootSpeed(player->getshootSpeed() * 1.2);
@@ -982,4 +988,53 @@ void GameView::adjustViewToWindow() {
 
     view->fitInView(rect, Qt::KeepAspectRatio);
     view->centerOn(rect.center());
+}
+
+void GameView::onBlackHeartRevive() {
+    qDebug() << "GameView: 黑心复活动画触发";
+
+    // 创建紫黑色全屏闪烁效果 - 多次闪烁让效果更明显
+    QGraphicsRectItem* reviveFlash = new QGraphicsRectItem(scene->sceneRect());
+    reviveFlash->setBrush(QColor(80, 0, 120, 200));  // 深紫色
+    reviveFlash->setPen(Qt::NoPen);
+    reviveFlash->setZValue(1000);  // 确保在最上层
+    scene->addItem(reviveFlash);
+
+    // 第一次闪烁
+    QTimer::singleShot(150, this, [this, reviveFlash]() {
+        if (reviveFlash && scene->items().contains(reviveFlash)) {
+            reviveFlash->setBrush(QColor(120, 0, 180, 180));  // 变亮
+        }
+    });
+    QTimer::singleShot(300, this, [this, reviveFlash]() {
+        if (reviveFlash && scene->items().contains(reviveFlash)) {
+            reviveFlash->setBrush(QColor(80, 0, 120, 220));  // 变暗
+        }
+    });
+    // 第二次闪烁
+    QTimer::singleShot(450, this, [this, reviveFlash]() {
+        if (reviveFlash && scene->items().contains(reviveFlash)) {
+            reviveFlash->setBrush(QColor(140, 0, 200, 160));  // 变亮
+        }
+    });
+    QTimer::singleShot(600, this, [this, reviveFlash]() {
+        if (reviveFlash && scene->items().contains(reviveFlash)) {
+            reviveFlash->setBrush(QColor(80, 0, 120, 120));  // 变暗
+        }
+    });
+    // 淡出
+    QTimer::singleShot(750, this, [this, reviveFlash]() {
+        if (reviveFlash && scene->items().contains(reviveFlash)) {
+            reviveFlash->setBrush(QColor(80, 0, 120, 60));
+        }
+    });
+    QTimer::singleShot(900, this, [this, reviveFlash]() {
+        if (reviveFlash && scene->items().contains(reviveFlash)) {
+            scene->removeItem(reviveFlash);
+            delete reviveFlash;
+        }
+    });
+
+    // 更新HUD
+    updateHUD();
 }

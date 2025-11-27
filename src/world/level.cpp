@@ -33,6 +33,8 @@
 #include "../entities/yanglinenemy.h"
 #include "../entities/zhuhaoenemy.h"
 #include "../items/chest.h"
+#include "../items/droppeditem.h"
+#include "../items/droppeditemfactory.h"
 #include "../ui/gameview.h"
 #include "../ui/hud.h"
 #include "levelconfig.h"
@@ -192,6 +194,7 @@ void Level::init(int levelNumber) {
     m_currentTeacherBoss = nullptr;
     m_bossDefeated = false;
     m_rewardSequenceActive = false;
+    m_bossRoomCleared = false;
     m_usagi = nullptr;
 
     // 重置精英房间状态
@@ -649,7 +652,7 @@ void Level::nextDialog() {
     qDebug() << "显示对话:" << m_currentDialogIndex << "/" << m_currentDialogs.size();
 }
 
-void Level::fadeDialogBackgroundTo(const QString &imagePath, int duration) {
+void Level::fadeDialogBackgroundTo(const QString& imagePath, int duration) {
     if (!m_scene || !m_dialogBox)
         return;
 
@@ -665,8 +668,7 @@ void Level::fadeDialogBackgroundTo(const QString &imagePath, int duration) {
     QPixmap newBg;
     try {
         newBg = ResourceFactory::loadImage(fullPath);
-    }
-    catch (const QString &e) {
+    } catch (const QString& e) {
         qWarning() << "fadeDialogBackgroundTo: 加载图片失败:" << e;
         return;
     }
@@ -677,19 +679,19 @@ void Level::fadeDialogBackgroundTo(const QString &imagePath, int duration) {
     }
 
     // 创建覆盖在对话框背景上的新背景（渐变进入）
-    QGraphicsPixmapItem *dialogOverlay = new QGraphicsPixmapItem(
-            newBg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    QGraphicsPixmapItem* dialogOverlay = new QGraphicsPixmapItem(
+        newBg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     dialogOverlay->setPos(0, 0);
     dialogOverlay->setZValue(10000);  // 与m_dialogBox相同的层级
     dialogOverlay->setOpacity(0.0);
     m_scene->addItem(dialogOverlay);
 
     // 动画从0到1
-    QVariantAnimation *anim = new QVariantAnimation(this);
+    QVariantAnimation* anim = new QVariantAnimation(this);
     anim->setStartValue(0.0);
     anim->setEndValue(1.0);
     anim->setDuration(duration);
-    connect(anim, &QVariantAnimation::valueChanged, this, [dialogOverlay](const QVariant &value) {
+    connect(anim, &QVariantAnimation::valueChanged, this, [dialogOverlay](const QVariant& value) {
         if (dialogOverlay)
             dialogOverlay->setOpacity(value.toDouble());
     });
@@ -711,12 +713,12 @@ void Level::fadeDialogBackgroundTo(const QString &imagePath, int duration) {
 void Level::finishStory() {
     qDebug() << "剧情播放完毕";
     m_skipRequested = false;
-    
+
     // 清理待切换的对话背景
     m_pendingDialogBackgrounds.clear();
     m_pendingFadeDialogBackground.clear();
     m_pendingFadeDialogDuration = 0;
-    
+
     // 清理渐变背景
     if (m_textBackground) {
         m_scene->removeItem(m_textBackground);
@@ -1429,7 +1431,7 @@ void Level::spawnDoors(const RoomConfig& roomCfg) {
         if (!config.loadFromFile(m_levelNumber)) {
             qWarning() << "无法加载关卡配置，跳过boss门检查";
         }
-        
+
         // 检查是否已有该房间的门对象（复用逻辑）
         if (m_roomDoors.contains(m_currentRoomIndex)) {
             // 复用已存在的门对象
@@ -1474,7 +1476,7 @@ void Level::spawnDoors(const RoomConfig& roomCfg) {
         if (roomCfg.doorUp >= 0) {
             // 检查目标房间是否是boss房间
             bool isBossDoor = config.getRoom(roomCfg.doorUp).hasBoss;
-            Door *door = new Door(Door::Up, isBossDoor);
+            Door* door = new Door(Door::Up, isBossDoor);
             // 上门：水平居中在顶部 (800-120)/2 = 340
             door->setPos(340, 0);
             m_scene->addItem(door);
@@ -1489,7 +1491,7 @@ void Level::spawnDoors(const RoomConfig& roomCfg) {
         if (roomCfg.doorDown >= 0) {
             // 检查目标房间是否是boss房间
             bool isBossDoor = config.getRoom(roomCfg.doorDown).hasBoss;
-            Door *door = new Door(Door::Down, isBossDoor);
+            Door* door = new Door(Door::Down, isBossDoor);
             // 下门：水平居中在底部 (600-80) = 520
             door->setPos(340, 520);
             m_scene->addItem(door);
@@ -1503,7 +1505,7 @@ void Level::spawnDoors(const RoomConfig& roomCfg) {
         if (roomCfg.doorLeft >= 0) {
             // 检查目标房间是否是boss房间
             bool isBossDoor = config.getRoom(roomCfg.doorLeft).hasBoss;
-            Door *door = new Door(Door::Left, isBossDoor);
+            Door* door = new Door(Door::Left, isBossDoor);
             // 左门：垂直居中在左侧 (600-120)/2 = 240
             door->setPos(0, 240);
             m_scene->addItem(door);
@@ -1517,7 +1519,7 @@ void Level::spawnDoors(const RoomConfig& roomCfg) {
         if (roomCfg.doorRight >= 0) {
             // 检查目标房间是否是boss房间
             bool isBossDoor = config.getRoom(roomCfg.doorRight).hasBoss;
-            Door *door = new Door(Door::Right, isBossDoor);
+            Door* door = new Door(Door::Right, isBossDoor);
             // 右门：垂直居中在右侧 800-80 = 720
             door->setPos(720, 240);
             m_scene->addItem(door);
@@ -1618,6 +1620,9 @@ void Level::clearSceneEntities() {
         }
     }
     m_currentChests.clear();
+
+    // 注意：掉落物品的保存应该在 enterNextRoom 中完成（在修改 m_currentRoomIndex 之前）
+    // clearSceneEntities 只负责清理场景中的子弹等临时物品，不再处理掉落物品的保存
 
     // Clear old door items (deprecated)
     for (QGraphicsItem* item : m_doorItems) {
@@ -1750,6 +1755,20 @@ bool Level::enterNextRoom() {
     }
 
     const RoomConfig& currentRoomCfg = config.getRoom(m_currentRoomIndex);
+
+    // 检测是否从Boss房间离开（Boss已被击败且奖励已领取）
+    if (currentRoomCfg.hasBoss && m_bossRoomCleared) {
+        qDebug() << "从Boss房间离开，触发进入下一关";
+        currentRoom->resetChangeDir();
+
+        // 重置Boss房间通关标记
+        m_bossRoomCleared = false;
+
+        // 发送关卡完成信号，触发进入下一关
+        emit levelCompleted(m_levelNumber);
+        return true;
+    }
+
     int nextRoomIndex = -1;
 
     if (y == -1) {
@@ -1769,6 +1788,9 @@ bool Level::enterNextRoom() {
     }
 
     qDebug() << "切换房间: 从" << m_currentRoomIndex << "到" << nextRoomIndex;
+
+    // 在切换房间之前，保存当前房间的掉落物品
+    currentRoom->saveDroppedItemsFromScene(m_scene);
 
     m_currentRoomIndex = nextRoomIndex;
 
@@ -1929,6 +1951,9 @@ void Level::loadRoom(int roomIndex) {
         }
     }
 
+    // 恢复掉落物品到场景
+    targetRoom->restoreDroppedItemsToScene(m_scene);
+
     qDebug() << "重新加载房间" << roomIndex << "完成，当前场景敌人数:" << m_currentEnemies.size();
 
     if (m_player) {
@@ -1995,14 +2020,18 @@ void Level::onEnemyDying(Enemy* enemy) {
     // 移除频繁的调试输出以避免性能问题
     // qDebug() << "已从全局敌人列表移除，剩余:" << m_currentEnemies.size();
 
-    // 只有非召唤的敌人才触发bonusEffects
-    // 延迟执行bonusEffects，避免在dying信号处理中访问不稳定状态
+    // 只有非召唤的敌人才有概率掉落物品
+    // 使用工厂类判断是否掉落（5%概率）
     if (!enemy->isSummoned()) {
+        QPointF dropPos = enemy->pos();
         QPointer<Level> levelPtr(this);
         QPointer<Player> playerPtr(m_player);
-        QTimer::singleShot(100, this, [levelPtr, playerPtr]() {
-            if (levelPtr && playerPtr) {
-                levelPtr->bonusEffects();
+        QGraphicsScene* scenePtr = m_scene;
+        QTimer::singleShot(100, this, [levelPtr, playerPtr, dropPos, scenePtr]() {
+            if (levelPtr && playerPtr && scenePtr) {
+                if (DroppedItemFactory::shouldEnemyDropItem()) {
+                    DroppedItemFactory::dropRandomItem(ItemDropPool::ENEMY_DROP, dropPos, playerPtr, scenePtr);
+                }
             }
         });
     }
@@ -2203,9 +2232,6 @@ void Level::openDoors(Room* cur) {
     } else {
         qDebug() << "房间" << m_currentRoomIndex << "敌人已清空，但所有门都通往boss房间且条件不满足";
     }
-
-    if (m_currentRoomIndex == m_rooms.size() - 1)
-        emit levelCompleted(m_levelNumber);
 
     // 只有战斗房间才发射敌人清空信号
     if (cur && cur->isBattleRoom()) {
@@ -2479,7 +2505,7 @@ void Level::bonusEffects() {
     // 2: shootSpeedEffect
     // 3: decDamage
     // 4: InvincibleEffect
-    // 5: soulHeartEffect
+    // 5: shieldEffect
 
     int type = QRandomGenerator::global()->bounded(12);
     if (type >= 6)
@@ -2503,7 +2529,7 @@ void Level::bonusEffects() {
             effect = new InvincibleEffect(5);
             break;
         case 5:
-            effect = new soulHeartEffect(m_player, 1);
+            effect = new shieldEffect(m_player, 1);
             break;
     }
 
@@ -2511,6 +2537,25 @@ void Level::bonusEffects() {
         effect->applyTo(m_player);
         // effect会在expire()中调用deleteLater()自我销毁
     }
+}
+
+// 在指定位置掉落随机物品（使用敌人掉落物品池）
+void Level::dropRandomItem(QPointF position) {
+    if (!m_scene || !m_player)
+        return;
+
+    DroppedItemFactory::dropRandomItem(ItemDropPool::ENEMY_DROP, position, m_player, m_scene);
+    qDebug() << "[Level] 在位置" << position << "掉落随机物品";
+}
+
+// 从指定位置掉落多个物品（散开效果，用于宝箱）
+void Level::dropItemsFromPosition(QPointF position, int count, bool scatter) {
+    if (!m_scene || !m_player || count <= 0)
+        return;
+
+    Q_UNUSED(scatter)  // 工厂类自动处理散开效果
+    DroppedItemFactory::dropItemsScattered(ItemDropPool::ENEMY_DROP, position, count, m_player, m_scene);
+    qDebug() << "[Level] 从位置" << position << "掉落" << count << "个物品";
 }
 
 // Boss召唤敌人方法（通用）
@@ -2940,15 +2985,15 @@ void Level::startBossRewardSequence() {
     qDebug() << "[Level] 开始Boss奖励流程";
 
     // 获取当前房间的奖励配置
-    QVector<BossRewardItem> rewardItems;
+    QStringList usagiChestItems;
     LevelConfig config;
     if (config.loadFromFile(m_levelNumber)) {
         const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
-        rewardItems = roomCfg.bossRewardItems;
+        usagiChestItems = roomCfg.usagiChestItems;
     }
 
     // 创建乌萨奇（它会自己处理整个奖励流程）
-    m_usagi = new Usagi(m_scene, m_player, m_levelNumber, rewardItems, this);
+    m_usagi = new Usagi(m_scene, m_player, m_levelNumber, usagiChestItems, this);
 
     // 连接信号
     connect(m_usagi, &Usagi::requestShowDialog, this, &Level::onUsagiRequestShowDialog);
@@ -2979,10 +3024,19 @@ void Level::onUsagiRewardCompleted() {
     Room* cur = m_rooms[m_currentRoomIndex];
     if (cur) {
         openDoors(cur);
+        // 确保房间的changeTimer正在运行
+        cur->startChangeTimer();
     }
 
-    // 发送关卡完成信号
-    emit levelCompleted(m_levelNumber);
+    // 确保checkChange定时器正在运行
+    if (checkChange && !checkChange->isActive()) {
+        checkChange->start(100);
+        qDebug() << "[Level] 重新启动checkChange定时器";
+    }
+
+    // 标记Boss房间已通关（不发送 levelCompleted 信号，等玩家进门后再触发）
+    m_bossRoomCleared = true;
+    qDebug() << "[Level] m_bossRoomCleared 设置为 true，等待玩家进门触发下一关";
 
     m_rewardSequenceActive = false;
     m_usagi = nullptr;
@@ -3007,15 +3061,15 @@ void Level::connectTeacherBossSignals(TeacherBoss* boss) {
     // 连接请求显示文字提示信号
     connect(boss, &TeacherBoss::requestShowTransitionText,
             this, &Level::onTeacherBossRequestTransitionText);
-    
+
     // 连接请求渐变背景信号
     connect(boss, &TeacherBoss::requestFadeBackground,
             this, &Level::onTeacherBossRequestFadeBackground);
-    
+
     // 连接请求渐变对话背景信号
     connect(boss, &TeacherBoss::requestFadeDialogBackground,
             this, &Level::onTeacherBossRequestFadeDialogBackground);
-    
+
     // 连接请求对话中切换背景信号
     connect(boss, &TeacherBoss::requestDialogBackgroundChange,
             this, &Level::onTeacherBossRequestDialogBackgroundChange);
@@ -3050,20 +3104,20 @@ void Level::onTeacherBossRequestTransitionText(const QString& text) {
     showPhaseTransitionText(text);
 }
 
-void Level::onTeacherBossRequestFadeBackground(const QString &backgroundPath, int duration) {
+void Level::onTeacherBossRequestFadeBackground(const QString& backgroundPath, int duration) {
     qDebug() << "[Level] TeacherBoss请求渐变背景:" << backgroundPath << "持续" << duration << "ms";
     // backgroundPath已经是完整路径（如assets/background/classRoom.png）
     fadeBackgroundTo(backgroundPath, duration);
 }
 
-void Level::onTeacherBossRequestFadeDialogBackground(const QString &backgroundPath, int duration) {
+void Level::onTeacherBossRequestFadeDialogBackground(const QString& backgroundPath, int duration) {
     qDebug() << "[Level] TeacherBoss请求渐变对话背景:" << backgroundPath << "持续" << duration << "ms";
     // 存储渐变信息，在对话框创建后执行
     m_pendingFadeDialogBackground = backgroundPath;
     m_pendingFadeDialogDuration = duration;
 }
 
-void Level::onTeacherBossRequestDialogBackgroundChange(int dialogIndex, const QString &backgroundName) {
+void Level::onTeacherBossRequestDialogBackgroundChange(int dialogIndex, const QString& backgroundName) {
     qDebug() << "[Level] TeacherBoss请求在对话索引" << dialogIndex << "时切换背景到:" << backgroundName;
     m_pendingDialogBackgrounds[dialogIndex] = backgroundName;
 }

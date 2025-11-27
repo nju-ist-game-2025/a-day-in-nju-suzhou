@@ -112,6 +112,8 @@ class GameView : public QWidget {
 
     void onStoryFinished();
 
+    void onBlackHeartRevive();  // 黑心复活时的处理
+
    signals:
 
     void backToMenu();

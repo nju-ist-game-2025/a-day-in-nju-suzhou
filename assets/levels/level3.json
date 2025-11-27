@@ -254,19 +254,12 @@
       ],
       "bossDialogBackground": "assets/background/teacher1_dia.png",
       "bossMapBackground": "assets/background/teacher1_map.png",
-      "bossRewardItems": [
-        {
-          "type": "damage_up",
-          "value": 1.2
-        },
-        {
-          "type": "speed_up",
-          "value": 1.15
-        },
-        {
-          "type": "red_heart",
-          "value": 3
-        }
+      "usagiChestItems": [
+        "blood_bag",
+        "damage_boost",
+        "fire_rate_boost",
+        "frost_slowdown",
+        "shield"
       ],
       "hasChest": false,
       "isChestLocked": false,

@@ -127,6 +127,10 @@ set(ITEM_SOURCES
         src/items/chest.h
         src/items/statuseffect.cpp
         src/items/statuseffect.h
+        src/items/droppeditem.cpp
+        src/items/droppeditem.h
+        src/items/droppeditemfactory.cpp
+        src/items/droppeditemfactory.h
 )
 
 set(UI_SOURCES

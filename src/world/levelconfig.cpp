@@ -37,7 +37,7 @@ bool LevelConfig::loadFromFile(int levelNumber) {
     return loadFromJson(doc.object());
 }
 
-bool LevelConfig::loadFromJson(const QJsonObject &levelObj) {
+bool LevelConfig::loadFromJson(const QJsonObject& levelObj) {
     m_rooms.clear();
 
     // 读取关卡名称
@@ -48,7 +48,7 @@ bool LevelConfig::loadFromJson(const QJsonObject &levelObj) {
 
     // 读取房间列表
     QJsonArray roomsArray = levelObj.value("rooms").toArray();
-    for (const QJsonValue &roomVal: roomsArray) {
+    for (const QJsonValue& roomVal : roomsArray) {
         if (roomVal.isObject()) {
             RoomConfig roomCfg = parseRoomConfig(roomVal.toObject());
             m_rooms.append(roomCfg);
@@ -64,7 +64,7 @@ bool LevelConfig::loadFromJson(const QJsonObject &levelObj) {
     return true;
 }
 
-const RoomConfig &LevelConfig::getRoom(int index) const {
+const RoomConfig& LevelConfig::getRoom(int index) const {
     static RoomConfig defaultRoom;
     if (index < 0 || index >= m_rooms.size()) {
         qWarning() << "房间索引越界:" << index;
@@ -73,7 +73,7 @@ const RoomConfig &LevelConfig::getRoom(int index) const {
     return m_rooms[index];
 }
 
-QStringList LevelConfig::readDescriptionsFromJson(const QString &filePath) {
+QStringList LevelConfig::readDescriptionsFromJson(const QString& filePath) {
     QStringList descriptions;
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
@@ -99,14 +99,14 @@ QStringList LevelConfig::readDescriptionsFromJson(const QString &filePath) {
 
     QJsonArray descArray = rootObj["description"].toArray();
 
-    for (const QJsonValue &value: descArray) {
+    for (const QJsonValue& value : descArray) {
         QString text = value.toString();
         descriptions.append(text);
     }
     return descriptions;
 }
 
-RoomConfig LevelConfig::parseRoomConfig(const QJsonObject &roomObj) {
+RoomConfig LevelConfig::parseRoomConfig(const QJsonObject& roomObj) {
     RoomConfig cfg;
 
     // 背景图片
@@ -120,14 +120,14 @@ RoomConfig LevelConfig::parseRoomConfig(const QJsonObject &roomObj) {
     cfg.enemyCount = 0;
     if (roomObj.contains("enemies") && roomObj.value("enemies").isArray()) {
         QJsonArray enemiesArray = roomObj.value("enemies").toArray();
-        for (const QJsonValue &enemyVal: enemiesArray) {
+        for (const QJsonValue& enemyVal : enemiesArray) {
             if (enemyVal.isObject()) {
                 QJsonObject enemyObj = enemyVal.toObject();
                 QString type = enemyObj.value("type").toString();
                 int count = enemyObj.value("count").toInt(0);
                 if (!type.isEmpty() && count > 0) {
                     cfg.enemies.append(EnemySpawnConfig(type, count));
-                    cfg.enemyCount += count; // 自动累加敌人总数
+                    cfg.enemyCount += count;  // 自动累加敌人总数
                 }
             }
         }
@@ -140,7 +140,7 @@ RoomConfig LevelConfig::parseRoomConfig(const QJsonObject &roomObj) {
     // Boss对话配置
     if (roomObj.contains("bossDialog") && roomObj.value("bossDialog").isArray()) {
         QJsonArray dialogArray = roomObj.value("bossDialog").toArray();
-        for (const QJsonValue &dialogVal: dialogArray) {
+        for (const QJsonValue& dialogVal : dialogArray) {
             cfg.bossDialog.append(dialogVal.toString());
         }
     }
@@ -155,17 +155,13 @@ RoomConfig LevelConfig::parseRoomConfig(const QJsonObject &roomObj) {
         cfg.bossMapBackground = roomObj.value("bossMapBackground").toString();
     }
 
-    // Boss奖励道具配置
-    if (roomObj.contains("bossRewardItems") && roomObj.value("bossRewardItems").isArray()) {
-        QJsonArray rewardArray = roomObj.value("bossRewardItems").toArray();
-        for (const QJsonValue &rewardVal: rewardArray) {
-            if (rewardVal.isObject()) {
-                QJsonObject rewardObj = rewardVal.toObject();
-                QString type = rewardObj.value("type").toString();
-                double value = rewardObj.value("value").toDouble(1.0);
-                if (!type.isEmpty()) {
-                    cfg.bossRewardItems.append(BossRewardItem(type, value));
-                }
+    // 乌萨奇宝箱物品配置（掉落物品名称列表）
+    if (roomObj.contains("usagiChestItems") && roomObj.value("usagiChestItems").isArray()) {
+        QJsonArray itemsArray = roomObj.value("usagiChestItems").toArray();
+        for (const QJsonValue& itemVal : itemsArray) {
+            QString itemName = itemVal.toString();
+            if (!itemName.isEmpty()) {
+                cfg.usagiChestItems.append(itemName);
             }
         }
     }
@@ -176,7 +172,7 @@ RoomConfig LevelConfig::parseRoomConfig(const QJsonObject &roomObj) {
     // 精英房间开场对话
     if (roomObj.contains("eliteDialog") && roomObj.value("eliteDialog").isArray()) {
         QJsonArray dialogArray = roomObj.value("eliteDialog").toArray();
-        for (const QJsonValue &dialogVal: dialogArray) {
+        for (const QJsonValue& dialogVal : dialogArray) {
             cfg.eliteDialog.append(dialogVal.toString());
         }
     }
@@ -189,7 +185,7 @@ RoomConfig LevelConfig::parseRoomConfig(const QJsonObject &roomObj) {
     // 精英房间第二阶段对话
     if (roomObj.contains("elitePhase2Dialog") && roomObj.value("elitePhase2Dialog").isArray()) {
         QJsonArray dialogArray = roomObj.value("elitePhase2Dialog").toArray();
-        for (const QJsonValue &dialogVal: dialogArray) {
+        for (const QJsonValue& dialogVal : dialogArray) {
             cfg.elitePhase2Dialog.append(dialogVal.toString());
         }
     }

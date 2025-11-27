@@ -1,23 +1,26 @@
 #include "chest.h"
 #include <QApplication>
-#include <QRandomGenerator>
-#include <QGraphicsScene>
 #include <QFont>
+#include <QGraphicsScene>
+#include <QRandomGenerator>
+#include <QtMath>
+#include "../constants.h"
 #include "../core/audiomanager.h"
+#include "droppeditemfactory.h"
 #include "player.h"
 
 // ==================== Chest 基类实现 ====================
 
-Chest::Chest(Player *pl, ChestType type, const QPixmap &pic_chest, double scale)
-        : m_chestType(type), m_isOpened(false), m_player(pl), m_hintText(nullptr), m_hintTimer(nullptr) {
+Chest::Chest(Player* pl, ChestType type, const QPixmap& pic_chest, double scale)
+    : m_chestType(type), m_isOpened(false), m_player(pl), m_hintText(nullptr), m_hintTimer(nullptr) {
     if (scale == 1.0) {
         this->setPixmap(pic_chest);
     } else {
         this->setPixmap(pic_chest.scaled(
-                pic_chest.width() * scale,
-                pic_chest.height() * scale,
-                Qt::KeepAspectRatio,
-                Qt::SmoothTransformation));
+            pic_chest.width() * scale,
+            pic_chest.height() * scale,
+            Qt::KeepAspectRatio,
+            Qt::SmoothTransformation));
     }
 
     // 创建提示文字定时器
@@ -46,7 +49,7 @@ void Chest::initItems() {
     // 基类不初始化物品，由子类实现
 }
 
-void Chest::showHint(const QString &text) {
+void Chest::showHint(const QString& text) {
     if (!scene())
         return;
 
@@ -123,16 +126,9 @@ void Chest::doOpen() {
     // 保存player的QPointer副本
     QPointer<Player> playerPtr = m_player;
 
-    // 随机获得一个物品
-    if (!m_items.isEmpty() && playerPtr) {
-        int i = QRandomGenerator::global()->bounded(m_items.size());
-        m_items[i]->onPickup(playerPtr.data());
-    }
-
-    // 应用额外效果
-    if (playerPtr) {
-        bonusEffects();
-    }
+    // 使用新物品掉落系统：普通宝箱掉落1-3个物品
+    int itemCount = QRandomGenerator::global()->bounded(1, 4);
+    dropItems(itemCount);
 
     // 隐藏提示
     hideHint();
@@ -153,23 +149,23 @@ void Chest::bonusEffects() {
     }
 
     // 获取原始指针用于创建效果
-    Player *pl = m_player.data();
+    Player* pl = m_player.data();
 
-    QVector<StatusEffect *> effectstoPlayer;
+    QVector<StatusEffect*> effectstoPlayer;
 
-    SpeedEffect *sp = new SpeedEffect(5, 1.5);
+    SpeedEffect* sp = new SpeedEffect(5, 1.5);
     effectstoPlayer.push_back(sp);
-    DamageEffect *dam = new DamageEffect(5, 1.5);
+    DamageEffect* dam = new DamageEffect(5, 1.5);
     effectstoPlayer.push_back(dam);
-    shootSpeedEffect *shootsp = new shootSpeedEffect(5, 1.5);
+    shootSpeedEffect* shootsp = new shootSpeedEffect(5, 1.5);
     effectstoPlayer.push_back(shootsp);
-    blackHeartEffect *black1 = new blackHeartEffect(pl, 1);
-    blackHeartEffect *black2 = new blackHeartEffect(pl, 1);
+    blackHeartEffect* black1 = new blackHeartEffect(pl, 1);
+    blackHeartEffect* black2 = new blackHeartEffect(pl, 1);
     effectstoPlayer.push_back(black1);
     effectstoPlayer.push_back(black2);
-    decDamage *dec = new decDamage(5, 0.5);
+    decDamage* dec = new decDamage(5, 0.5);
     effectstoPlayer.push_back(dec);
-    InvincibleEffect *inv = new InvincibleEffect(5);
+    InvincibleEffect* inv = new InvincibleEffect(5);
     effectstoPlayer.push_back(inv);
 
     // 以1/3的概率获得额外增益效果
@@ -179,23 +175,51 @@ void Chest::bonusEffects() {
         if (m_player) {
             effectstoPlayer[i]->applyTo(m_player.data());
         }
-        for (StatusEffect *effect: effectstoPlayer) {
-            if (effect != effectstoPlayer[i]) { // 只删除未使用的
+        for (StatusEffect* effect : effectstoPlayer) {
+            if (effect != effectstoPlayer[i]) {  // 只删除未使用的
                 effect->deleteLater();
             }
         }
     } else {
         // 如果没有选中任何效果，清理所有效果
-        for (StatusEffect *effect: effectstoPlayer) {
+        for (StatusEffect* effect : effectstoPlayer) {
             effect->deleteLater();
         }
     }
 }
 
+// 掉落物品到场景中（使用指定物品池）
+void Chest::dropItems(int count) {
+    if (!scene() || !m_player || count <= 0)
+        return;
+
+    QPointF chestPos = this->pos() + QPointF(boundingRect().width() / 2, boundingRect().height() / 2);
+
+    // 根据宝箱类型选择物品池
+    ItemDropPool pool;
+    switch (m_chestType) {
+        case ChestType::Locked:
+            pool = ItemDropPool::LOCKED_CHEST;
+            break;
+        case ChestType::Boss:
+            pool = ItemDropPool::BOSS_CHEST;
+            break;
+        case ChestType::Normal:
+        default:
+            pool = ItemDropPool::NORMAL_CHEST;
+            break;
+    }
+
+    // 使用工厂类掉落物品
+    DroppedItemFactory::dropItemsScattered(pool, chestPos, count, m_player.data(), scene());
+
+    qDebug() << "[Chest] 从位置" << chestPos << "掉落" << count << "个物品，类型:" << static_cast<int>(m_chestType);
+}
+
 // ==================== NormalChest 普通宝箱实现 ====================
 
-NormalChest::NormalChest(Player *pl, const QPixmap &pic_chest, double scale)
-        : Chest(pl, ChestType::Normal, pic_chest, scale) {
+NormalChest::NormalChest(Player* pl, const QPixmap& pic_chest, double scale)
+    : Chest(pl, ChestType::Normal, pic_chest, scale) {
     initItems();
 }
 
@@ -203,28 +227,28 @@ void NormalChest::initItems() {
     m_items.clear();
 
     // 普通宝箱物品
-    DamageUpItem *dam = new DamageUpItem("", 1.05);
+    DamageUpItem* dam = new DamageUpItem("", 1.05);
     m_items.push_back(dam);
-    SpeedUpItem *spd = new SpeedUpItem("", 1.05);
+    SpeedUpItem* spd = new SpeedUpItem("", 1.05);
     m_items.push_back(spd);
-    ShootSpeedUpItem *shootspd = new ShootSpeedUpItem("", 1.05);
+    ShootSpeedUpItem* shootspd = new ShootSpeedUpItem("", 1.05);
     m_items.push_back(shootspd);
-    BulletSpeedUpItem *bltspd = new BulletSpeedUpItem("", 1.05);
+    BulletSpeedUpItem* bltspd = new BulletSpeedUpItem("", 1.05);
     m_items.push_back(bltspd);
-    RedHeartItem *redheart1 = new RedHeartItem("", 1);
-    RedHeartContainerItem *redheart2 = new RedHeartContainerItem("", 1);
+    RedHeartItem* redheart1 = new RedHeartItem("", 1);
+    RedHeartContainerItem* redheart2 = new RedHeartContainerItem("", 1);
     m_items.push_back(redheart1);
     m_items.push_back(redheart2);
-    KeyItem *key1 = new KeyItem("", 1);
-    KeyItem *key2 = new KeyItem("", 2);
+    KeyItem* key1 = new KeyItem("", 1);
+    KeyItem* key2 = new KeyItem("", 2);
     m_items.push_back(key1);
     m_items.push_back(key2);
 }
 
 // ==================== LockedChest 高级宝箱实现 ====================
 
-LockedChest::LockedChest(Player *pl, const QPixmap &pic_chest, double scale)
-        : Chest(pl, ChestType::Locked, pic_chest, scale) {
+LockedChest::LockedChest(Player* pl, const QPixmap& pic_chest, double scale)
+    : Chest(pl, ChestType::Locked, pic_chest, scale) {
     initItems();
 }
 
@@ -232,17 +256,17 @@ void LockedChest::initItems() {
     m_items.clear();
 
     // 高级宝箱奖励提高
-    DamageUpItem *dam = new DamageUpItem("", 1.1);
+    DamageUpItem* dam = new DamageUpItem("", 1.1);
     m_items.push_back(dam);
-    SpeedUpItem *spd = new SpeedUpItem("", 1.1);
+    SpeedUpItem* spd = new SpeedUpItem("", 1.1);
     m_items.push_back(spd);
-    ShootSpeedUpItem *shootspd = new ShootSpeedUpItem("", 1.1);
+    ShootSpeedUpItem* shootspd = new ShootSpeedUpItem("", 1.1);
     m_items.push_back(shootspd);
-    BulletSpeedUpItem *bltspd = new BulletSpeedUpItem("", 1.1);
+    BulletSpeedUpItem* bltspd = new BulletSpeedUpItem("", 1.1);
     m_items.push_back(bltspd);
-    RedHeartContainerItem *redheart1 = new RedHeartContainerItem("", 2);
+    RedHeartContainerItem* redheart1 = new RedHeartContainerItem("", 2);
     m_items.push_back(redheart1);
-    BrimstoneItem *brim = new BrimstoneItem("");
+    BrimstoneItem* brim = new BrimstoneItem("");
     m_items.push_back(brim);
 }
 
@@ -260,10 +284,9 @@ void LockedChest::tryOpen() {
     if (m_player->isKeyPressed(Qt::Key_Space) &&
         abs(m_player->pos().x() - this->pos().x()) <= open_r &&
         abs(m_player->pos().y() - this->pos().y()) <= open_r) {
-
         // 检查是否有钥匙
         if (m_player->getKeys() > 0) {
-            m_player->addKeys(-1); // 消耗一把钥匙
+            m_player->addKeys(-1);  // 消耗一把钥匙
             doOpen();
         } else {
             // 没有钥匙，显示提示
@@ -274,8 +297,8 @@ void LockedChest::tryOpen() {
 
 // ==================== BossChest Boss特供宝箱实现 ====================
 
-BossChest::BossChest(Player *pl, const QPixmap &pic_chest, double scale)
-        : Chest(pl, ChestType::Boss, pic_chest, scale) {
+BossChest::BossChest(Player* pl, const QPixmap& pic_chest, double scale)
+    : Chest(pl, ChestType::Boss, pic_chest, scale) {
     initItems();
 }
 
@@ -283,22 +306,27 @@ void BossChest::initItems() {
     m_items.clear();
 
     // Boss宝箱包含普通宝箱内容
-    DamageUpItem *dam = new DamageUpItem("", 1.05);
+    DamageUpItem* dam = new DamageUpItem("", 1.05);
     m_items.push_back(dam);
-    SpeedUpItem *spd = new SpeedUpItem("", 1.05);
+    SpeedUpItem* spd = new SpeedUpItem("", 1.05);
     m_items.push_back(spd);
-    ShootSpeedUpItem *shootspd = new ShootSpeedUpItem("", 1.05);
+    ShootSpeedUpItem* shootspd = new ShootSpeedUpItem("", 1.05);
     m_items.push_back(shootspd);
-    BulletSpeedUpItem *bltspd = new BulletSpeedUpItem("", 1.05);
+    BulletSpeedUpItem* bltspd = new BulletSpeedUpItem("", 1.05);
     m_items.push_back(bltspd);
-    RedHeartItem *redheart1 = new RedHeartItem("", 1);
-    RedHeartContainerItem *redheart2 = new RedHeartContainerItem("", 1);
+    RedHeartItem* redheart1 = new RedHeartItem("", 1);
+    RedHeartContainerItem* redheart2 = new RedHeartContainerItem("", 1);
     m_items.push_back(redheart1);
     m_items.push_back(redheart2);
-    KeyItem *key1 = new KeyItem("", 1);
-    KeyItem *key2 = new KeyItem("", 2);
+    KeyItem* key1 = new KeyItem("", 1);
+    KeyItem* key2 = new KeyItem("", 2);
     m_items.push_back(key1);
     m_items.push_back(key2);
+}
+
+void BossChest::setCustomItems(const QVector<QString>& itemNames) {
+    m_customItemNames = itemNames;
+    qDebug() << "[BossChest] 设置自定义物品:" << itemNames;
 }
 
 void BossChest::doOpen() {
@@ -319,27 +347,28 @@ void BossChest::doOpen() {
     // 保存player的QPointer副本
     QPointer<Player> playerPtr = m_player;
 
-    // 随机获得一个物品
-    if (!m_items.isEmpty() && playerPtr) {
-        int i = QRandomGenerator::global()->bounded(m_items.size());
-        m_items[i]->onPickup(playerPtr.data());
-    }
-
-    // Boss宝箱必定额外给予3点血量
-    if (playerPtr) {
-        playerPtr->addRedHearts(3);
-        qDebug() << "Boss宝箱额外给予3点血量";
-
-        // 显示提示
-        if (scene()) {
-            Item tempItem("", "");
-            tempItem.showFloatText(scene(), "❤️ Boss宝箱额外 +3 血量", playerPtr->pos(), Qt::green);
+    if (!m_customItemNames.isEmpty()) {
+        // 使用自定义物品列表
+        QVector<DroppedItemType> customTypes;
+        for (const QString& name : m_customItemNames) {
+            customTypes.append(DroppedItemFactory::getItemTypeFromName(name));
         }
-    }
 
-    // 应用额外效果
-    if (playerPtr) {
-        bonusEffects();
+        QPointF chestPos = this->pos() + QPointF(boundingRect().width() / 2, boundingRect().height() / 2);
+        DroppedItemFactory::dropSpecificItems(customTypes, chestPos, m_player.data(), scene());
+        qDebug() << "Boss宝箱掉落自定义物品:" << m_customItemNames.size() << "个";
+    } else {
+        // 默认行为：掉落2-4个普通物品 + 1个红心
+        int itemCount = QRandomGenerator::global()->bounded(2, 5);
+        dropItems(itemCount);
+
+        // Boss宝箱必定额外给予1个红心
+        if (playerPtr && scene()) {
+            QPointF chestPos = this->pos() + QPointF(boundingRect().width() / 2, boundingRect().height() / 2);
+            DroppedItem* extraHeart = new DroppedItem(DroppedItemType::RED_HEART, chestPos, m_player.data());
+            scene()->addItem(extraHeart);
+            qDebug() << "Boss宝箱额外掉落1个红心";
+        }
     }
 
     // 隐藏提示

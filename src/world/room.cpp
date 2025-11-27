@@ -1,12 +1,14 @@
-#include <QDebug>
 #include "room.h"
+#include <QDebug>
+#include <QGraphicsScene>
+#include "../items/droppeditem.h"
 
 Room::Room() {}
 
 Room::~Room() {
     // 清理敌人（停止定时器并删除）
-    for (QPointer<Enemy> enemyPtr: currentEnemies) {
-        if (Enemy *enemy = enemyPtr.data()) {
+    for (QPointer<Enemy> enemyPtr : currentEnemies) {
+        if (Enemy* enemy = enemyPtr.data()) {
             // 断开所有信号连接
             disconnect(enemy, nullptr, nullptr, nullptr);
             delete enemy;
@@ -15,16 +17,19 @@ Room::~Room() {
     currentEnemies.clear();
 
     // 清理宝箱
-    for (QPointer<Chest> chestPtr: currentChests) {
-        if (Chest *chest = chestPtr.data()) {
+    for (QPointer<Chest> chestPtr : currentChests) {
+        if (Chest* chest = chestPtr.data()) {
             disconnect(chest, nullptr, nullptr, nullptr);
             delete chest;
         }
     }
     currentChests.clear();
+
+    // 清理掉落物品
+    clearDroppedItems();
 }
 
-Room::Room(Player *p, bool u, bool d, bool l, bool r) : up(u), down(d), left(l), right(r), door_size(100) {
+Room::Room(Player* p, bool u, bool d, bool l, bool r) : up(u), down(d), left(l), right(r), door_size(100) {
     player = p;
     change_x = 0;
     change_y = 0;
@@ -57,14 +62,14 @@ void Room::stopChangeTimer() {
 void Room::setDoorOpenUp(bool v) {
     if (!openUp && v) {
         // 门从关闭变为打开，发射开门信号（用于触发动画）
-        emit doorOpened(0); // 0 = 上
+        emit doorOpened(0);  // 0 = 上
     }
     openUp = v;
 }
 
 void Room::setDoorOpenDown(bool v) {
     if (!openDown && v) {
-        emit doorOpened(1); // 1 = 下
+        emit doorOpened(1);  // 1 = 下
     }
     openDown = v;
     qDebug() << "setDoorOpenDown 被调用，down=" << down << ", openDown=" << openDown;
@@ -72,14 +77,14 @@ void Room::setDoorOpenDown(bool v) {
 
 void Room::setDoorOpenLeft(bool v) {
     if (!openLeft && v) {
-        emit doorOpened(2); // 2 = 左
+        emit doorOpened(2);  // 2 = 左
     }
     openLeft = v;
 }
 
 void Room::setDoorOpenRight(bool v) {
     if (!openRight && v) {
-        emit doorOpened(3); // 3 = 右
+        emit doorOpened(3);  // 3 = 右
     }
     openRight = v;
 }
@@ -158,4 +163,51 @@ void Room::setCleared(bool cleared) {
 
 bool Room::isCleared() const {
     return m_isCleared;
+}
+
+void Room::saveDroppedItemsFromScene(QGraphicsScene* scene) {
+    if (!scene)
+        return;
+
+    // 清空之前保存的物品（防止重复）
+    currentDroppedItems.clear();
+
+    QList<QGraphicsItem*> allItems = scene->items();
+    for (QGraphicsItem* item : allItems) {
+        if (auto droppedItem = dynamic_cast<DroppedItem*>(item)) {
+            scene->removeItem(droppedItem);
+            currentDroppedItems.append(QPointer<DroppedItem>(droppedItem));
+        }
+    }
+
+    if (!currentDroppedItems.isEmpty()) {
+        qDebug() << "Room: 保存了" << currentDroppedItems.size() << "个掉落物品";
+    }
+}
+
+void Room::restoreDroppedItemsToScene(QGraphicsScene* scene) {
+    if (!scene)
+        return;
+
+    int restoredCount = 0;
+    for (QPointer<DroppedItem> itemPtr : currentDroppedItems) {
+        if (DroppedItem* item = itemPtr.data()) {
+            scene->addItem(item);
+            restoredCount++;
+        }
+    }
+
+    if (restoredCount > 0) {
+        qDebug() << "Room: 恢复了" << restoredCount << "个掉落物品到场景";
+    }
+}
+
+void Room::clearDroppedItems() {
+    for (QPointer<DroppedItem> itemPtr : currentDroppedItems) {
+        if (DroppedItem* item = itemPtr.data()) {
+            disconnect(item, nullptr, nullptr, nullptr);
+            delete item;
+        }
+    }
+    currentDroppedItems.clear();
 }

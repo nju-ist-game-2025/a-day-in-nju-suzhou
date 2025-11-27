@@ -6,6 +6,7 @@
 #include <QPropertyAnimation>
 #include <QTimer>
 #include <QVector>
+#include "../items/droppeditem.h"
 #include "door.h"
 #include "levelconfig.h"
 #include "room.h"
@@ -52,7 +53,11 @@ class Level : public QObject {
 
     void onPlayerDied();
 
-    void bonusEffects();
+    void bonusEffects();  // 保留旧方法以兼容旧逻辑
+
+    // 物品掉落系统
+    void dropRandomItem(QPointF position);                                         // 在指定位置掉落随机物品
+    void dropItemsFromPosition(QPointF position, int count, bool scatter = true);  // 从指定位置掉落多个物品（散开效果）
 
     void clearCurrentRoomEntities();
 
@@ -137,13 +142,13 @@ class Level : public QObject {
 
     void onTeacherBossRequestChangeBackground(const QString& backgroundPath);
 
-    void onTeacherBossRequestTransitionText(const QString &text);
-    
-    void onTeacherBossRequestFadeBackground(const QString &backgroundPath, int duration);
-    
-    void onTeacherBossRequestFadeDialogBackground(const QString &backgroundPath, int duration);
-    
-    void onTeacherBossRequestDialogBackgroundChange(int dialogIndex, const QString &backgroundName);
+    void onTeacherBossRequestTransitionText(const QString& text);
+
+    void onTeacherBossRequestFadeBackground(const QString& backgroundPath, int duration);
+
+    void onTeacherBossRequestFadeDialogBackground(const QString& backgroundPath, int duration);
+
+    void onTeacherBossRequestDialogBackgroundChange(int dialogIndex, const QString& backgroundName);
 
     // Boss奖励机制（乌萨奇）
     void startBossRewardSequence();
@@ -195,13 +200,13 @@ class Level : public QObject {
     bool m_isBossDialog;  // 标记当前是否为boss对话
 
     // 对话期间的Boss角色图片（入场动画）
-    QGraphicsPixmapItem *m_dialogBossSprite = nullptr;
-    QPropertyAnimation *m_dialogBossFlyAnimation = nullptr;
-    bool m_isTeacherBossInitialDialog = false; // 标记是否为TeacherBoss初始对话
-    
+    QGraphicsPixmapItem* m_dialogBossSprite = nullptr;
+    QPropertyAnimation* m_dialogBossFlyAnimation = nullptr;
+    bool m_isTeacherBossInitialDialog = false;  // 标记是否为TeacherBoss初始对话
+
     // 对话中背景切换相关（TeacherBoss特殊需求）
     QMap<int, QString> m_pendingDialogBackgrounds;  // 待切换的对话背景 <对话索引, 背景名称>
-    
+
     // 待执行的对话背景渐变（在对话框创建后执行）
     QString m_pendingFadeDialogBackground;  // 待渐变到的背景路径
     int m_pendingFadeDialogDuration = 0;    // 渐变持续时间
@@ -237,6 +242,7 @@ class Level : public QObject {
     QPointer<Usagi> m_usagi;
     bool m_bossDefeated = false;          // Boss是否已被击败
     bool m_rewardSequenceActive = false;  // 奖励流程是否激活
+    bool m_bossRoomCleared = false;       // Boss房间是否已通关（奖励已领取，门已打开）
 
     // 精英房间相关
     bool m_isEliteRoom = false;           // 当前是否在精英房间
@@ -254,10 +260,10 @@ class Level : public QObject {
     void showPhaseTransitionText(const QString& text, const QColor& color = QColor(75, 0, 130));  // 显示阶段转换文字提示（可被信号连接或直接调用）
 
     // 背景渐变接口：将背景渐变到给定路径（绝对路径或相对 assets/），duration 毫秒
-    void fadeBackgroundTo(const QString &imagePath, int duration);
-    
+    void fadeBackgroundTo(const QString& imagePath, int duration);
+
     // 对话框背景渐变接口：将对话框背景渐变到给定路径，duration 毫秒
-    void fadeDialogBackgroundTo(const QString &imagePath, int duration);
+    void fadeDialogBackgroundTo(const QString& imagePath, int duration);
 
    private slots:
 

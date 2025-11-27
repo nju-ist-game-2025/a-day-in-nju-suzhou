@@ -1,6 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include <QGraphicsPixmapItem>
 #include <QKeyEvent>
 #include <QPointF>
 #include <QTimer>
@@ -16,15 +17,14 @@ const int bomb_r = 100;
 const int bombHurt = 5;
 
 class Player : public Entity {
-Q_OBJECT
+    Q_OBJECT
     int redContainers;
     double redHearts;
-    int soulHearts;
-    int blackHearts;                   // 是否短暂无敌，防止持续攻击
+    int blackHearts;                   // 黑心数量（用于复活）
     QMap<int, bool> shootKeysPressed;  // 射击按键状态
-    QTimer *keysTimer;
-    QTimer *crashTimer;
-    QTimer *shootTimer;  // 射击检测定时器（持续检测）
+    QTimer* keysTimer;
+    QTimer* crashTimer;
+    QTimer* shootTimer;  // 射击检测定时器（持续检测）
     int shootCooldown;   // 射击冷却时间（毫秒）
     int shootType;       // 0=普通, 1=激光
     QPixmap pic_bullet;
@@ -39,22 +39,28 @@ Q_OBJECT
     int bulletHurt;  // 玩家子弹伤害，可配置
     bool isDead;     // 玩家是否已死亡
 
-public:
+    // 新道具系统
+    int m_frostChance;                    // 寒冰子弹概率 (0-60)
+    int m_shieldCount;                    // 护盾数量
+    QGraphicsPixmapItem* m_shieldSprite;  // 护盾图案
+    QPixmap m_frostBulletPic;             // 寒冰子弹图片
+
+   public:
     friend class Item;
 
     QMap<int, bool> keysPressed;
 
-    explicit Player(const QPixmap &pic_player, double scale = 1.0);
+    explicit Player(const QPixmap& pic_player, double scale = 1.0);
 
-    void keyPressEvent(QKeyEvent *event) override;  // 控制移动
-    void keyReleaseEvent(QKeyEvent *event) override;
+    void keyPressEvent(QKeyEvent* event) override;  // 控制移动
+    void keyReleaseEvent(QKeyEvent* event) override;
 
     void move() override;
 
     void tryTeleport();       // Q键瞬移
     void activateUltimate();  // E键大招
 
-    void setBulletPic(const QPixmap &pic) { pic_bullet = pic; };
+    void setBulletPic(const QPixmap& pic) { pic_bullet = pic; };
 
     void setShootCooldown(int milliseconds) { shootCooldown = milliseconds; }  // 设置射击冷却时间
     [[nodiscard]] int getShootCooldown() const { return shootCooldown; };
@@ -77,22 +83,15 @@ public:
     };
 
     void addRedHearts(double n) {
-        if (redHearts + n <= redContainers)
-            redHearts += n;
+        redHearts = qMin(redHearts + n, static_cast<double>(redContainers));
+        emit healthChanged(redHearts, getMaxHealth());
     }
-    
+
     // 强制设置当前血量（用于特殊效果）
     void setCurrentHealth(double health) {
         redHearts = qBound(0.0, health, static_cast<double>(redContainers));
         emit healthChanged(redHearts, getMaxHealth());
     }
-
-    void addSoulHearts(int n) {
-        if (soulHearts + n <= max_soul)
-            soulHearts += n;
-    };
-
-    [[nodiscard]] int getSoulHearts() const { return soulHearts; };
 
     void addBlackHearts(int n) { blackHearts += n; };
 
@@ -183,14 +182,30 @@ public:
 
     bool isPaused() const { return m_isPaused; }
 
-signals:
+    // 寒冰子弹系统
+    void addFrostChance(int amount);
+    [[nodiscard]] int getFrostChance() const { return m_frostChance; }
+    void setFrostBulletPic(const QPixmap& pic) { m_frostBulletPic = pic; }
+    [[nodiscard]] const QPixmap& getFrostBulletPic() const { return m_frostBulletPic; }
 
-    void playerDied();  // 玩家死亡信号
+    // 护盾系统
+    void addShield(int count);
+    void removeShield(int count = 1);
+    [[nodiscard]] int getShieldCount() const { return m_shieldCount; }
+    void updateShieldDisplay();
+
+    // 黑心复活系统
+    bool tryBlackHeartRevive();  // 尝试使用黑心复活，返回是否成功
+
+   signals:
+    void blackHeartReviveStarted();   // 黑心复活动画开始信号
+    void blackHeartReviveFinished();  // 黑心复活动画结束信号
+    void playerDied();                // 玩家死亡信号
     void healthChanged(float current, float max);
 
     void playerDamaged();
 
-private:
+   private:
     bool m_canMove = true;               // 是否可以移动
     bool m_canShoot = true;              // 是否可以射击
     bool m_isPaused = false;             // 是否暂停
@@ -209,16 +224,16 @@ private:
     int m_ultimateOriginalBulletHurt = 0;  // 技能前的伤害
     double m_bulletScaleMultiplier = 2.0;  // 技能期间子弹缩放倍率
     QPixmap m_originalBulletPic;           // 原始子弹图片
-    QTimer *m_ultimateTimer = nullptr;     // 技能持续计时
+    QTimer* m_ultimateTimer = nullptr;     // 技能持续计时
 
     QPointF currentMoveDirection() const;
 
-    QPointF clampPositionWithinRoom(const QPointF &candidate) const;
+    QPointF clampPositionWithinRoom(const QPointF& candidate) const;
 
     void endUltimate();
 
-protected:
-    void focusOutEvent(QFocusEvent *event) override;
+   protected:
+    void focusOutEvent(QFocusEvent* event) override;
 };
 
 #endif  // PLAYER_H

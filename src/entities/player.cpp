@@ -4,63 +4,73 @@
 #include <QGraphicsEllipseItem>
 #include <QGraphicsScene>
 #include <QPen>
+#include <QRandomGenerator>
 #include <QtGlobal>
 #include <cmath>
 #include "constants.h"
 #include "enemy.h"
 
 namespace {
-    class TeleportEffectItem : public QObject, public QGraphicsEllipseItem {
-    public:
-        TeleportEffectItem(QGraphicsScene *scene, const QPointF &center, qreal radius = 35.0)
-                : QObject(scene), QGraphicsEllipseItem(-radius, -radius, radius * 2, radius * 2) {
-            if (!scene) {
-                deleteLater();
-                return;
-            }
-
-            setPen(QPen(QColor(120, 220, 255, 220), 3));
-            setBrush(Qt::NoBrush);
-            setZValue(900);
-            setPos(center);
-            scene->addItem(this);
-
-            m_timer = new QTimer(this);
-            connect(m_timer, &QTimer::timeout, this, [this]() { advanceEffect(); });
-            m_timer->start(16);
-        }
-
-    private:
-        void advanceEffect() {
-            m_elapsed += 16;
-            qreal progress = qBound(0.0, m_elapsed / m_duration, 1.0);
-            setOpacity(1.0 - progress);
-            setScale(1.0 + progress * 0.5);
-
-            if (m_elapsed >= m_duration) {
-                if (scene()) {
-                    scene()->removeItem(this);
-                }
-                deleteLater();
-            }
-        }
-
-        QTimer *m_timer = nullptr;
-        qreal m_elapsed = 0.0;
-        qreal m_duration = 220.0;
-    };
-
-    void spawnTeleportEffect(QGraphicsScene *scene, const QPointF &center) {
-        if (!scene)
+class TeleportEffectItem : public QObject, public QGraphicsEllipseItem {
+   public:
+    TeleportEffectItem(QGraphicsScene* scene, const QPointF& center, qreal radius = 35.0)
+        : QObject(scene), QGraphicsEllipseItem(-radius, -radius, radius * 2, radius * 2) {
+        if (!scene) {
+            deleteLater();
             return;
-        new TeleportEffectItem(scene, center);
+        }
+
+        setPen(QPen(QColor(120, 220, 255, 220), 3));
+        setBrush(Qt::NoBrush);
+        setZValue(900);
+        setPos(center);
+        scene->addItem(this);
+
+        m_timer = new QTimer(this);
+        connect(m_timer, &QTimer::timeout, this, [this]() { advanceEffect(); });
+        m_timer->start(16);
     }
+
+   private:
+    void advanceEffect() {
+        m_elapsed += 16;
+        qreal progress = qBound(0.0, m_elapsed / m_duration, 1.0);
+        setOpacity(1.0 - progress);
+        setScale(1.0 + progress * 0.5);
+
+        if (m_elapsed >= m_duration) {
+            if (scene()) {
+                scene()->removeItem(this);
+            }
+            deleteLater();
+        }
+    }
+
+    QTimer* m_timer = nullptr;
+    qreal m_elapsed = 0.0;
+    qreal m_duration = 220.0;
+};
+
+void spawnTeleportEffect(QGraphicsScene* scene, const QPointF& center) {
+    if (!scene)
+        return;
+    new TeleportEffectItem(scene, center);
+}
 }  // namespace
 
-Player::Player(const QPixmap &pic_player, double scale)
-        : redContainers(8), redHearts(8.0), blackHearts(0), soulHearts(0), shootCooldown(150), lastShootTime(0),
-          bulletHurt(5), isDead(false), keys(1) {  // 默认150毫秒射击冷却，子弹伤害默认5
+Player::Player(const QPixmap& pic_player, double scale)
+    : redContainers(8), redHearts(8.0), blackHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(5), isDead(false), keys(1), m_frostChance(0), m_shieldCount(0), m_shieldSprite(nullptr) {  // 默认150毫秒射击冷却，子弹伤害默认5
     setTransformationMode(Qt::SmoothTransformation);
+
+    // 加载寒冰子弹图片并缩放到与普通子弹相同大小
+    QPixmap frostPic("assets/items/bullet_frost.png");
+    if (frostPic.isNull()) {
+        qWarning() << "无法加载寒冰子弹图片";
+    } else {
+        // 缩放到与普通子弹相同的大小（20x20）
+        m_frostBulletPic = frostPic.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        qDebug() << "寒冰子弹图片加载成功，大小:" << m_frostBulletPic.size();
+    }
 
     // 如果scale是1.0，直接使用原始pixmap，否则按比例缩放
     invincible = false;
@@ -69,10 +79,10 @@ Player::Player(const QPixmap &pic_player, double scale)
     } else {
         // 按比例缩放（保持宽高比）
         this->setPixmap(pic_player.scaled(
-                pic_player.width() * scale,
-                pic_player.height() * scale,
-                Qt::KeepAspectRatio,
-                Qt::SmoothTransformation));
+            pic_player.width() * scale,
+            pic_player.height() * scale,
+            Qt::KeepAspectRatio,
+            Qt::SmoothTransformation));
     }
 
     // 禁用缓存以避免留下轨迹
@@ -129,7 +139,7 @@ Player::Player(const QPixmap &pic_player, double scale)
     QTimer::singleShot(1000, this, [this]() { invincible = false; });
 }
 
-void Player::keyPressEvent(QKeyEvent *event) {
+void Player::keyPressEvent(QKeyEvent* event) {
     if (!event || isDead)  // 已死亡则不处理输入
         return;
 
@@ -160,7 +170,7 @@ void Player::keyPressEvent(QKeyEvent *event) {
     }
 }
 
-void Player::keyReleaseEvent(QKeyEvent *event) {
+void Player::keyReleaseEvent(QKeyEvent* event) {
     if (!event || isDead)  // 已死亡则不处理输入
         return;
 
@@ -219,9 +229,20 @@ void Player::shoot(int key) {
     AudioManager::instance().playSound("player_shoot");
     // 计算子弹发射位置
     QPointF bulletPos = this->pos() + QPointF(pixmap().width() / 2 - 7.5, pixmap().height() / 2 - 30);
-    // if(shootType == 0) //改变为发射激光模式，需要ui的图片实现
-    auto *bullet = new Projectile(0, bulletHurt, bulletPos, pic_bullet);  // 使用可配置的玩家子弹伤害
+
+    // 根据寒冰概率决定是否发射寒冰子弹
+    bool isFrostBullet = false;
+    if (m_frostChance > 0 && !m_frostBulletPic.isNull()) {
+        int roll = QRandomGenerator::global()->bounded(100);
+        isFrostBullet = (roll < m_frostChance);
+    }
+
+    // 选择子弹图片
+    const QPixmap& bulletPic = isFrostBullet ? m_frostBulletPic : pic_bullet;
+
+    auto* bullet = new Projectile(0, bulletHurt, bulletPos, bulletPic);  // 使用可配置的玩家子弹伤害
     bullet->setSpeed(shootSpeed);
+    bullet->setIsFrostBullet(isFrostBullet);  // 设置寒冰属性
 
     // 将子弹添加到场景中
     if (scene()) {
@@ -307,6 +328,11 @@ void Player::move() {
     }
 
     this->setPos(clampedPos);
+
+    // 更新护盾位置
+    if (m_shieldSprite) {
+        updateShieldDisplay();
+    }
 }
 
 void Player::tryTeleport() {
@@ -323,7 +349,7 @@ void Player::tryTeleport() {
 
     QPointF desiredPos = pos() + dir * m_teleportDistance;
     QPointF clampedPos = clampPositionWithinRoom(desiredPos);
-    auto *scenePtr = scene();
+    auto* scenePtr = scene();
     QRectF bounds = boundingRect();
     QPointF centerOffset(bounds.width() / 2.0, bounds.height() / 2.0);
 
@@ -357,7 +383,7 @@ QPointF Player::currentMoveDirection() const {
     return {dir.x() / length, dir.y() / length};
 }
 
-QPointF Player::clampPositionWithinRoom(const QPointF &candidate) const {
+QPointF Player::clampPositionWithinRoom(const QPointF& candidate) const {
     double newX = candidate.x();
     double newY = candidate.y();
 
@@ -373,7 +399,7 @@ QPointF Player::clampPositionWithinRoom(const QPointF &candidate) const {
 
     if (newY > room_bound_y - pixmap().height()) {
         if (qAbs(newX + pixmap().width() / 2 - 400) < doorSize)
-            newY = qMin(newY, (double) (room_bound_y - pixmap().height()) + doorMargin);
+            newY = qMin(newY, (double)(room_bound_y - pixmap().height()) + doorMargin);
         else
             newY = room_bound_y - pixmap().height();
     }
@@ -387,7 +413,7 @@ QPointF Player::clampPositionWithinRoom(const QPointF &candidate) const {
 
     if (newX > room_bound_x - pixmap().width()) {
         if (qAbs(newY + pixmap().height() / 2 - 300) < doorSize)
-            newX = qMin(newX, (double) (room_bound_x - pixmap().width()) + doorMargin);
+            newX = qMin(newX, (double)(room_bound_x - pixmap().width()) + doorMargin);
         else
             newX = room_bound_x - pixmap().width();
     }
@@ -438,10 +464,10 @@ void Player::activateUltimate() {
     // 子弹变大1.5倍
     if (!pic_bullet.isNull()) {
         pic_bullet = pic_bullet.scaled(
-                pic_bullet.width() * m_bulletScaleMultiplier,
-                pic_bullet.height() * m_bulletScaleMultiplier,
-                Qt::KeepAspectRatio,
-                Qt::SmoothTransformation);
+            pic_bullet.width() * m_bulletScaleMultiplier,
+            pic_bullet.height() * m_bulletScaleMultiplier,
+            Qt::KeepAspectRatio,
+            Qt::SmoothTransformation);
     }
 
     m_isUltimateActive = true;
@@ -528,18 +554,20 @@ void Player::takeDamage(int damage) {
     if (damage <= 0)  // 0伤害或负伤害直接返回，避免触发闪烁和无敌
         return;
 
+    // 先检查护盾
+    if (m_shieldCount > 0) {
+        m_shieldCount--;
+        updateShieldDisplay();
+        setInvincible();  // 护盾抵消后也给予短暂无敌
+        qDebug() << "护盾抵消伤害，剩余护盾:" << m_shieldCount;
+        return;
+    }
+
     flash();
     double oldHealth = redHearts;
     damage *= damageScale;
 
-    while (damage > 0 && soulHearts > 0) {
-        soulHearts--;
-        damage -= 2;
-    }
-    while (damage > 0 && blackHearts > 0) {
-        blackHearts--;
-        damage -= 2;
-    }
+    // 注意：黑心不再作为护盾使用，改为复活机制
     while (damage > 0 && redHearts > 0.0) {
         redHearts -= 0.5;
         damage--;
@@ -550,10 +578,15 @@ void Player::takeDamage(int damage) {
             emit playerDamaged();
         }
     }
-    if (redHearts <= 0.0)
+    if (redHearts <= 0.0) {
+        // 尝试黑心复活
+        if (tryBlackHeartRevive()) {
+            return;  // 复活成功，不执行死亡
+        }
         die();
-    else
+    } else {
         setInvincible();
+    }
 }
 
 void Player::forceTakeDamage(int damage) {
@@ -563,18 +596,20 @@ void Player::forceTakeDamage(int damage) {
     if (damage <= 0)  // 0伤害或负伤害直接返回
         return;
 
+    // 先检查护盾（强制伤害也可被护盾抵消）
+    if (m_shieldCount > 0) {
+        m_shieldCount--;
+        updateShieldDisplay();
+        setInvincible();
+        qDebug() << "护盾抵消强制伤害，剩余护盾:" << m_shieldCount;
+        return;
+    }
+
     flash();
     double oldHealth = redHearts;
     damage *= damageScale;
 
-    while (damage > 0 && soulHearts > 0) {
-        soulHearts--;
-        damage -= 2;
-    }
-    while (damage > 0 && blackHearts > 0) {
-        blackHearts--;
-        damage -= 2;
-    }
+    // 黑心不再作为护盾
     while (damage > 0 && redHearts > 0.0) {
         redHearts -= 0.5;
         damage--;
@@ -585,10 +620,15 @@ void Player::forceTakeDamage(int damage) {
             emit playerDamaged();
         }
     }
-    if (redHearts <= 0.0)
+    if (redHearts <= 0.0) {
+        // 尝试黑心复活
+        if (tryBlackHeartRevive()) {
+            return;
+        }
         die();
-    else
+    } else {
         setInvincible();
+    }
 }
 
 // 死亡效果
@@ -646,9 +686,9 @@ void Player::crashEnemy() {
         return;
 
     // 使用collidingItems代替遍历整个场景
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item: collisions) {
-        if (auto enemy = dynamic_cast<Enemy *>(item)) {
+    QList<QGraphicsItem*> collisions = collidingItems();
+    for (QGraphicsItem* item : collisions) {
+        if (auto enemy = dynamic_cast<Enemy*>(item)) {
             // 使用像素级碰撞检测
             if (Entity::pixelCollision(this, enemy)) {
                 this->takeDamage(enemy->getContactDamage());
@@ -665,21 +705,118 @@ void Player::placeBomb() {
         return;
     auto posi = this->pos();
     QTimer::singleShot(500, this, [this, posi]() {
-                foreach (QGraphicsItem *item, scene()->items()) {
-                if (auto it = dynamic_cast<Enemy *>(item)) {
-                    if (abs(it->pos().x() - posi.x()) > bomb_r ||
-                        abs(it->pos().y() - posi.y()) > bomb_r)
-                        continue;
-                    else {
-                        it->takeDamage(bombHurt);
-                    }
+        foreach (QGraphicsItem* item, scene()->items()) {
+            if (auto it = dynamic_cast<Enemy*>(item)) {
+                if (abs(it->pos().x() - posi.x()) > bomb_r ||
+                    abs(it->pos().y() - posi.y()) > bomb_r)
+                    continue;
+                else {
+                    it->takeDamage(bombHurt);
                 }
             }
+        }
     });
     bombs--;
 }
 
-void Player::focusOutEvent(QFocusEvent *event) {
+void Player::focusOutEvent(QFocusEvent* event) {
     QGraphicsItem::focusOutEvent(event);
     setFocus();
+}
+
+// ============ 新道具系统方法 ============
+
+void Player::addFrostChance(int amount) {
+    m_frostChance = qMin(60, m_frostChance + amount);
+    qDebug() << "寒冰子弹概率增加到:" << m_frostChance << "%";
+}
+
+void Player::addShield(int count) {
+    m_shieldCount += count;
+    updateShieldDisplay();
+    qDebug() << "护盾增加，当前护盾数:" << m_shieldCount;
+}
+
+void Player::removeShield(int count) {
+    m_shieldCount = qMax(0, m_shieldCount - count);
+    updateShieldDisplay();
+    qDebug() << "护盾减少，当前护盾数:" << m_shieldCount;
+}
+
+void Player::updateShieldDisplay() {
+    if (!scene())
+        return;
+
+    if (m_shieldCount > 0) {
+        // 如果护盾图案不存在，创建它
+        if (!m_shieldSprite) {
+            QPixmap shieldPix("assets/items/shield.png");
+            // 如果加载失败，尝试备用路径
+            if (shieldPix.isNull()) {
+                shieldPix = QPixmap("assets/props/shield.png");
+            }
+            if (shieldPix.isNull()) {
+                qWarning() << "无法加载护盾图片";
+                return;
+            }
+
+            // 缩放到角色1.5倍大小
+            int shieldSize = static_cast<int>(pixmap().width() * 1.5);
+            shieldPix = shieldPix.scaled(shieldSize, shieldSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+            m_shieldSprite = new QGraphicsPixmapItem(shieldPix);
+            m_shieldSprite->setZValue(zValue() + 1);  // 显示在玩家上方
+            m_shieldSprite->setOpacity(0.7);          // 半透明
+            scene()->addItem(m_shieldSprite);
+        }
+
+        // 更新护盾位置（居中在玩家身上）
+        if (m_shieldSprite) {
+            QPointF shieldPos = pos() + QPointF(
+                                            (pixmap().width() - m_shieldSprite->pixmap().width()) / 2,
+                                            (pixmap().height() - m_shieldSprite->pixmap().height()) / 2);
+            m_shieldSprite->setPos(shieldPos);
+        }
+    } else {
+        // 护盾为0，移除图案
+        if (m_shieldSprite) {
+            if (m_shieldSprite->scene()) {
+                scene()->removeItem(m_shieldSprite);
+            }
+            delete m_shieldSprite;
+            m_shieldSprite = nullptr;
+        }
+    }
+}
+
+bool Player::tryBlackHeartRevive() {
+    if (blackHearts <= 0) {
+        return false;  // 没有黑心，无法复活
+    }
+
+    qDebug() << "触发黑心复活！黑心数:" << blackHearts;
+
+    // 计算恢复的血量（每个黑心 = 6点血量，最多填满血量上限）
+    int healAmount = blackHearts * 6;
+    double newHealth = qMin(static_cast<double>(healAmount), static_cast<double>(redContainers));
+
+    // 清空黑心
+    int usedBlackHearts = blackHearts;
+    blackHearts = 0;
+
+    // 设置血量
+    redHearts = newHealth;
+
+    // 设置短暂无敌状态（会自动取消）
+    setInvincible();
+
+    // 发出信号通知UI播放动画
+    emit blackHeartReviveStarted();
+
+    // 发出血量变化信号
+    emit healthChanged(redHearts, getMaxHealth());
+
+    qDebug() << "黑心复活成功！使用黑心:" << usedBlackHearts << "，恢复血量:" << newHealth;
+
+    return true;
 }
