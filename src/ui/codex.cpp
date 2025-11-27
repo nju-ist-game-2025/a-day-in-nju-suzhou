@@ -143,92 +143,52 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
 
     QWidget* contentWidget = new QWidget();
     QVBoxLayout* contentLayout = new QVBoxLayout(contentWidget);
-    contentLayout->setSpacing(10);
+    contentLayout->setSpacing(6);
 
     QFont labelFont;
     labelFont.setFamily("Microsoft YaHei");
     labelFont.setPointSize(11);
 
-    QString labelStyle = "color: #2c3e50; font-weight: bold;";
-    QString valueStyle = "color: #1a1a1a; padding: 8px; background-color: rgba(100, 149, 237, 40); border-radius: 5px; border: 1px solid rgba(100, 149, 237, 100);";
+    // 标题样式：带底部细线，起到分隔作用
+    QString labelStyle = "color: #4a6fa5; font-weight: bold; padding-bottom: 3px; border-bottom: 1px solid rgba(100, 149, 237, 120);";
+    // 内容样式：左缩进，与标题区分
+    QString valueStyle = "color: #2c3e50; padding: 6px 0px 12px 16px;";
+
+    // 辅助lambda：创建一个属性组（标题+内容）
+    auto addInfoSection = [&](const QString& icon, const QString& title, const QString& value) {
+        QLabel* titleLabel = new QLabel(icon + " " + title, contentWidget);
+        titleLabel->setFont(labelFont);
+        titleLabel->setStyleSheet(labelStyle);
+        contentLayout->addWidget(titleLabel);
+
+        QLabel* valueLabel = new QLabel(value, contentWidget);
+        valueLabel->setFont(labelFont);
+        valueLabel->setStyleSheet(valueStyle);
+        valueLabel->setWordWrap(true);
+        contentLayout->addWidget(valueLabel);
+    };
 
     // 如果不是玩家/NPC，显示战斗属性
     if (!entry.isCharacter) {
-        // 血量
         if (entry.health > 0) {
-            QLabel* healthTitle = new QLabel("❤ 血量", contentWidget);
-            healthTitle->setFont(labelFont);
-            healthTitle->setStyleSheet(labelStyle);
-            QLabel* healthValue = new QLabel(QString::number(entry.health), contentWidget);
-            healthValue->setFont(labelFont);
-            healthValue->setStyleSheet(valueStyle);
-            contentLayout->addWidget(healthTitle);
-            contentLayout->addWidget(healthValue);
+            addInfoSection("❤", "血量", QString::number(entry.health));
         }
-
-        // 攻击方式
         if (!entry.attackMethod.isEmpty()) {
-            QLabel* attackTitle = new QLabel("⚔ 攻击方式", contentWidget);
-            attackTitle->setFont(labelFont);
-            attackTitle->setStyleSheet(labelStyle);
-            QLabel* attackValue = new QLabel(entry.attackMethod, contentWidget);
-            attackValue->setFont(labelFont);
-            attackValue->setStyleSheet(valueStyle);
-            attackValue->setWordWrap(true);
-            contentLayout->addWidget(attackTitle);
-            contentLayout->addWidget(attackValue);
+            addInfoSection("⚔", "攻击方式", entry.attackMethod);
         }
-
-        // 技能
         if (!entry.skills.isEmpty()) {
-            QLabel* skillsTitle = new QLabel("✨ 技能", contentWidget);
-            skillsTitle->setFont(labelFont);
-            skillsTitle->setStyleSheet(labelStyle);
-            QLabel* skillsValue = new QLabel(entry.skills, contentWidget);
-            skillsValue->setFont(labelFont);
-            skillsValue->setStyleSheet(valueStyle);
-            skillsValue->setWordWrap(true);
-            contentLayout->addWidget(skillsTitle);
-            contentLayout->addWidget(skillsValue);
+            addInfoSection("✨", "技能", entry.skills);
         }
-
-        // 特性
         if (!entry.traits.isEmpty()) {
-            QLabel* traitsTitle = new QLabel("🔮 特性", contentWidget);
-            traitsTitle->setFont(labelFont);
-            traitsTitle->setStyleSheet(labelStyle);
-            QLabel* traitsValue = new QLabel(entry.traits, contentWidget);
-            traitsValue->setFont(labelFont);
-            traitsValue->setStyleSheet(valueStyle);
-            traitsValue->setWordWrap(true);
-            contentLayout->addWidget(traitsTitle);
-            contentLayout->addWidget(traitsValue);
+            addInfoSection("🔮", "特性", entry.traits);
         }
-
-        // 弱点
         if (!entry.weakness.isEmpty()) {
-            QLabel* weaknessTitle = new QLabel("💔 弱点", contentWidget);
-            weaknessTitle->setFont(labelFont);
-            weaknessTitle->setStyleSheet(labelStyle);
-            QLabel* weaknessValue = new QLabel(entry.weakness, contentWidget);
-            weaknessValue->setFont(labelFont);
-            weaknessValue->setStyleSheet(valueStyle);
-            weaknessValue->setWordWrap(true);
-            contentLayout->addWidget(weaknessTitle);
-            contentLayout->addWidget(weaknessValue);
+            addInfoSection("💔", "弱点", entry.weakness);
         }
     }
 
     // 背景故事（所有条目都有）
-    QLabel* storyTitle = new QLabel("📖 背景故事", contentWidget);
-    storyTitle->setFont(labelFont);
-    storyTitle->setStyleSheet(labelStyle);
-    QLabel* storyValue = new QLabel(entry.backstory, contentWidget);
-    storyValue->setFont(labelFont);
-    storyValue->setStyleSheet(valueStyle);
-    storyValue->setWordWrap(true);
-    contentLayout->addWidget(storyTitle);
-    contentLayout->addWidget(storyValue);
+    addInfoSection("📖", "背景故事", entry.backstory);
 
     contentLayout->addStretch();
     scrollArea->setWidget(contentWidget);
@@ -446,7 +406,7 @@ void Codex::loadBossData() {
     teacher.skills = "【正态分布弹幕】发射15发弹幕，角度服从N(μ,15°)\n【随机点名】在玩家位置生成延时伤害红圈\n【极大似然估计】预判玩家移动方向放置陷阱\n【喜忧参半】发射在2/3距离处分裂成5发的大型弹幕";
     teacher.traits = "三阶段Boss，调离阶段会飞出屏幕后以更强姿态返回，拥有全图视野";
     teacher.weakness = "弹幕服从正态分布，站在边缘位置可以降低命中概率";
-    teacher.backstory = "奶牛张很凶悍，她是在概率论的海洋中成长的。她不在乎任何人的看法，无论是学霸还是学渣，她发出的考卷，是为了让所有人知道什么叫做正态分布。\n\n其实呢，奶牛张一直暗暗地希望有人能理解她的极大似然估计。她即将调往北京，对此表示喜忧参半。";
+    teacher.backstory = "奶牛张很凶悍，他是在概率论的海洋中成长的。他不在乎任何人的看法，无论是学霸还是学渣，他发出的考卷，是为了让所有人知道什么叫做正态分布。\n\n其实呢，奶牛张一直暗暗地希望有人能理解他的极大似然估计。他即将调往北京，对此表示喜忧参半。";
     teacher.isCharacter = false;
     m_bossEntries.append(teacher);
 }
@@ -559,7 +519,7 @@ void Codex::loadEnemyData() {
     yanglin.skills = "【旋转】开局10秒后释放，之后每30秒释放，持续5秒，无可视圆但伤害范围随体型增加";
     yanglin.traits = "精英怪，全图视野，会随时间成长，属性接近Boss一阶段";
     yanglin.weakness = "旋转技能没有可视指示器，需要通过观察判断";
-    yanglin.backstory = "杨林是概率论考试中最可怕的大题。它庞大的身躯里装满了各种公式和定理，每一个都在等待着吞噬不及格的学生。\n\n传说中，能解出杨林的人会获得永恒的智慧。至今无人验证过这个传说。";
+    yanglin.backstory = "杨林是凸优化考试中最可怕的大题。它庞大的身躯里装满了各种公式和定理，每一个都在等待着吞噬不及格的学生。\n\n传说中，能解出杨林的人会获得永恒的智慧。至今无人验证过这个传说。";
     yanglin.isCharacter = false;
     m_enemyEntries.append(yanglin);
 }
