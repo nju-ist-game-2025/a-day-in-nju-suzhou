@@ -159,6 +159,7 @@ void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
     paintKey(painter);
     paintSoul(painter);
     paintBlack(painter);
+    paintBomb(painter);
     paintTeleportCooldown(painter);
     paintUltimateStatus(painter);
     paintMinimap(painter);
@@ -167,13 +168,27 @@ void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
 void HUD::paintKey(QPainter *painter)
 {
     const int textAreaWidth = 150; // 文字区域宽度
-    const int Y = 10;              // 血条Y坐标
+    const int Y = 30;              // 血条Y坐标
     const int Height = 25;         // 血条高度
     QFont font = painter->font();
     painter->setPen(Qt::darkYellow);
     font.setPointSize(11);
     painter->setFont(font);
     QString Text = QString("🔑钥匙数：%1").arg(player->getKeys());
+    painter->drawText(QRect(250, Y, textAreaWidth - 12, Height),
+                      Qt::AlignLeft | Qt::AlignVCenter, Text);
+}
+
+void HUD::paintBomb(QPainter *painter)
+{
+    const int textAreaWidth = 200; // 文字区域宽度
+    const int Y = 10;              // 血条Y坐标
+    const int Height = 25;         // 血条高度
+    QFont font = painter->font();
+    painter->setPen(Qt::black);
+    font.setPointSize(11);
+    painter->setFont(font);
+    QString Text = QString("💣炸弹数(按E)：%1").arg(player->getBombs());
     painter->drawText(QRect(250, Y, textAreaWidth - 12, Height),
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }
@@ -278,7 +293,7 @@ void HUD::paintUltimateStatus(QPainter *painter)
     font.setBold(true);
     painter->setFont(font);
     painter->setPen(Qt::white);
-    painter->drawText(boxRect.adjusted(0, 8, 0, -36), Qt::AlignCenter, QStringLiteral("E 大招(伤害增加)"));
+    painter->drawText(boxRect.adjusted(0, 8, 0, -36), Qt::AlignCenter, QStringLiteral("F 大招(伤害增加)"));
 
     QString stateText;
     if (player->isUltimateActive())

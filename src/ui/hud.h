@@ -23,6 +23,8 @@ public:
 
     void paintKey(QPainter *painter);
 
+    void paintBomb(QPainter *painter);
+
     void paintEffects(QPainter *painter, const QString &text, int count, double duration, QColor color = Qt::black);
 
     void paintMinimap(QPainter *painter);

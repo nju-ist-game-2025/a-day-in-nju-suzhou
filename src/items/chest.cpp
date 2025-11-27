@@ -24,7 +24,7 @@ Chest::Chest(Player *pl, bool locked_, const QPixmap &pic_chest, double scale) :
     items.push_back(shootspd);
     BulletSpeedUpItem *bltspd = new BulletSpeedUpItem("", 1.05);
     items.push_back(bltspd);
-    RedHeartContainerItem *redheart1 = new RedHeartContainerItem("", 1);
+    RedHeartItem *redheart1 = new RedHeartItem("", 1);
     RedHeartContainerItem *redheart2 = new RedHeartContainerItem("", 1);
     items.push_back(redheart1);
     items.push_back(redheart2);
