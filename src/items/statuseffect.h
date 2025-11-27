@@ -165,7 +165,7 @@ public:
     void onApplyEffect(Entity *target) override {
         if (auto pl = dynamic_cast<Player *>(target)) {
             pl->addSoulHearts(hearts);
-            StatusEffect::showFloatText(pl->scene(), QString("♥ ++魂心"), pl->pos(), Qt::green);
+            StatusEffect::showFloatText(pl->scene(), QString("♥ ++护盾"), pl->pos(), Qt::green);
         }
     }
 };

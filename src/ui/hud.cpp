@@ -185,7 +185,7 @@ void HUD::paintSoul(QPainter *painter) {
     painter->setPen(Qt::green);
     font.setPointSize(11);
     painter->setFont(font);
-    QString Text = QString("💜魂心数：%1").arg(player->getSoulHearts());
+    QString Text = QString("🛡️护盾数：%1").arg(player->getSoulHearts());
     painter->drawText(QRect(12, Y, textAreaWidth - 12, Height),
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }

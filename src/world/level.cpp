@@ -21,6 +21,7 @@
 #include "../entities/pantsenemy.h"
 #include "../entities/pillowenemy.h"
 #include "../entities/player.h"
+#include "../entities/probabilityenemy.h"
 #include "../entities/projectile.h"
 #include "../entities/sockenemy.h"
 #include "../entities/sockshooter.h"
@@ -29,7 +30,6 @@
 #include "../entities/walker.h"
 #include "../entities/washmachineboss.h"
 #include "../entities/xukeenemy.h"
-#include "../entities/probabilityenemy.h"
 #include "../entities/yanglinenemy.h"
 #include "../entities/zhuhaoenemy.h"
 #include "../items/chest.h"
@@ -38,23 +38,23 @@
 #include "levelconfig.h"
 #include "room.h"
 
-Level::Level(Player *player, QGraphicsScene *scene, QObject *parent)
-        : QObject(parent),
-          m_levelNumber(1),
-          m_currentRoomIndex(0),
-          m_player(player),
-          m_scene(scene),
-          checkChange(nullptr),
-          visited_count(0),
-          m_levelTextTimer(nullptr),
-          m_hasEncounteredBossDoor(false),
-          m_bossDoorsAlreadyOpened(false),
-          m_dialogBox(nullptr),
-          m_dialogText(nullptr),
-          m_continueHint(nullptr),
-          m_currentDialogIndex(0),
-          m_isStoryFinished(false),
-          m_isBossDialog(false) {
+Level::Level(Player* player, QGraphicsScene* scene, QObject* parent)
+    : QObject(parent),
+      m_levelNumber(1),
+      m_currentRoomIndex(0),
+      m_player(player),
+      m_scene(scene),
+      checkChange(nullptr),
+      visited_count(0),
+      m_levelTextTimer(nullptr),
+      m_hasEncounteredBossDoor(false),
+      m_bossDoorsAlreadyOpened(false),
+      m_dialogBox(nullptr),
+      m_dialogText(nullptr),
+      m_continueHint(nullptr),
+      m_currentDialogIndex(0),
+      m_isStoryFinished(false),
+      m_isBossDialog(false) {
 }
 
 Level::~Level() {
@@ -93,6 +93,44 @@ Level::~Level() {
         delete m_continueHint;
         m_continueHint = nullptr;
     }
+    // 清理跳过提示和渐变背景
+    if (m_skipHint) {
+        if (m_scene)
+            m_scene->removeItem(m_skipHint);
+        delete m_skipHint;
+        m_skipHint = nullptr;
+    }
+    if (m_textBackground) {
+        if (m_scene)
+            m_scene->removeItem(m_textBackground);
+        delete m_textBackground;
+        m_textBackground = nullptr;
+    }
+    // 清理背景图片项
+    if (m_backgroundItem) {
+        if (m_scene)
+            m_scene->removeItem(m_backgroundItem);
+        delete m_backgroundItem;
+        m_backgroundItem = nullptr;
+    }
+    if (m_backgroundOverlay) {
+        if (m_scene)
+            m_scene->removeItem(m_backgroundOverlay);
+        delete m_backgroundOverlay;
+        m_backgroundOverlay = nullptr;
+    }
+    // 清理对话期间的Boss角色图片
+    if (m_dialogBossFlyAnimation) {
+        m_dialogBossFlyAnimation->stop();
+        delete m_dialogBossFlyAnimation;
+        m_dialogBossFlyAnimation = nullptr;
+    }
+    if (m_dialogBossSprite) {
+        if (m_scene)
+            m_scene->removeItem(m_dialogBossSprite);
+        delete m_dialogBossSprite;
+        m_dialogBossSprite = nullptr;
+    }
 
     if (checkChange) {
         checkChange->stop();
@@ -101,9 +139,17 @@ Level::~Level() {
         checkChange = nullptr;
     }
 
+    // 清理吸收动画定时器
+    if (m_absorbAnimationTimer) {
+        m_absorbAnimationTimer->stop();
+        disconnect(m_absorbAnimationTimer, nullptr, nullptr, nullptr);
+        delete m_absorbAnimationTimer;
+        m_absorbAnimationTimer = nullptr;
+    }
+
     // 清理所有敌人的信号连接
-    for (QPointer<Enemy> ePtr: m_currentEnemies) {
-        if (Enemy *e = ePtr.data()) {
+    for (QPointer<Enemy> ePtr : m_currentEnemies) {
+        if (Enemy* e = ePtr.data()) {
             disconnect(e, nullptr, this, nullptr);
         }
     }
@@ -197,19 +243,19 @@ void Level::init(int levelNumber) {
     }
 }
 
-void Level::initializeLevelAfterStory(const LevelConfig &config) {
+void Level::initializeLevelAfterStory(const LevelConfig& config) {
     qDebug() << "加载关卡:" << config.getLevelName();
 
-    bool isDevMode = m_skipToBoss; // 保存开发者模式状态
+    bool isDevMode = m_skipToBoss;  // 保存开发者模式状态
 
     for (int i = 0; i < config.getRoomCount(); ++i) {
-        const RoomConfig &roomCfg = config.getRoom(i);
+        const RoomConfig& roomCfg = config.getRoom(i);
         bool hasUp = (roomCfg.doorUp >= 0);
         bool hasDown = (roomCfg.doorDown >= 0);
         bool hasLeft = (roomCfg.doorLeft >= 0);
         bool hasRight = (roomCfg.doorRight >= 0);
 
-        Room *room = new Room(m_player, hasUp, hasDown, hasLeft, hasRight);
+        Room* room = new Room(m_player, hasUp, hasDown, hasLeft, hasRight);
 
         // 根据配置自动判断战斗房间（有敌人或有Boss的房间）
         if (roomCfg.enemyCount > 0 || roomCfg.hasBoss) {
@@ -264,7 +310,7 @@ void Level::initializeLevelAfterStory(const LevelConfig &config) {
             m_currentRoomIndex = startRoomIndex;
         }
 
-        m_skipToBoss = false; // 重置标志
+        m_skipToBoss = false;  // 重置标志
     } else {
         // 正常流程：从起始房间开始
         visited[startRoomIndex] = true;
@@ -272,12 +318,12 @@ void Level::initializeLevelAfterStory(const LevelConfig &config) {
         m_currentRoomIndex = startRoomIndex;
     }
 
-    const RoomConfig &currentRoomCfg = config.getRoom(m_currentRoomIndex);
+    const RoomConfig& currentRoomCfg = config.getRoom(m_currentRoomIndex);
 
     // 创建背景图片项
     if (!m_backgroundItem) {
         m_backgroundItem = new QGraphicsPixmapItem();
-        m_backgroundItem->setZValue(-1000); // 设置最低优先级
+        m_backgroundItem->setZValue(-1000);  // 设置最低优先级
         m_scene->addItem(m_backgroundItem);
     }
 
@@ -289,15 +335,16 @@ void Level::initializeLevelAfterStory(const LevelConfig &config) {
         // 保存当前与原始背景路径（相对assets/）
         m_currentBackgroundPath = currentRoomCfg.backgroundImage;
         m_originalBackgroundPath = m_currentBackgroundPath;
-    }
-    catch (const QString &e) {
+    } catch (const QString& e) {
         qWarning() << "加载房间背景失败:" << e;
     }
 
     // 开发者模式：显示boss对话，对话结束后初始化boss房
+    bool isShowingDevModeBossDialog = false;
     if (isDevMode && bossRoomIndex >= 0 && !currentRoomCfg.bossDialog.isEmpty()) {
         visited[bossRoomIndex] = true;
         visited_count++;
+        isShowingDevModeBossDialog = true;
         showStoryDialog(currentRoomCfg.bossDialog, true, currentRoomCfg.bossDialogBackground);
     } else {
         // 正常初始化当前房间
@@ -306,13 +353,16 @@ void Level::initializeLevelAfterStory(const LevelConfig &config) {
 
     checkChange = new QTimer(this);
     connect(checkChange, &QTimer::timeout, this, &Level::enterNextRoom);
-    checkChange->start(100);
+    // 开发者模式下显示boss对话时，不启动checkChange计时器，等对话结束后再启动
+    if (!isShowingDevModeBossDialog) {
+        checkChange->start(100);
+    }
 
     buildMinimapData();
 }
 
 // 事件过滤器：处理对话框的点击和键盘事件
-bool Level::eventFilter(QObject *watched, QEvent *event) {
+bool Level::eventFilter(QObject* watched, QEvent* event) {
     // 如果游戏暂停，不拦截任何事件，让暂停菜单处理
     if (m_isPaused) {
         return QObject::eventFilter(watched, event);
@@ -322,10 +372,10 @@ bool Level::eventFilter(QObject *watched, QEvent *event) {
         if (event->type() == QEvent::GraphicsSceneMousePress ||
             event->type() == QEvent::KeyPress) {
             if (event->type() == QEvent::KeyPress) {
-                auto *keyEvent = dynamic_cast<QKeyEvent *>(event);
+                auto* keyEvent = dynamic_cast<QKeyEvent*>(event);
                 // ESC键不拦截，让它传递给GameView处理暂停菜单
                 if (keyEvent->key() == Qt::Key_Escape) {
-                    return false; // 不拦截，让事件继续传播
+                    return false;  // 不拦截，让事件继续传播
                 }
                 if (!m_skipRequested &&
                     keyEvent->modifiers().testFlag(Qt::ControlModifier) &&
@@ -337,11 +387,11 @@ bool Level::eventFilter(QObject *watched, QEvent *event) {
                 if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter ||
                     keyEvent->key() == Qt::Key_Space) {
                     onDialogClicked();
-                    return true; // 阻止事件继续传播
+                    return true;  // 阻止事件继续传播
                 }
             } else if (event->type() == QEvent::GraphicsSceneMousePress) {
                 onDialogClicked();
-                return true; // 阻止事件继续传播
+                return true;  // 阻止事件继续传播
             }
         }
     }
@@ -355,12 +405,12 @@ void Level::onDialogClicked() {
     }
 }
 
-void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const QString &customBackground) {
+void Level::showStoryDialog(const QStringList& dialogs, bool isBossDialog, const QString& customBackground) {
     m_currentDialogs = dialogs;
     m_currentDialogIndex = 0;
     m_isBossDialog = isBossDialog;
     m_isStoryFinished = false;
-    m_isTeacherBossInitialDialog = false; // 重置标记
+    m_isTeacherBossInitialDialog = false;  // 重置标记
 
     // 发送对话开始信号
     emit dialogStarted();
@@ -387,6 +437,9 @@ void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const
         QFile file(imagePath);
         if (!file.exists()) {
             qWarning() << "图片文件不存在:" << imagePath;
+            // 重置状态，避免异常情况
+            m_isStoryFinished = true;
+            m_isBossDialog = false;
             return;
         }
 
@@ -394,12 +447,15 @@ void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const
         QPixmap bgPixmap(imagePath);
         if (bgPixmap.isNull()) {
             qWarning() << "加载图片失败:" << imagePath;
+            // 重置状态，避免异常情况
+            m_isStoryFinished = true;
+            m_isBossDialog = false;
             return;
         }
 
         // 创建图片项
         m_dialogBox = new QGraphicsPixmapItem(
-                bgPixmap.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+            bgPixmap.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
         m_dialogBox->setPos(0, 0);
         m_dialogBox->setZValue(10000);
         m_scene->addItem(m_dialogBox);
@@ -410,12 +466,12 @@ void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const
 
             // 加载cow图片
             QStringList cowPaths = {
-                    "assets/boss/Teacher/cow.png",
-                    "../assets/boss/Teacher/cow.png",
-                    "../../our_game/assets/boss/Teacher/cow.png"};
+                "assets/boss/Teacher/cow.png",
+                "../assets/boss/Teacher/cow.png",
+                "../../our_game/assets/boss/Teacher/cow.png"};
 
             QPixmap cowPixmap;
-            for (const QString &path: cowPaths) {
+            for (const QString& path : cowPaths) {
                 if (QFile::exists(path)) {
                     cowPixmap = QPixmap(path);
                     break;
@@ -426,8 +482,8 @@ void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const
                 // 缩放cow图片（放大）
                 cowPixmap = cowPixmap.scaled(180, 180, Qt::KeepAspectRatio, Qt::SmoothTransformation);
                 m_dialogBossSprite = new QGraphicsPixmapItem(cowPixmap);
-                m_dialogBossSprite->setPos(-200, 180); // 从屏幕左侧外开始
-                m_dialogBossSprite->setZValue(10001);  // 在背景之上
+                m_dialogBossSprite->setPos(-200, 180);  // 从屏幕左侧外开始
+                m_dialogBossSprite->setZValue(10001);   // 在背景之上
                 m_scene->addItem(m_dialogBossSprite);
 
                 // 创建飞入动画：从左侧飞到中间偏左
@@ -435,12 +491,12 @@ void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const
                 m_dialogBossFlyAnimation->setTargetObject(nullptr);
                 m_dialogBossFlyAnimation->setDuration(2000);
                 m_dialogBossFlyAnimation->setStartValue(QPointF(-200, 180));
-                m_dialogBossFlyAnimation->setEndValue(QPointF(250, 180)); // 飞到更靠左位置
+                m_dialogBossFlyAnimation->setEndValue(QPointF(250, 180));  // 飞到更靠左位置
                 m_dialogBossFlyAnimation->setEasingCurve(QEasingCurve::OutCubic);
 
                 // 使用QVariantAnimation来更新位置
                 connect(m_dialogBossFlyAnimation, &QPropertyAnimation::valueChanged, this,
-                        [this](const QVariant &value) {
+                        [this](const QVariant& value) {
                             if (m_dialogBossSprite) {
                                 m_dialogBossSprite->setPos(value.toPointF());
                             }
@@ -450,17 +506,17 @@ void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const
                 qDebug() << "[Level] TeacherBoss初始对话：cow入场动画开始";
             }
         }
-            // 第三关Boss二三阶段对话或击败后对话：让cow直接出现在中间
+        // 第三关Boss二三阶段对话或击败后对话：让cow直接出现在中间
         else if (m_levelNumber == 3 && isBossDialog && m_currentTeacherBoss) {
             // 击败后用cowFinal.png，其他阶段都用cow.png
             QString cowImageName = m_bossDefeated ? "cowFinal.png" : "cow.png";
             QStringList cowPaths = {
-                    "assets/boss/Teacher/" + cowImageName,
-                    "../assets/boss/Teacher/" + cowImageName,
-                    "../../our_game/assets/boss/Teacher/" + cowImageName};
+                "assets/boss/Teacher/" + cowImageName,
+                "../assets/boss/Teacher/" + cowImageName,
+                "../../our_game/assets/boss/Teacher/" + cowImageName};
 
             QPixmap cowPixmap;
-            for (const QString &path: cowPaths) {
+            for (const QString& path : cowPaths) {
                 if (QFile::exists(path)) {
                     cowPixmap = QPixmap(path);
                     break;
@@ -470,7 +526,7 @@ void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const
             if (!cowPixmap.isNull()) {
                 cowPixmap = cowPixmap.scaled(180, 180, Qt::KeepAspectRatio, Qt::SmoothTransformation);
                 m_dialogBossSprite = new QGraphicsPixmapItem(cowPixmap);
-                m_dialogBossSprite->setPos(250, 180); // 直接出现在更靠左位置
+                m_dialogBossSprite->setPos(250, 180);  // 直接出现在更靠左位置
                 m_dialogBossSprite->setZValue(10001);
                 m_scene->addItem(m_dialogBossSprite);
                 qDebug() << "[Level] TeacherBoss阶段" << m_currentTeacherBoss->getPhase() << "对话：cow直接出现";
@@ -486,10 +542,10 @@ void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const
 
     QPainter painter(&gradientPixmap);
     QLinearGradient gradient(0, 0, 0, 250);
-    gradient.setColorAt(0.0, QColor(0, 0, 0, 0));   // 顶部完全透明
-    gradient.setColorAt(0.3, QColor(0, 0, 0, 160)); // 渐变为半透明
-    gradient.setColorAt(0.7, QColor(0, 0, 0, 200)); // 中间更深的半透明
-    gradient.setColorAt(1.0, QColor(0, 0, 0, 250)); // 底部最深的半透明
+    gradient.setColorAt(0.0, QColor(0, 0, 0, 0));    // 顶部完全透明
+    gradient.setColorAt(0.3, QColor(0, 0, 0, 160));  // 渐变为半透明
+    gradient.setColorAt(0.7, QColor(0, 0, 0, 200));  // 中间更深的半透明
+    gradient.setColorAt(1.0, QColor(0, 0, 0, 250));  // 底部最深的半透明
 
     painter.fillRect(0, 0, 800, 250, gradient);
     painter.end();
@@ -532,7 +588,7 @@ void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const
 
     // 暂停所有房间的定时器（防止对话期间玩家被攻击）
     if (isBossDialog) {
-        for (Room *room: m_rooms) {
+        for (Room* room : m_rooms) {
             if (room) {
                 room->stopChangeTimer();
             }
@@ -552,7 +608,12 @@ void Level::nextDialog() {
     }
 
     QString currentText = m_currentDialogs[m_currentDialogIndex];
-    m_dialogText->setPlainText(currentText);
+    // 空指针检查，防止崩溃
+    if (m_dialogText) {
+        m_dialogText->setPlainText(currentText);
+    } else {
+        qWarning() << "m_dialogText is nullptr in nextDialog()";
+    }
     m_currentDialogIndex++;
 
     qDebug() << "显示对话:" << m_currentDialogIndex << "/" << m_currentDialogs.size();
@@ -647,7 +708,7 @@ void Level::finishStory() {
 
             // 释放所有被吸纳的实体（随机分布在场景中）
             for (int i = 0; i < m_absorbingItems.size(); ++i) {
-                QGraphicsItem *item = m_absorbingItems[i];
+                QGraphicsItem* item = m_absorbingItems[i];
                 if (!item)
                     continue;
 
@@ -656,22 +717,22 @@ void Level::finishStory() {
                     m_player->setVisible(true);
                     m_player->setCanMove(true);
                     m_player->setCanShoot(true);
-                    m_player->setPermanentInvincible(false); // 取消持久无敌
+                    m_player->setPermanentInvincible(false);  // 取消持久无敌
                     m_player->setScale(1.0);
                     // 将玩家放到安全位置
                     m_player->setPos(400, 450);
                     qDebug() << "[吸纳] 玩家已恢复";
                 } else if (item != m_currentWashMachineBoss) {
                     // 释放敌人，随机分布在场景中
-                    Enemy *enemy = dynamic_cast<Enemy *>(item);
+                    Enemy* enemy = dynamic_cast<Enemy*>(item);
                     if (enemy) {
                         // 随机位置
                         int x = QRandomGenerator::global()->bounded(100, 700);
                         int y = QRandomGenerator::global()->bounded(100, 500);
                         enemy->setPos(x, y);
-                        enemy->setScale(1.0); // 恢复缩放
+                        enemy->setScale(1.0);  // 恢复缩放
                         enemy->setVisible(true);
-                        enemy->resumeTimers(); // 恢复敌人定时器
+                        enemy->resumeTimers();  // 恢复敌人定时器
                         qDebug() << "释放敌人到位置:" << x << "," << y;
                     }
                 }
@@ -695,6 +756,10 @@ void Level::finishStory() {
                 qDebug() << "Boss对话结束，初始化boss房间" << m_currentRoomIndex;
                 initCurrentRoom(m_rooms[m_currentRoomIndex]);
             }
+            // 启动checkChange计时器（如果还没启动）
+            if (checkChange && !checkChange->isActive()) {
+                checkChange->start(100);
+            }
             // 在房间初始化后再通知Boss（这样文字会显示在最顶层）
             if (m_currentWashMachineBoss) {
                 m_currentWashMachineBoss->onDialogFinished();
@@ -707,16 +772,16 @@ void Level::finishStory() {
     }
 }
 
-void Level::showPhaseTransitionText(const QString &text) {
-    // 创建文字项，复用boss门开启提示的样式（深紫色）
-    QGraphicsTextItem *textItem = new QGraphicsTextItem(text);
-    textItem->setDefaultTextColor(QColor(75, 0, 130)); // 深紫色
+void Level::showPhaseTransitionText(const QString& text, const QColor& color) {
+    // 创建文字项
+    QGraphicsTextItem* textItem = new QGraphicsTextItem(text);
+    textItem->setDefaultTextColor(color);
     textItem->setFont(QFont("Arial", 16, QFont::Bold));
 
     // 居中显示
     QRectF textRect = textItem->boundingRect();
-    textItem->setPos((800 - textRect.width()) / 2, 280); // 在屏幕中上方显示
-    textItem->setZValue(1000);                           // 确保在最上层
+    textItem->setPos((800 - textRect.width()) / 2, 280);  // 在屏幕中上方显示
+    textItem->setZValue(1000);                            // 确保在最上层
     m_scene->addItem(textItem);
 
     // 2秒后自动移除，使用QPointer保护指针
@@ -731,16 +796,16 @@ void Level::showPhaseTransitionText(const QString &text) {
 }
 
 // 文本滚动——暂时搁置
-void Level::showCredits(const QStringList &desc) {
+void Level::showCredits(const QStringList& desc) {
     const QStringList credits = desc;
     // 创建文本项
-    QGraphicsTextItem *creditsText = new QGraphicsTextItem();
+    QGraphicsTextItem* creditsText = new QGraphicsTextItem();
     creditsText->setDefaultTextColor(QColor(102, 0, 153));
     creditsText->setFont(QFont("SimSun", 20, QFont::Bold));
 
     // 设置文本内容
     QString fullText;
-    for (const QString &line: credits) {
+    for (const QString& line : credits) {
         fullText += line + "\n" + "\n" + "\n";
     }
     creditsText->setPlainText(fullText);
@@ -753,8 +818,8 @@ void Level::showCredits(const QStringList &desc) {
     m_scene->addItem(creditsText);
 
     // 创建动画
-    QPropertyAnimation *animation = new QPropertyAnimation(creditsText, "pos");
-    animation->setDuration(15000); // 15秒
+    QPropertyAnimation* animation = new QPropertyAnimation(creditsText, "pos");
+    animation->setDuration(15000);  // 15秒
     animation->setStartValue(creditsText->pos());
     animation->setEndValue(QPointF(sceneRect.width() / 2 - creditsText->boundingRect().width() / 2,
                                    -creditsText->boundingRect().height() - 100));
@@ -774,8 +839,8 @@ void Level::showCredits(const QStringList &desc) {
     animation->start();
 }
 
-void Level::showLevelStartText(LevelConfig &config) {
-    QGraphicsTextItem *levelTextItem = new QGraphicsTextItem(QString(config.getLevelName()));
+void Level::showLevelStartText(LevelConfig& config) {
+    QGraphicsTextItem* levelTextItem = new QGraphicsTextItem(QString(config.getLevelName()));
     levelTextItem->setDefaultTextColor(Qt::red);
     levelTextItem->setFont(QFont("Arial", 36, QFont::Bold));
 
@@ -808,11 +873,11 @@ void Level::showLevelStartText(LevelConfig &config) {
     m_levelTextTimer->start(2000);
 }
 
-void Level::initCurrentRoom(Room *room) {
+void Level::initCurrentRoom(Room* room) {
     if (m_currentRoomIndex >= m_rooms.size())
         return;
 
-    for (Room *rr: m_rooms) {
+    for (Room* rr : m_rooms) {
         if (rr)
             rr->stopChangeTimer();
     }
@@ -822,7 +887,7 @@ void Level::initCurrentRoom(Room *room) {
 
     LevelConfig config;
     if (config.loadFromFile(m_levelNumber)) {
-        const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
+        const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
         try {
             QString bgPath = ConfigManager::instance().getAssetPath(roomCfg.backgroundImage);
             QPixmap bg = ResourceFactory::loadImage(bgPath);
@@ -831,8 +896,7 @@ void Level::initCurrentRoom(Room *room) {
                 m_backgroundItem->setPos(0, 0);
             }
             qDebug() << "加载房间" << m_currentRoomIndex << "背景:" << roomCfg.backgroundImage;
-        }
-        catch (const QString &e) {
+        } catch (const QString& e) {
             qWarning() << "加载地图背景失败:" << e;
         }
         spawnDoors(roomCfg);
@@ -869,8 +933,8 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
         return;
     }
 
-    const RoomConfig &roomCfg = config.getRoom(roomIndex);
-    Room *cur = m_rooms[roomIndex];
+    const RoomConfig& roomCfg = config.getRoom(roomIndex);
+    Room* cur = m_rooms[roomIndex];
 
     // 如果房间已被标记为清除（开发者模式跳关），跳过敌人生成
     if (cur && cur->isCleared()) {
@@ -884,7 +948,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
 
         // 计算总敌人数量（用于判断是否打开门）
         int totalEnemyCount = 0;
-        for (const EnemySpawnConfig &enemyCfg: roomCfg.enemies) {
+        for (const EnemySpawnConfig& enemyCfg : roomCfg.enemies) {
             totalEnemyCount += enemyCfg.count;
         }
 
@@ -894,7 +958,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
         }
 
         // 根据配置生成各种类型的敌人
-        for (const EnemySpawnConfig &enemyCfg: roomCfg.enemies) {
+        for (const EnemySpawnConfig& enemyCfg : roomCfg.enemies) {
             QString enemyType = enemyCfg.type;
             int count = enemyCfg.count;
 
@@ -903,7 +967,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
                 // 使用新的配置接口获取具体敌人类型的尺寸
                 int enemySize = ConfigManager::instance().getEntitySize("enemies", "clock_boom");
                 if (enemySize <= 0)
-                    enemySize = 40; // 默认值
+                    enemySize = 40;  // 默认值
                 QPixmap boomNormalPic = ResourceFactory::createEnemyImage(enemySize, m_levelNumber, "clock_boom");
 
                 for (int i = 0; i < count; ++i) {
@@ -915,7 +979,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
                         y += 150;
                     }
 
-                    ClockBoom *boom = new ClockBoom(boomNormalPic, boomNormalPic, 1.0);
+                    ClockBoom* boom = new ClockBoom(boomNormalPic, boomNormalPic, 1.0);
                     boom->setPos(x, y);
                     boom->setPlayer(m_player);
 
@@ -935,15 +999,14 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
                 // 普通敌人生成 - 使用新的配置接口获取具体敌人类型的尺寸
                 int enemySize = ConfigManager::instance().getEntitySize("enemies", enemyType);
                 if (enemySize <= 0)
-                    enemySize = 40; // 默认值
+                    enemySize = 40;  // 默认值
 
                 QPixmap enemyPix;
                 double enemyScale = 1.0;
 
                 // 对于ScalingEnemy类型（Level 3的缩放敌人），使用高分辨率图片
                 // 避免先缩小再放大导致的画质损失
-                if (m_levelNumber == 3 && (enemyType == "optimization" || enemyType == "digital_system" || enemyType == "yanglin" || enemyType == "probability_theory"))
-                {
+                if (m_levelNumber == 3 && (enemyType == "optimization" || enemyType == "digital_system" || enemyType == "yanglin" || enemyType == "probability_theory")) {
                     // 加载高分辨率图片（最大200像素，保持高质量）
                     enemyPix = ResourceFactory::createEnemyImageHighRes(m_levelNumber, enemyType, 200);
                     // 计算初始缩放比例，使视觉大小与配置的enemySize一致
@@ -956,30 +1019,25 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
                     enemyPix = ResourceFactory::createEnemyImage(enemySize, m_levelNumber, enemyType);
                 }
 
-                for (int i = 0; i < count; ++i)
-                {
+                for (int i = 0; i < count; ++i) {
                     int x, y;
 
                     // probability_theory固定刷新在地图正中间（使用setOffset后pos就是中心点）
-                    if (enemyType == "probability_theory")
-                    {
+                    if (enemyType == "probability_theory") {
                         x = 400;  // 地图中央X
                         y = 300;  // 地图中央Y
-                    }
-                    else
-                    {
+                    } else {
                         x = QRandomGenerator::global()->bounded(100, 700);
                         y = QRandomGenerator::global()->bounded(100, 500);
 
-                        if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100)
-                        {
+                        if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100) {
                             x += 150;
                             y += 150;
                         }
                     }
 
                     // 根据关卡号和敌人类型创建具体的敌人实例
-                    Enemy *enemy = createEnemyByType(m_levelNumber, enemyType, enemyPix, enemyScale);
+                    Enemy* enemy = createEnemyByType(m_levelNumber, enemyType, enemyPix, enemyScale);
                     enemy->setPos(x, y);
                     enemy->setPlayer(m_player);
 
@@ -1029,7 +1087,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
             }
 
             // 使用工厂方法创建对应的Boss
-            Boss *boss = createBossByLevel(m_levelNumber, bossPix, 1.0);
+            Boss* boss = createBossByLevel(m_levelNumber, bossPix, 1.0);
             boss->setPos(x, y);
             boss->setPlayer(m_player);
 
@@ -1039,7 +1097,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
             m_scene->addItem(boss);
 
             // 使用 QPointer<Enemy> 存储，兼容 Qt5 和 Qt6
-            QPointer<Enemy> eptr(static_cast<Enemy *>(boss));
+            QPointer<Enemy> eptr(static_cast<Enemy*>(boss));
             m_currentEnemies.append(eptr);
             // Room::currentEnemies 也应为 QVector<QPointer<Enemy>>
             m_rooms[roomIndex]->currentEnemies.append(eptr);
@@ -1047,8 +1105,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
             connect(boss, &Boss::dying, this, &Level::onEnemyDying);
             qDebug() << "创建boss类型:" << bossType << "位置:" << x << "," << y << "已连接dying信号";
         }
-    }
-    catch (const QString &error) {
+    } catch (const QString& error) {
         qWarning() << "生成敌人失败:" << error;
     }
 }
@@ -1060,7 +1117,7 @@ void Level::spawnChestsInRoom(int roomIndex) {
         return;
     }
 
-    const RoomConfig &roomCfg = config.getRoom(roomIndex);
+    const RoomConfig& roomCfg = config.getRoom(roomIndex);
 
     if (!roomCfg.hasChest) {
         return;
@@ -1070,7 +1127,7 @@ void Level::spawnChestsInRoom(int roomIndex) {
         int x = QRandomGenerator::global()->bounded(150, 650);
         int y = QRandomGenerator::global()->bounded(150, 450);
 
-        Chest *chest = nullptr;
+        Chest* chest = nullptr;
 
         if (roomCfg.isChestLocked) {
             // 高级宝箱 - 需要钥匙，使用 chest_up.png
@@ -1090,14 +1147,13 @@ void Level::spawnChestsInRoom(int roomIndex) {
         QPointer<Chest> cptr(chest);
         m_currentChests.append(cptr);
         m_rooms[roomIndex]->currentChests.append(cptr);
-    }
-    catch (const QString &error) {
+    } catch (const QString& error) {
         qWarning() << "生成宝箱失败:" << error;
     }
 }
 
 // 渐变背景到目标图片路径（绝对或相对 assets/），duration 毫秒
-void Level::fadeBackgroundTo(const QString &imagePath, int duration) {
+void Level::fadeBackgroundTo(const QString& imagePath, int duration) {
     if (!m_scene)
         return;
 
@@ -1110,8 +1166,7 @@ void Level::fadeBackgroundTo(const QString &imagePath, int duration) {
     QPixmap newBg;
     try {
         newBg = ResourceFactory::loadImage(fullPath);
-    }
-    catch (const QString &e) {
+    } catch (const QString& e) {
         qWarning() << "fadeBackgroundTo: 加载图片失败:" << e;
         return;
     }
@@ -1131,7 +1186,7 @@ void Level::fadeBackgroundTo(const QString &imagePath, int duration) {
     }
 
     m_backgroundOverlay = new QGraphicsPixmapItem(
-            newBg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+        newBg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     m_backgroundOverlay->setPos(0, 0);
     // 覆盖在背景之上，但低于界面元素
     m_backgroundOverlay->setZValue(-999);
@@ -1139,11 +1194,11 @@ void Level::fadeBackgroundTo(const QString &imagePath, int duration) {
     m_scene->addItem(m_backgroundOverlay);
 
     // 动画从0到1
-    QVariantAnimation *anim = new QVariantAnimation(this);
+    QVariantAnimation* anim = new QVariantAnimation(this);
     anim->setStartValue(0.0);
     anim->setEndValue(1.0);
     anim->setDuration(duration);
-    connect(anim, &QVariantAnimation::valueChanged, this, [this](const QVariant &value) {
+    connect(anim, &QVariantAnimation::valueChanged, this, [this](const QVariant& value) {
         if (m_backgroundOverlay)
             m_backgroundOverlay->setOpacity(value.toDouble());
     });
@@ -1156,7 +1211,7 @@ void Level::fadeBackgroundTo(const QString &imagePath, int duration) {
                     m_backgroundItem->setPixmap(bg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
                 // 更新当前背景路径
                 m_currentBackgroundPath = fullPath;
-            } catch (const QString &e) {
+            } catch (const QString& e) {
                 qWarning() << "fadeBackgroundTo finished: 加载图片失败:" << e;
             }
         }
@@ -1170,7 +1225,7 @@ void Level::fadeBackgroundTo(const QString &imagePath, int duration) {
     anim->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
-Enemy *Level::createEnemyByType(int levelNumber, const QString &enemyType, const QPixmap &pic, double scale) {
+Enemy* Level::createEnemyByType(int levelNumber, const QString& enemyType, const QPixmap& pic, double scale) {
     // 根据关卡号和敌人类型创建具体的敌人实例
     if (levelNumber == 1) {
         if (enemyType == "clock_normal") {
@@ -1197,13 +1252,9 @@ Enemy *Level::createEnemyByType(int levelNumber, const QString &enemyType, const
             return new DigitalSystemEnemy(pic, scale);
         } else if (enemyType == "yanglin") {
             return new YanglinEnemy(pic, scale);
-        }
-        else if (enemyType == "xuke")
-        {
+        } else if (enemyType == "xuke") {
             return new XukeEnemy(pic, scale);
-        }
-        else if (enemyType == "probability_theory")
-        {
+        } else if (enemyType == "probability_theory") {
             return new ProbabilityEnemy(pic, scale);
         }
     }
@@ -1213,15 +1264,15 @@ Enemy *Level::createEnemyByType(int levelNumber, const QString &enemyType, const
     return new Enemy(pic, scale);
 }
 
-Boss *Level::createBossByLevel(int levelNumber, const QPixmap &pic, double scale) {
-    Boss *boss = nullptr;
+Boss* Level::createBossByLevel(int levelNumber, const QPixmap& pic, double scale) {
+    Boss* boss = nullptr;
 
     // 根据关卡号创建对应的Boss
     switch (levelNumber) {
         case 1: {
             // 第一关：Nightmare Boss
             qDebug() << "创建Nightmare Boss（第一关）";
-            NightmareBoss *nightmareBoss = new NightmareBoss(pic, scale, m_scene);
+            NightmareBoss* nightmareBoss = new NightmareBoss(pic, scale, m_scene);
 
             // 连接Nightmare Boss的特殊信号
             connect(nightmareBoss, &NightmareBoss::requestSpawnEnemies,
@@ -1237,7 +1288,7 @@ Boss *Level::createBossByLevel(int levelNumber, const QPixmap &pic, double scale
         case 2: {
             // 第二关：WashMachine Boss
             qDebug() << "创建WashMachine Boss（第二关）";
-            WashMachineBoss *washMachineBoss = new WashMachineBoss(pic, scale);
+            WashMachineBoss* washMachineBoss = new WashMachineBoss(pic, scale);
 
             // 连接WashMachine Boss的特殊信号
             connectWashMachineBossSignals(washMachineBoss);
@@ -1249,7 +1300,7 @@ Boss *Level::createBossByLevel(int levelNumber, const QPixmap &pic, double scale
         case 3: {
             // 第三关：Teacher Boss（奶牛张）
             qDebug() << "创建Teacher Boss（第三关）";
-            TeacherBoss *teacherBoss = new TeacherBoss(pic, scale);
+            TeacherBoss* teacherBoss = new TeacherBoss(pic, scale);
 
             // 连接Teacher Boss的特殊信号
             connectTeacherBossSignals(teacherBoss);
@@ -1268,7 +1319,7 @@ Boss *Level::createBossByLevel(int levelNumber, const QPixmap &pic, double scale
     return boss;
 }
 
-void Level::spawnDoors(const RoomConfig &roomCfg) {
+void Level::spawnDoors(const RoomConfig& roomCfg) {
     try {
         // 检查是否已有该房间的门对象（复用逻辑）
         if (m_roomDoors.contains(m_currentRoomIndex)) {
@@ -1276,8 +1327,8 @@ void Level::spawnDoors(const RoomConfig &roomCfg) {
             m_currentDoors = m_roomDoors[m_currentRoomIndex];
 
             // 将门重新添加到场景并更新状态
-            Room *currentRoom = m_rooms[m_currentRoomIndex];
-            for (Door *door: m_currentDoors) {
+            Room* currentRoom = m_rooms[m_currentRoomIndex];
+            for (Door* door : m_currentDoors) {
                 if (door) {
                     m_scene->addItem(door);
 
@@ -1312,50 +1363,50 @@ void Level::spawnDoors(const RoomConfig &roomCfg) {
         // 上下门：120x80，左右门：80x120
 
         if (roomCfg.doorUp >= 0) {
-            Door *door = new Door(Door::Up);
+            Door* door = new Door(Door::Up);
             // 上门：水平居中在顶部 (800-120)/2 = 340
             door->setPos(340, 0);
             m_scene->addItem(door);
             m_currentDoors.append(door);
 
             // 检查这个门是否应该已经是打开状态
-            Room *currentRoom = m_rooms[m_currentRoomIndex];
+            Room* currentRoom = m_rooms[m_currentRoomIndex];
             if (currentRoom && currentRoom->isDoorOpenUp()) {
                 door->setOpenState();
             }
         }
         if (roomCfg.doorDown >= 0) {
-            Door *door = new Door(Door::Down);
+            Door* door = new Door(Door::Down);
             // 下门：水平居中在底部 (600-80) = 520
             door->setPos(340, 520);
             m_scene->addItem(door);
             m_currentDoors.append(door);
 
-            Room *currentRoom = m_rooms[m_currentRoomIndex];
+            Room* currentRoom = m_rooms[m_currentRoomIndex];
             if (currentRoom && currentRoom->isDoorOpenDown()) {
                 door->setOpenState();
             }
         }
         if (roomCfg.doorLeft >= 0) {
-            Door *door = new Door(Door::Left);
+            Door* door = new Door(Door::Left);
             // 左门：垂直居中在左侧 (600-120)/2 = 240
             door->setPos(0, 240);
             m_scene->addItem(door);
             m_currentDoors.append(door);
 
-            Room *currentRoom = m_rooms[m_currentRoomIndex];
+            Room* currentRoom = m_rooms[m_currentRoomIndex];
             if (currentRoom && currentRoom->isDoorOpenLeft()) {
                 door->setOpenState();
             }
         }
         if (roomCfg.doorRight >= 0) {
-            Door *door = new Door(Door::Right);
+            Door* door = new Door(Door::Right);
             // 右门：垂直居中在右侧 800-80 = 720
             door->setPos(720, 240);
             m_scene->addItem(door);
             m_currentDoors.append(door);
 
-            Room *currentRoom = m_rooms[m_currentRoomIndex];
+            Room* currentRoom = m_rooms[m_currentRoomIndex];
             if (currentRoom && currentRoom->isDoorOpenRight()) {
                 door->setOpenState();
             }
@@ -1363,8 +1414,7 @@ void Level::spawnDoors(const RoomConfig &roomCfg) {
 
         // 保存到房间门映射（首次创建时）
         m_roomDoors[m_currentRoomIndex] = m_currentDoors;
-    }
-    catch (const QString &error) {
+    } catch (const QString& error) {
         qWarning() << "生成门失败:" << error;
     }
 }
@@ -1381,7 +1431,7 @@ void Level::buildMinimapData() {
     };
 
     QVector<HUD::RoomNode> nodes;
-    QVector<bool> bfsVisited(config.getRoomCount(), false); // BFS遍历标记，与成员变量visited区分
+    QVector<bool> bfsVisited(config.getRoomCount(), false);  // BFS遍历标记，与成员变量visited区分
     QList<Node> queue;
 
     int startRoom = config.getStartRoomIndex();
@@ -1390,14 +1440,14 @@ void Level::buildMinimapData() {
 
     while (!queue.isEmpty()) {
         Node current = queue.takeFirst();
-        const RoomConfig &cfg = config.getRoom(current.id);
+        const RoomConfig& cfg = config.getRoom(current.id);
 
         HUD::RoomNode hudNode;
         hudNode.id = current.id;
         hudNode.x = current.x;
         hudNode.y = current.y;
-        hudNode.visited = false;       // Will be updated by HUD
-        hudNode.hasBoss = cfg.hasBoss; // 标记boss房间
+        hudNode.visited = false;        // Will be updated by HUD
+        hudNode.hasBoss = cfg.hasBoss;  // 标记boss房间
         hudNode.up = cfg.doorUp;
         hudNode.down = cfg.doorDown;
         hudNode.left = cfg.doorLeft;
@@ -1424,7 +1474,7 @@ void Level::buildMinimapData() {
     }
 
     // Pass to HUD
-    if (auto view = dynamic_cast<GameView *>(parent())) {
+    if (auto view = dynamic_cast<GameView*>(parent())) {
         if (auto hud = view->getHUD()) {
             hud->setMapLayout(nodes);
             // 同步玩家已访问的房间状态（使用成员变量 this->visited）
@@ -1435,8 +1485,8 @@ void Level::buildMinimapData() {
 
 void Level::clearSceneEntities() {
     // Remove enemies from scene only, keep them in room data
-    for (QPointer<Enemy> enemyPtr: m_currentEnemies) {
-        Enemy *enemy = enemyPtr.data();
+    for (QPointer<Enemy> enemyPtr : m_currentEnemies) {
+        Enemy* enemy = enemyPtr.data();
         if (m_scene && enemy) {
             m_scene->removeItem(enemy);
         }
@@ -1444,8 +1494,8 @@ void Level::clearSceneEntities() {
     m_currentEnemies.clear();
 
     // Remove chests from scene only, keep them in room data
-    for (QPointer<Chest> chestPtr: m_currentChests) {
-        Chest *chest = chestPtr.data();
+    for (QPointer<Chest> chestPtr : m_currentChests) {
+        Chest* chest = chestPtr.data();
         if (m_scene && chest) {
             m_scene->removeItem(chest);
         }
@@ -1453,7 +1503,7 @@ void Level::clearSceneEntities() {
     m_currentChests.clear();
 
     // Clear old door items (deprecated)
-    for (QGraphicsItem *item: m_doorItems) {
+    for (QGraphicsItem* item : m_doorItems) {
         if (m_scene && item) {
             m_scene->removeItem(item);
         }
@@ -1463,7 +1513,7 @@ void Level::clearSceneEntities() {
 
     // Clear new Door objects (don't delete, just remove from scene)
     // 门对象保存在 m_roomDoors 中，会被复用
-    for (Door *door: m_currentDoors) {
+    for (Door* door : m_currentDoors) {
         if (m_scene && door) {
             m_scene->removeItem(door);
         }
@@ -1472,18 +1522,18 @@ void Level::clearSceneEntities() {
 
     // 清理场景中残留的子弹
     if (m_scene) {
-        QList<QGraphicsItem *> allItems = m_scene->items();
-        QVector<Projectile *> projectilesToDelete;
+        QList<QGraphicsItem*> allItems = m_scene->items();
+        QVector<Projectile*> projectilesToDelete;
 
         // 先收集所有子弹
-        for (QGraphicsItem *item: allItems) {
-            if (auto proj = dynamic_cast<Projectile *>(item)) {
+        for (QGraphicsItem* item : allItems) {
+            if (auto proj = dynamic_cast<Projectile*>(item)) {
                 projectilesToDelete.append(proj);
             }
         }
 
         // 再统一删除，避免在遍历时修改容器
-        for (Projectile *proj: projectilesToDelete) {
+        for (Projectile* proj : projectilesToDelete) {
             if (proj) {
                 proj->destroy();
             }
@@ -1495,14 +1545,14 @@ void Level::clearCurrentRoomEntities() {
     // 遮罩效果现在由NightmareBoss自己管理，其析构函数会自动清理
 
     // Delete all entities completely (used when resetting level)
-    for (QPointer<Enemy> enemyPtr: m_currentEnemies) {
-        Enemy *enemy = enemyPtr.data();
+    for (QPointer<Enemy> enemyPtr : m_currentEnemies) {
+        Enemy* enemy = enemyPtr.data();
         if (enemy) {
             // 断开所有信号连接
             disconnect(enemy, nullptr, this, nullptr);
             disconnect(enemy, nullptr, nullptr, nullptr);
         }
-        for (Room *r: m_rooms) {
+        for (Room* r : m_rooms) {
             if (!r)
                 continue;
             r->currentEnemies.removeAll(enemyPtr);
@@ -1514,9 +1564,9 @@ void Level::clearCurrentRoomEntities() {
     }
     m_currentEnemies.clear();
 
-    for (QPointer<Chest> chestPtr: m_currentChests) {
-        Chest *chest = chestPtr.data();
-        for (Room *r: m_rooms) {
+    for (QPointer<Chest> chestPtr : m_currentChests) {
+        Chest* chest = chestPtr.data();
+        for (Room* r : m_rooms) {
             if (!r)
                 continue;
             r->currentChests.removeAll(chestPtr);
@@ -1528,7 +1578,7 @@ void Level::clearCurrentRoomEntities() {
     }
     m_currentChests.clear();
 
-    for (QGraphicsItem *item: m_doorItems) {
+    for (QGraphicsItem* item : m_doorItems) {
         if (m_scene && item) {
             m_scene->removeItem(item);
         }
@@ -1537,14 +1587,14 @@ void Level::clearCurrentRoomEntities() {
     m_doorItems.clear();
 
     if (m_scene) {
-        QList<QGraphicsItem *> allItems = m_scene->items();
-        QVector<Projectile *> projectilesToDelete;
-        for (QGraphicsItem *item: allItems) {
-            if (auto proj = dynamic_cast<Projectile *>(item)) {
+        QList<QGraphicsItem*> allItems = m_scene->items();
+        QVector<Projectile*> projectilesToDelete;
+        for (QGraphicsItem* item : allItems) {
+            if (auto proj = dynamic_cast<Projectile*>(item)) {
                 projectilesToDelete.append(proj);
             }
         }
-        for (Projectile *proj: projectilesToDelete) {
+        for (Projectile* proj : projectilesToDelete) {
             if (proj) {
                 proj->destroy();
             }
@@ -1553,7 +1603,18 @@ void Level::clearCurrentRoomEntities() {
 }
 
 bool Level::enterNextRoom() {
-    Room *currentRoom = m_rooms[m_currentRoomIndex];
+    // 安全检查：确保索引和房间对象有效
+    if (m_currentRoomIndex < 0 || m_currentRoomIndex >= m_rooms.size()) {
+        qWarning() << "enterNextRoom: 无效的当前房间索引:" << m_currentRoomIndex;
+        return false;
+    }
+
+    Room* currentRoom = m_rooms[m_currentRoomIndex];
+    if (!currentRoom) {
+        qWarning() << "enterNextRoom: 当前房间对象为空，索引:" << m_currentRoomIndex;
+        return false;
+    }
+
     int x = currentRoom->getChangeX();
     int y = currentRoom->getChangeY();
 
@@ -1571,7 +1632,7 @@ bool Level::enterNextRoom() {
         return false;
     }
 
-    const RoomConfig &currentRoomCfg = config.getRoom(m_currentRoomIndex);
+    const RoomConfig& currentRoomCfg = config.getRoom(m_currentRoomIndex);
     int nextRoomIndex = -1;
 
     if (y == -1) {
@@ -1604,16 +1665,21 @@ bool Level::enterNextRoom() {
         m_player->setPos(40, m_player->pos().y());
     }
 
-    const RoomConfig &nextRoomCfg = config.getRoom(nextRoomIndex);
-    Room *nextRoom = m_rooms[nextRoomIndex];
+    const RoomConfig& nextRoomCfg = config.getRoom(nextRoomIndex);
+    Room* nextRoom = m_rooms[nextRoomIndex];
 
     // 判断是否是首次进入战斗房间（在visited标记之前判断）
     bool isFirstEnterBattleRoom = !visited[m_currentRoomIndex] && nextRoom->isBattleRoom();
 
     // 检测是否首次进入boss房间（使用之前已声明的currentRoomCfg）
-    const RoomConfig &newRoomCfg = config.getRoom(m_currentRoomIndex);
+    const RoomConfig& newRoomCfg = config.getRoom(m_currentRoomIndex);
     bool isFirstEnterBossRoom = !visited[m_currentRoomIndex] && newRoomCfg.hasBoss;
     bool isFirstEnterEliteRoom = !visited[m_currentRoomIndex] && newRoomCfg.isEliteRoom;
+
+    // 检测是否首次进入cloudDream背景的战斗房间（有敌人时）
+    bool isFirstEnterCloudDreamRoom = !visited[m_currentRoomIndex] &&
+                                      newRoomCfg.backgroundImage == "cloudDream" &&
+                                      !newRoomCfg.enemies.isEmpty();
 
     if (!visited[m_currentRoomIndex]) {
         visited[m_currentRoomIndex] = true;
@@ -1640,7 +1706,7 @@ bool Level::enterNextRoom() {
             showStoryDialog(newRoomCfg.eliteDialog, false, newRoomCfg.eliteDialogBackground);
             // 等待对话结束后再初始化房间
         }
-            // 如果是首次进入boss房间且有对话配置，显示对话
+        // 如果是首次进入boss房间且有对话配置，显示对话
         else if (isFirstEnterBossRoom && !newRoomCfg.bossDialog.isEmpty()) {
             qDebug() << "首次进入boss房间" << m_currentRoomIndex << "，显示boss对话";
             // 传递boss对话标志和自定义背景（如果有）
@@ -1649,6 +1715,11 @@ bool Level::enterNextRoom() {
             // initCurrentRoom会在对话结束后由finishStory调用
         } else {
             initCurrentRoom(m_rooms[m_currentRoomIndex]);
+            // 首次进入cloudDream背景的战斗房间时，显示"你已坠入梦境！"提示
+            if (isFirstEnterCloudDreamRoom) {
+                qDebug() << "首次进入cloudDream背景房间，显示沉睡提示";
+                showPhaseTransitionText("你已坠入梦境！", Qt::red);
+            }
         }
     } else {
         loadRoom(m_currentRoomIndex);
@@ -1693,7 +1764,7 @@ void Level::loadRoom(int roomIndex) {
         return;
     }
 
-    for (Room *rr: m_rooms) {
+    for (Room* rr : m_rooms) {
         if (rr)
             rr->stopChangeTimer();
     }
@@ -1702,11 +1773,11 @@ void Level::loadRoom(int roomIndex) {
     clearSceneEntities();
 
     m_currentRoomIndex = roomIndex;
-    Room *targetRoom = m_rooms[roomIndex];
+    Room* targetRoom = m_rooms[roomIndex];
 
     LevelConfig config;
     if (config.loadFromFile(m_levelNumber)) {
-        const RoomConfig &roomCfg = config.getRoom(roomIndex);
+        const RoomConfig& roomCfg = config.getRoom(roomIndex);
         try {
             QString bgPath = ConfigManager::instance().getAssetPath(roomCfg.backgroundImage);
             QPixmap bg = ResourceFactory::loadImage(bgPath);
@@ -1715,8 +1786,7 @@ void Level::loadRoom(int roomIndex) {
                 m_backgroundItem->setPos(0, 0);
             }
             qDebug() << "重新加载房间" << roomIndex << "背景:" << roomCfg.backgroundImage;
-        }
-        catch (const QString &e) {
+        } catch (const QString& e) {
             qWarning() << "加载地图背景失败:" << e;
         }
         spawnDoors(roomCfg);
@@ -1725,8 +1795,8 @@ void Level::loadRoom(int roomIndex) {
     qDebug() << "重新加载房间" << roomIndex << "，房间保存的敌人数:" << targetRoom->currentEnemies.size();
 
     // 重新添加房间实体到场景（使用 QPointer）
-    for (QPointer<Enemy> enemyPtr: targetRoom->currentEnemies) {
-        Enemy *enemy = enemyPtr.data();
+    for (QPointer<Enemy> enemyPtr : targetRoom->currentEnemies) {
+        Enemy* enemy = enemyPtr.data();
         if (enemy) {
             m_scene->addItem(enemy);
             m_currentEnemies.append(enemyPtr);
@@ -1734,8 +1804,8 @@ void Level::loadRoom(int roomIndex) {
         }
     }
 
-    for (QPointer<Chest> chestPtr: targetRoom->currentChests) {
-        Chest *chest = chestPtr.data();
+    for (QPointer<Chest> chestPtr : targetRoom->currentChests) {
+        Chest* chest = chestPtr.data();
         if (chest) {
             m_scene->addItem(chest);
             m_currentChests.append(chestPtr);
@@ -1755,7 +1825,7 @@ void Level::loadRoom(int roomIndex) {
 
     // 在重新加载非boss房间后，检查是否满足打开boss门的条件
     if (config.loadFromFile(m_levelNumber)) {
-        const RoomConfig &roomCfg = config.getRoom(roomIndex);
+        const RoomConfig& roomCfg = config.getRoom(roomIndex);
         if (!roomCfg.hasBoss && m_hasEncounteredBossDoor && !m_bossDoorsAlreadyOpened) {
             if (canOpenBossDoor()) {
                 qDebug() << "重新加载房间后检测到满足boss门开启条件，立即打开boss门";
@@ -1766,14 +1836,14 @@ void Level::loadRoom(int roomIndex) {
     }
 }
 
-Room *Level::currentRoom() const {
+Room* Level::currentRoom() const {
     if (m_currentRoomIndex < m_rooms.size()) {
         return m_rooms[m_currentRoomIndex];
     }
     return nullptr;
 }
 
-void Level::onEnemyDying(Enemy *enemy) {
+void Level::onEnemyDying(Enemy* enemy) {
     // 移除频繁的调试输出以避免性能问题
     // qDebug() << "onEnemyDying 被调用";
 
@@ -1783,11 +1853,11 @@ void Level::onEnemyDying(Enemy *enemy) {
     }
 
     // 检查是否是Boss死亡
-    bool isBoss = dynamic_cast<Boss *>(enemy) != nullptr;
+    bool isBoss = dynamic_cast<Boss*>(enemy) != nullptr;
 
     // 检查是否是精英房间中的杨霖死亡
     if (m_isEliteRoom && !m_elitePhase2Triggered) {
-        YanglinEnemy *yanglin = dynamic_cast<YanglinEnemy *>(enemy);
+        YanglinEnemy* yanglin = dynamic_cast<YanglinEnemy*>(enemy);
         if (yanglin) {
             m_eliteYanglinDeathCount++;
             qDebug() << "精英房间杨霖死亡，当前死亡数:" << m_eliteYanglinDeathCount;
@@ -1821,18 +1891,18 @@ void Level::onEnemyDying(Enemy *enemy) {
     }
 
     // 如果死亡的是NightmareBoss，切换到map1背景（3秒渐变）
-    if (dynamic_cast<NightmareBoss *>(enemy)) {
+    if (dynamic_cast<NightmareBoss*>(enemy)) {
         // 梦魇完全死亡，背景变为map1
         fadeBackgroundTo(QString("assets/background/startRoom.png"), 3000);
     }
 
-    for (Room *r: m_rooms) {
+    for (Room* r : m_rooms) {
         if (!r)
             continue;
         r->currentEnemies.removeAll(target);
     }
 
-    Room *cur = m_rooms[m_currentRoomIndex];
+    Room* cur = m_rooms[m_currentRoomIndex];
     // 移除频繁的调试输出以避免性能问题
     // qDebug() << "当前房间" << m_currentRoomIndex << "敌人数量:" << (cur ? cur->currentEnemies.size() : -1);
 
@@ -1847,7 +1917,7 @@ void Level::onEnemyDying(Enemy *enemy) {
         // 检查是否是Boss房间
         LevelConfig config;
         if (config.loadFromFile(m_levelNumber)) {
-            const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
+            const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
 
             // 如果是Boss房间
             if (roomCfg.hasBoss) {
@@ -1857,13 +1927,13 @@ void Level::onEnemyDying(Enemy *enemy) {
                     m_bossDefeated = true;
                     // 延迟启动奖励流程，等待Boss死亡动画完成
                     QTimer::singleShot(1500, this, &Level::startBossRewardSequence);
-                    return; // 不执行正常的开门逻辑
+                    return;  // 不执行正常的开门逻辑
                 }
-                    // 小怪死亡但Boss之前已被击败，现在房间清空，启动奖励流程
+                // 小怪死亡但Boss之前已被击败，现在房间清空，启动奖励流程
                 else if (m_bossDefeated && !m_rewardSequenceActive) {
                     qDebug() << "[Level] Boss房间小怪已清空，Boss之前已被击败，启动奖励流程";
                     QTimer::singleShot(500, this, &Level::startBossRewardSequence);
-                    return; // 不执行正常的开门逻辑
+                    return;  // 不执行正常的开门逻辑
                 }
             }
         }
@@ -1875,7 +1945,7 @@ void Level::onEnemyDying(Enemy *enemy) {
 
         // 在战斗房间清空敌人后，检查是否满足打开boss门的条件
         if (config.loadFromFile(m_levelNumber)) {
-            const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
+            const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
             if (!roomCfg.hasBoss && m_hasEncounteredBossDoor && !m_bossDoorsAlreadyOpened) {
                 if (canOpenBossDoor()) {
                     qDebug() << "战斗房间清空后检测到满足boss门开启条件，立即打开boss门";
@@ -1887,19 +1957,19 @@ void Level::onEnemyDying(Enemy *enemy) {
     }
 }
 
-void Level::openDoors(Room *cur) {
+void Level::openDoors(Room* cur) {
     LevelConfig config;
     bool up = false, down = false, left = false, right = false;
-    bool anyDoorOpened = false; // 追踪是否有门被打开
+    bool anyDoorOpened = false;  // 追踪是否有门被打开
 
     if (config.loadFromFile(m_levelNumber)) {
-        const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
+        const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
 
         int doorIndex = 0;
 
         if (roomCfg.doorUp >= 0) {
             int neighborRoom = roomCfg.doorUp;
-            const RoomConfig &neighborCfg = config.getRoom(neighborRoom);
+            const RoomConfig& neighborCfg = config.getRoom(neighborRoom);
 
             // 最高优先级：如果邻居是boss房间，必须所有非boss房间都已访问才能开门
             if (neighborCfg.hasBoss && !canOpenBossDoor()) {
@@ -1918,7 +1988,7 @@ void Level::openDoors(Room *cur) {
 
                 // 设置邻房间的对应门为打开状态（除非邻居是未访问的战斗房间）
                 if (neighborRoom >= 0 && neighborRoom < m_rooms.size()) {
-                    Room *neighbor = m_rooms[neighborRoom];
+                    Room* neighbor = m_rooms[neighborRoom];
                     bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
                     if (shouldOpenNeighborDoor) {
                         neighbor->setDoorOpenDown(true);
@@ -1928,7 +1998,7 @@ void Level::openDoors(Room *cur) {
         }
         if (roomCfg.doorDown >= 0) {
             int neighborRoom = roomCfg.doorDown;
-            const RoomConfig &neighborCfg = config.getRoom(neighborRoom);
+            const RoomConfig& neighborCfg = config.getRoom(neighborRoom);
 
             // 最高优先级：如果邻居是boss房间，必须所有非boss房间都已访问才能开门
             if (neighborCfg.hasBoss && !canOpenBossDoor()) {
@@ -1945,7 +2015,7 @@ void Level::openDoors(Room *cur) {
                 qDebug() << "打开下门，通往房间" << neighborRoom;
 
                 if (neighborRoom >= 0 && neighborRoom < m_rooms.size()) {
-                    Room *neighbor = m_rooms[neighborRoom];
+                    Room* neighbor = m_rooms[neighborRoom];
                     bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
                     if (shouldOpenNeighborDoor) {
                         neighbor->setDoorOpenUp(true);
@@ -1955,7 +2025,7 @@ void Level::openDoors(Room *cur) {
         }
         if (roomCfg.doorLeft >= 0) {
             int neighborRoom = roomCfg.doorLeft;
-            const RoomConfig &neighborCfg = config.getRoom(neighborRoom);
+            const RoomConfig& neighborCfg = config.getRoom(neighborRoom);
 
             // 最高优先级：如果邻居是boss房间，必须所有非boss房间都已访问才能开门
             if (neighborCfg.hasBoss && !canOpenBossDoor()) {
@@ -1972,7 +2042,7 @@ void Level::openDoors(Room *cur) {
                 qDebug() << "打开左门，通往房间" << neighborRoom;
 
                 if (neighborRoom >= 0 && neighborRoom < m_rooms.size()) {
-                    Room *neighbor = m_rooms[neighborRoom];
+                    Room* neighbor = m_rooms[neighborRoom];
                     bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
                     if (shouldOpenNeighborDoor) {
                         neighbor->setDoorOpenRight(true);
@@ -1982,7 +2052,7 @@ void Level::openDoors(Room *cur) {
         }
         if (roomCfg.doorRight >= 0) {
             int neighborRoom = roomCfg.doorRight;
-            const RoomConfig &neighborCfg = config.getRoom(neighborRoom);
+            const RoomConfig& neighborCfg = config.getRoom(neighborRoom);
 
             // 最高优先级：如果邻居是boss房间，必须所有非boss房间都已访问才能开门
             if (neighborCfg.hasBoss && !canOpenBossDoor()) {
@@ -1999,7 +2069,7 @@ void Level::openDoors(Room *cur) {
                 qDebug() << "打开右门，通往房间" << neighborRoom;
 
                 if (neighborRoom >= 0 && neighborRoom < m_rooms.size()) {
-                    Room *neighbor = m_rooms[neighborRoom];
+                    Room* neighbor = m_rooms[neighborRoom];
                     bool shouldOpenNeighborDoor = !neighbor->isBattleRoom() || visited[neighborRoom];
                     if (shouldOpenNeighborDoor) {
                         neighbor->setDoorOpenLeft(true);
@@ -2018,7 +2088,7 @@ void Level::openDoors(Room *cur) {
     }
 
     if (m_currentRoomIndex == m_rooms.size() - 1)
-            emit levelCompleted(m_levelNumber);
+        emit levelCompleted(m_levelNumber);
 
     // 只有战斗房间才发射敌人清空信号
     if (cur && cur->isBattleRoom()) {
@@ -2033,7 +2103,7 @@ bool Level::canOpenBossDoor() const {
 
     // 遍历所有房间，检查非boss房间是否都已访问且怪物已清空
     for (int i = 0; i < config.getRoomCount(); ++i) {
-        const RoomConfig &roomCfg = config.getRoom(i);
+        const RoomConfig& roomCfg = config.getRoom(i);
         // 如果是非boss房间
         if (!roomCfg.hasBoss) {
             // 必须已访问
@@ -2043,11 +2113,11 @@ bool Level::canOpenBossDoor() const {
             }
             // 必须怪物已清空（检查房间是否还有存活的敌人）
             if (i < m_rooms.size() && m_rooms[i]) {
-                Room *room = m_rooms[i];
+                Room* room = m_rooms[i];
                 // 如果房间还有存活的敌人
                 if (!room->currentEnemies.isEmpty()) {
                     bool hasAliveEnemy = false;
-                    for (const QPointer<Enemy> &ePtr: room->currentEnemies) {
+                    for (const QPointer<Enemy>& ePtr : room->currentEnemies) {
                         if (ePtr) {
                             hasAliveEnemy = true;
                             break;
@@ -2079,7 +2149,7 @@ void Level::openBossDoors() {
 
     // 遍历所有房间，找到所有通往boss房间的门并打开
     for (int roomIndex = 0; roomIndex < config.getRoomCount(); ++roomIndex) {
-        const RoomConfig &roomCfg = config.getRoom(roomIndex);
+        const RoomConfig& roomCfg = config.getRoom(roomIndex);
 
         // 跳过boss房间本身
         if (roomCfg.hasBoss)
@@ -2088,7 +2158,7 @@ void Level::openBossDoors() {
         if (roomIndex >= m_rooms.size() || !m_rooms[roomIndex])
             continue;
 
-        Room *room = m_rooms[roomIndex];
+        Room* room = m_rooms[roomIndex];
 
         qDebug() << "检查房间" << roomIndex << "的门（上:" << roomCfg.doorUp << "，下:" << roomCfg.doorDown
                  << "，左:" << roomCfg.doorLeft << "，右:" << roomCfg.doorRight << "）";
@@ -2109,7 +2179,7 @@ void Level::openBossDoors() {
 
         // 检查该房间的每个门是否通往boss房间
         if (roomCfg.doorUp >= 0) {
-            const RoomConfig &neighborCfg = config.getRoom(roomCfg.doorUp);
+            const RoomConfig& neighborCfg = config.getRoom(roomCfg.doorUp);
             if (neighborCfg.hasBoss && !room->isDoorOpenUp()) {
                 qDebug() << "开启房间" << roomIndex << "通往boss房间" << roomCfg.doorUp << "的上门";
                 room->setDoorOpenUp(true);
@@ -2117,7 +2187,7 @@ void Level::openBossDoors() {
                 // 找到并播放该门的开门动画
                 // 如果是当前房间，使用 m_currentDoors
                 if (roomIndex == m_currentRoomIndex && !m_currentDoors.isEmpty()) {
-                    for (Door *door: m_currentDoors) {
+                    for (Door* door : m_currentDoors) {
                         if (door && door->direction() == Door::Up) {
                             qDebug() << "  -> 在当前房间的 m_currentDoors 中找到上门并打开";
                             door->open();
@@ -2125,8 +2195,8 @@ void Level::openBossDoors() {
                         }
                     }
                 } else if (m_roomDoors.contains(roomIndex)) {
-                    const QVector<Door *> &doors = m_roomDoors[roomIndex];
-                    for (Door *door: doors) {
+                    const QVector<Door*>& doors = m_roomDoors[roomIndex];
+                    for (Door* door : doors) {
                         if (door && door->direction() == Door::Up) {
                             qDebug() << "  -> 在 m_roomDoors 中找到房间" << roomIndex << "的上门并打开";
                             door->open();
@@ -2138,13 +2208,13 @@ void Level::openBossDoors() {
         }
 
         if (roomCfg.doorDown >= 0) {
-            const RoomConfig &neighborCfg = config.getRoom(roomCfg.doorDown);
+            const RoomConfig& neighborCfg = config.getRoom(roomCfg.doorDown);
             if (neighborCfg.hasBoss && !room->isDoorOpenDown()) {
                 qDebug() << "开启房间" << roomIndex << "通往boss房间" << roomCfg.doorDown << "的下门";
                 room->setDoorOpenDown(true);
 
                 if (roomIndex == m_currentRoomIndex && !m_currentDoors.isEmpty()) {
-                    for (Door *door: m_currentDoors) {
+                    for (Door* door : m_currentDoors) {
                         if (door && door->direction() == Door::Down) {
                             qDebug() << "  -> 在当前房间的 m_currentDoors 中找到下门并打开";
                             door->open();
@@ -2152,8 +2222,8 @@ void Level::openBossDoors() {
                         }
                     }
                 } else if (m_roomDoors.contains(roomIndex)) {
-                    const QVector<Door *> &doors = m_roomDoors[roomIndex];
-                    for (Door *door: doors) {
+                    const QVector<Door*>& doors = m_roomDoors[roomIndex];
+                    for (Door* door : doors) {
                         if (door && door->direction() == Door::Down) {
                             qDebug() << "  -> 在 m_roomDoors 中找到房间" << roomIndex << "的下门并打开";
                             door->open();
@@ -2165,13 +2235,13 @@ void Level::openBossDoors() {
         }
 
         if (roomCfg.doorLeft >= 0) {
-            const RoomConfig &neighborCfg = config.getRoom(roomCfg.doorLeft);
+            const RoomConfig& neighborCfg = config.getRoom(roomCfg.doorLeft);
             if (neighborCfg.hasBoss && !room->isDoorOpenLeft()) {
                 qDebug() << "开启房间" << roomIndex << "通往boss房间" << roomCfg.doorLeft << "的左门";
                 room->setDoorOpenLeft(true);
 
                 if (roomIndex == m_currentRoomIndex && !m_currentDoors.isEmpty()) {
-                    for (Door *door: m_currentDoors) {
+                    for (Door* door : m_currentDoors) {
                         if (door && door->direction() == Door::Left) {
                             qDebug() << "  -> 在当前房间的 m_currentDoors 中找到左门并打开";
                             door->open();
@@ -2179,8 +2249,8 @@ void Level::openBossDoors() {
                         }
                     }
                 } else if (m_roomDoors.contains(roomIndex)) {
-                    const QVector<Door *> &doors = m_roomDoors[roomIndex];
-                    for (Door *door: doors) {
+                    const QVector<Door*>& doors = m_roomDoors[roomIndex];
+                    for (Door* door : doors) {
                         if (door && door->direction() == Door::Left) {
                             qDebug() << "  -> 在 m_roomDoors 中找到房间" << roomIndex << "的左门并打开";
                             door->open();
@@ -2192,13 +2262,13 @@ void Level::openBossDoors() {
         }
 
         if (roomCfg.doorRight >= 0) {
-            const RoomConfig &neighborCfg = config.getRoom(roomCfg.doorRight);
+            const RoomConfig& neighborCfg = config.getRoom(roomCfg.doorRight);
             if (neighborCfg.hasBoss && !room->isDoorOpenRight()) {
                 qDebug() << "开启房间" << roomIndex << "通往boss房间" << roomCfg.doorRight << "的右门";
                 room->setDoorOpenRight(true);
 
                 if (roomIndex == m_currentRoomIndex && !m_currentDoors.isEmpty()) {
-                    for (Door *door: m_currentDoors) {
+                    for (Door* door : m_currentDoors) {
                         if (door && door->direction() == Door::Right) {
                             qDebug() << "  -> 在当前房间的 m_currentDoors 中找到右门并打开";
                             door->open();
@@ -2206,8 +2276,8 @@ void Level::openBossDoors() {
                         }
                     }
                 } else if (m_roomDoors.contains(roomIndex)) {
-                    const QVector<Door *> &doors = m_roomDoors[roomIndex];
-                    for (Door *door: doors) {
+                    const QVector<Door*>& doors = m_roomDoors[roomIndex];
+                    for (Door* door : doors) {
                         if (door && door->direction() == Door::Right) {
                             qDebug() << "  -> 在 m_roomDoors 中找到房间" << roomIndex << "的右门并打开";
                             door->open();
@@ -2227,7 +2297,7 @@ void Level::openBossDoors() {
         qDebug() << "当前房间" << m_currentRoomIndex << "邻接boss房间，重新加载门以显示打开状态";
 
         // 清除当前所有门
-        for (Door *door: m_currentDoors) {
+        for (Door* door : m_currentDoors) {
             if (m_scene && door) {
                 m_scene->removeItem(door);
             }
@@ -2239,7 +2309,7 @@ void Level::openBossDoors() {
         m_roomDoors.remove(m_currentRoomIndex);
 
         // 重新生成门（会读取房间状态，boss门已经被设置为打开）
-        const RoomConfig &currentRoomCfg = config.getRoom(m_currentRoomIndex);
+        const RoomConfig& currentRoomCfg = config.getRoom(m_currentRoomIndex);
         spawnDoors(currentRoomCfg);
 
         qDebug() << "已重新加载当前房间的所有门";
@@ -2250,32 +2320,32 @@ void Level::onPlayerDied() {
     qDebug() << "Level::onPlayerDied - 通知所有敌人移除玩家引用";
 
     // 先收集当前全局敌人的原始指针，并断开其 dying 信号，避免在调用 setPlayer 时触发 onEnemyDying 导致容器被修改
-    QVector<Enemy *> rawEnemies;
-    for (QPointer<Enemy> ePtr: m_currentEnemies) {
-        Enemy *e = ePtr.data();
+    QVector<Enemy*> rawEnemies;
+    for (QPointer<Enemy> ePtr : m_currentEnemies) {
+        Enemy* e = ePtr.data();
         if (e) {
             QObject::disconnect(e, &Enemy::dying, this, &Level::onEnemyDying);
             rawEnemies.append(e);
         }
     }
-    for (Enemy *e: rawEnemies) {
+    for (Enemy* e : rawEnemies) {
         if (e)
             e->setPlayer(nullptr);
     }
 
     // 对每个房间同样处理：先收集原始指针并断开信号，再调用 setPlayer(nullptr)
-    for (Room *r: m_rooms) {
+    for (Room* r : m_rooms) {
         if (!r)
             continue;
-        QVector<Enemy *> roomRaw;
-        for (QPointer<Enemy> ePtr: r->currentEnemies) {
-            Enemy *e = ePtr.data();
+        QVector<Enemy*> roomRaw;
+        for (QPointer<Enemy> ePtr : r->currentEnemies) {
+            Enemy* e = ePtr.data();
             if (e) {
                 QObject::disconnect(e, &Enemy::dying, this, &Level::onEnemyDying);
                 roomRaw.append(e);
             }
         }
-        for (Enemy *e: roomRaw) {
+        for (Enemy* e : roomRaw) {
             if (e)
                 e->setPlayer(nullptr);
         }
@@ -2297,7 +2367,7 @@ void Level::bonusEffects() {
     int type = QRandomGenerator::global()->bounded(12);
     if (type >= 6)
         return;
-    StatusEffect *effect = nullptr;
+    StatusEffect* effect = nullptr;
 
     switch (type) {
         case 0:
@@ -2327,7 +2397,7 @@ void Level::bonusEffects() {
 }
 
 // Boss召唤敌人方法（通用）
-void Level::spawnEnemiesForBoss(const QVector<QPair<QString, int>> &enemies) {
+void Level::spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemies) {
     if (!m_scene)
         return;
 
@@ -2336,14 +2406,14 @@ void Level::spawnEnemiesForBoss(const QVector<QPair<QString, int>> &enemies) {
     // 收集所有需要召唤的敌人，用于1秒后的操作
     QVector<QPointer<Enemy>> spawnedEnemies;
 
-    for (const auto &enemyPair: enemies) {
+    for (const auto& enemyPair : enemies) {
         QString enemyType = enemyPair.first;
         int count = enemyPair.second;
 
         // 为每种敌人类型获取独立的尺寸配置
         int enemySize = ConfigManager::instance().getEntitySize("enemies", enemyType);
         if (enemySize <= 0)
-            enemySize = 40; // 默认值
+            enemySize = 40;  // 默认值
 
         qDebug() << "召唤" << count << "个" << enemyType << "尺寸:" << enemySize;
 
@@ -2364,10 +2434,10 @@ void Level::spawnEnemiesForBoss(const QVector<QPair<QString, int>> &enemies) {
                 int x = QRandomGenerator::global()->bounded(100, 700);
                 int y = QRandomGenerator::global()->bounded(100, 500);
 
-                ClockBoom *boom = new ClockBoom(boomPic, boomPic, 1.0);
+                ClockBoom* boom = new ClockBoom(boomPic, boomPic, 1.0);
                 boom->setPos(x, y);
                 boom->setPlayer(m_player);
-                boom->setIsSummoned(true); // 标记为召唤的敌人，不触发bonus
+                boom->setIsSummoned(true);  // 标记为召唤的敌人，不触发bonus
 
                 // 预加载碰撞掩码
                 boom->preloadCollisionMask();
@@ -2395,10 +2465,10 @@ void Level::spawnEnemiesForBoss(const QVector<QPair<QString, int>> &enemies) {
                 int x = QRandomGenerator::global()->bounded(100, 700);
                 int y = QRandomGenerator::global()->bounded(100, 500);
 
-                Enemy *enemy = createEnemyByType(m_levelNumber, "clock_normal", normalPic, 1.0);
+                Enemy* enemy = createEnemyByType(m_levelNumber, "clock_normal", normalPic, 1.0);
                 enemy->setPos(x, y);
                 enemy->setPlayer(m_player);
-                enemy->setIsSummoned(true); // 标记为召唤的敌人，不触发bonus
+                enemy->setIsSummoned(true);  // 标记为召唤的敌人，不触发bonus
 
                 // 预加载碰撞掩码
                 enemy->preloadCollisionMask();
@@ -2426,10 +2496,10 @@ void Level::spawnEnemiesForBoss(const QVector<QPair<QString, int>> &enemies) {
                 int x = QRandomGenerator::global()->bounded(100, 700);
                 int y = QRandomGenerator::global()->bounded(100, 500);
 
-                Enemy *enemy = createEnemyByType(m_levelNumber, "pillow", pillowPic, 1.0);
+                Enemy* enemy = createEnemyByType(m_levelNumber, "pillow", pillowPic, 1.0);
                 enemy->setPos(x, y);
                 enemy->setPlayer(m_player);
-                enemy->setIsSummoned(true); // 标记为召唤的敌人，不触发bonus
+                enemy->setIsSummoned(true);  // 标记为召唤的敌人，不触发bonus
 
                 // 预加载碰撞掩码
                 enemy->preloadCollisionMask();
@@ -2453,13 +2523,13 @@ void Level::spawnEnemiesForBoss(const QVector<QPair<QString, int>> &enemies) {
 
     // 1秒后：恢复所有敌人的移动，并让ClockBoom进入引爆动画
     QTimer::singleShot(1000, this, [spawnedEnemies]() {
-        for (QPointer<Enemy> ePtr: spawnedEnemies) {
-            if (Enemy *e = ePtr.data()) {
+        for (QPointer<Enemy> ePtr : spawnedEnemies) {
+            if (Enemy* e = ePtr.data()) {
                 // 恢复敌人的AI和移动
                 e->resumeTimers();
 
                 // 如果是ClockBoom，立即触发倒计时（进入引爆动画）
-                ClockBoom *boom = dynamic_cast<ClockBoom *>(e);
+                ClockBoom* boom = dynamic_cast<ClockBoom*>(e);
                 if (boom) {
                     boom->triggerCountdown();
                 }
@@ -2475,8 +2545,8 @@ void Level::setPaused(bool paused) {
     m_isPaused = paused;
 
     // 暂停/恢复所有当前敌人
-    for (QPointer<Enemy> &enemyPtr: m_currentEnemies) {
-        if (Enemy *enemy = enemyPtr.data()) {
+    for (QPointer<Enemy>& enemyPtr : m_currentEnemies) {
+        if (Enemy* enemy = enemyPtr.data()) {
             if (paused) {
                 enemy->pauseTimers();
             } else {
@@ -2487,9 +2557,9 @@ void Level::setPaused(bool paused) {
 
     // 暂停/恢复所有子弹
     if (m_scene) {
-        QList<QGraphicsItem *> items = m_scene->items();
-        for (QGraphicsItem *item: items) {
-            if (Projectile *projectile = dynamic_cast<Projectile *>(item)) {
+        QList<QGraphicsItem*> items = m_scene->items();
+        for (QGraphicsItem* item : items) {
+            if (Projectile* projectile = dynamic_cast<Projectile*>(item)) {
                 projectile->setPaused(paused);
             }
         }
@@ -2501,7 +2571,7 @@ void Level::setPaused(bool paused) {
 // ==================== 辅助方法 ====================
 
 void Level::pauseAllEnemyTimers() {
-    for (const QPointer<Enemy> &enemyPtr: m_currentEnemies) {
+    for (const QPointer<Enemy>& enemyPtr : m_currentEnemies) {
         if (enemyPtr) {
             enemyPtr->pauseTimers();
         }
@@ -2509,7 +2579,7 @@ void Level::pauseAllEnemyTimers() {
 }
 
 void Level::resumeAllEnemyTimers() {
-    for (const QPointer<Enemy> &enemyPtr: m_currentEnemies) {
+    for (const QPointer<Enemy>& enemyPtr : m_currentEnemies) {
         if (enemyPtr) {
             enemyPtr->resumeTimers();
         }
@@ -2518,7 +2588,7 @@ void Level::resumeAllEnemyTimers() {
 
 // ==================== WashMachineBoss 相关方法 ====================
 
-void Level::connectWashMachineBossSignals(WashMachineBoss *boss) {
+void Level::connectWashMachineBossSignals(WashMachineBoss* boss) {
     if (!boss)
         return;
 
@@ -2532,9 +2602,9 @@ void Level::connectWashMachineBossSignals(WashMachineBoss *boss) {
     connect(boss, &WashMachineBoss::requestChangeBackground,
             this, &Level::onWashMachineBossRequestChangeBackground);
 
-    // 连接请求显示文字提示信号
+    // 连接请求显示文字提示信号（使用lambda适配默认颜色参数）
     connect(boss, &WashMachineBoss::requestShowTransitionText,
-            this, &Level::showPhaseTransitionText);
+            this, [this](const QString& text) { showPhaseTransitionText(text); });
 
     // 连接请求吸纳信号
     connect(boss, &WashMachineBoss::requestAbsorbAllEntities,
@@ -2547,7 +2617,7 @@ void Level::connectWashMachineBossSignals(WashMachineBoss *boss) {
     qDebug() << "WashMachineBoss信号已连接";
 }
 
-void Level::onWashMachineBossRequestDialog(const QStringList &dialogs, const QString &background) {
+void Level::onWashMachineBossRequestDialog(const QStringList& dialogs, const QString& background) {
     qDebug() << "WashMachineBoss请求显示对话";
 
     // 显示对话（使用boss对话模式）
@@ -2557,7 +2627,7 @@ void Level::onWashMachineBossRequestDialog(const QStringList &dialogs, const QSt
     // 注意：finishStory中会根据m_isBossDialog处理
 }
 
-void Level::onWashMachineBossRequestChangeBackground(const QString &backgroundPath) {
+void Level::onWashMachineBossRequestChangeBackground(const QString& backgroundPath) {
     qDebug() << "WashMachineBoss请求更换背景:" << backgroundPath;
     changeBackground(backgroundPath);
 }
@@ -2570,7 +2640,7 @@ void Level::onWashMachineBossRequestAbsorb() {
     }
 }
 
-void Level::changeBackground(const QString &backgroundPath) {
+void Level::changeBackground(const QString& backgroundPath) {
     if (!m_scene || !m_backgroundItem)
         return;
 
@@ -2583,7 +2653,7 @@ void Level::changeBackground(const QString &backgroundPath) {
     }
 }
 
-void Level::performAbsorbAnimation(WashMachineBoss *boss) {
+void Level::performAbsorbAnimation(WashMachineBoss* boss) {
     if (!boss || !m_scene || !m_player)
         return;
 
@@ -2594,9 +2664,9 @@ void Level::performAbsorbAnimation(WashMachineBoss *boss) {
 
     // 清理场景中所有子弹（避免吸纳期间伤害）
     if (m_scene) {
-        QList<QGraphicsItem *> allItems = m_scene->items();
-        for (QGraphicsItem *item: allItems) {
-            if (Projectile *proj = dynamic_cast<Projectile *>(item)) {
+        QList<QGraphicsItem*> allItems = m_scene->items();
+        for (QGraphicsItem* item : allItems) {
+            if (Projectile* proj = dynamic_cast<Projectile*>(item)) {
                 proj->destroy();
             }
         }
@@ -2615,12 +2685,12 @@ void Level::performAbsorbAnimation(WashMachineBoss *boss) {
     // 禁用玩家移动和攻击，设置持久无敌
     m_player->setCanMove(false);
     m_player->setCanShoot(false);
-    m_player->setPermanentInvincible(true); // 吸纳时玩家持久无敌
+    m_player->setPermanentInvincible(true);  // 吸纳时玩家持久无敌
     qDebug() << "[吸纳] 玩家已设置为无敌状态";
 
     // 添加所有敌人（除了Boss）
-    for (QPointer<Enemy> &enemyPtr: m_currentEnemies) {
-        if (Enemy *enemy = enemyPtr.data()) {
+    for (QPointer<Enemy>& enemyPtr : m_currentEnemies) {
+        if (Enemy* enemy = enemyPtr.data()) {
             if (enemy != boss) {
                 enemy->pauseTimers();
                 m_absorbingItems.append(enemy);
@@ -2647,7 +2717,7 @@ void Level::performAbsorbAnimation(WashMachineBoss *boss) {
         m_absorbAnimationTimer = new QTimer(this);
         connect(m_absorbAnimationTimer, &QTimer::timeout, this, &Level::onAbsorbAnimationStep);
     }
-    m_absorbAnimationTimer->start(16); // 约60fps
+    m_absorbAnimationTimer->start(16);  // 约60fps
 
     qDebug() << "吸纳动画开始，共" << m_absorbingItems.size() << "个实体";
 }
@@ -2660,7 +2730,7 @@ void Level::onAbsorbAnimationStep() {
 
     m_absorbAnimationStep++;
 
-    const int totalSteps = 120; // 约2秒完成动画
+    const int totalSteps = 120;  // 约2秒完成动画
     double progress = static_cast<double>(m_absorbAnimationStep) / totalSteps;
 
     if (progress >= 1.0) {
@@ -2670,9 +2740,9 @@ void Level::onAbsorbAnimationStep() {
 
         // 清理场景中所有子弹（避免对话期间伤害）
         if (m_scene) {
-            QList<QGraphicsItem *> allItems = m_scene->items();
-            for (QGraphicsItem *item: allItems) {
-                if (Projectile *proj = dynamic_cast<Projectile *>(item)) {
+            QList<QGraphicsItem*> allItems = m_scene->items();
+            for (QGraphicsItem* item : allItems) {
+                if (Projectile* proj = dynamic_cast<Projectile*>(item)) {
                     proj->destroy();
                 }
             }
@@ -2680,7 +2750,7 @@ void Level::onAbsorbAnimationStep() {
 
         // 隐藏所有被吸纳的实体（不删除，等待对话后释放）
         for (int i = 0; i < m_absorbingItems.size(); ++i) {
-            QGraphicsItem *item = m_absorbingItems[i];
+            QGraphicsItem* item = m_absorbingItems[i];
             if (!item)
                 continue;
 
@@ -2689,7 +2759,7 @@ void Level::onAbsorbAnimationStep() {
 
             // 如果是敌人，确保其定时器停止
             if (item != m_player) {
-                Enemy *enemy = dynamic_cast<Enemy *>(item);
+                Enemy* enemy = dynamic_cast<Enemy*>(item);
                 if (enemy) {
                     enemy->pauseTimers();
                 }
@@ -2710,11 +2780,11 @@ void Level::onAbsorbAnimationStep() {
     }
 
     // 使用缓动函数让动画更自然
-    double easedProgress = 1 - qPow(1 - progress, 3); // easeOutCubic
+    double easedProgress = 1 - qPow(1 - progress, 3);  // easeOutCubic
 
     // 更新每个实体的位置（螺旋移动）
     for (int i = 0; i < m_absorbingItems.size(); ++i) {
-        QGraphicsItem *item = m_absorbingItems[i];
+        QGraphicsItem* item = m_absorbingItems[i];
         if (!item)
             continue;
 
@@ -2727,7 +2797,7 @@ void Level::onAbsorbAnimationStep() {
         double currentDist = startDist * (1 - easedProgress);
 
         // 计算当前角度（螺旋增加）
-        double currentAngle = startAngle + easedProgress * 6 * M_PI; // 旋转3圈
+        double currentAngle = startAngle + easedProgress * 6 * M_PI;  // 旋转3圈
 
         // 计算新位置
         double newX = m_absorbCenter.x() + currentDist * qCos(currentAngle);
@@ -2756,7 +2826,7 @@ void Level::startBossRewardSequence() {
     QVector<BossRewardItem> rewardItems;
     LevelConfig config;
     if (config.loadFromFile(m_levelNumber)) {
-        const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
+        const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
         rewardItems = roomCfg.bossRewardItems;
     }
 
@@ -2771,7 +2841,7 @@ void Level::startBossRewardSequence() {
     m_usagi->startRewardSequence();
 }
 
-void Level::onUsagiRequestShowDialog(const QStringList &dialog) {
+void Level::onUsagiRequestShowDialog(const QStringList& dialog) {
     qDebug() << "[Level] 乌萨奇请求显示对话";
 
     // 显示对话（使用透明背景，保持游戏画面可见）
@@ -2782,15 +2852,14 @@ void Level::onUsagiRequestShowDialog(const QStringList &dialog) {
     connect(this, &Level::storyFinished, this, [this]() {
         if (m_usagi) {
             m_usagi->onDialogFinished();
-        }
-    }, Qt::SingleShotConnection);
+        } }, Qt::SingleShotConnection);
 }
 
 void Level::onUsagiRewardCompleted() {
     qDebug() << "[Level] 乌萨奇奖励流程完成，打开Boss房门";
 
     // 打开门
-    Room *cur = m_rooms[m_currentRoomIndex];
+    Room* cur = m_rooms[m_currentRoomIndex];
     if (cur) {
         openDoors(cur);
     }
@@ -2804,7 +2873,7 @@ void Level::onUsagiRewardCompleted() {
 
 // ==================== TeacherBoss 相关方法 ====================
 
-void Level::connectTeacherBossSignals(TeacherBoss *boss) {
+void Level::connectTeacherBossSignals(TeacherBoss* boss) {
     if (!boss)
         return;
 
@@ -2832,7 +2901,7 @@ void Level::connectTeacherBossSignals(TeacherBoss *boss) {
     qDebug() << "[Level] TeacherBoss信号已连接";
 }
 
-void Level::onTeacherBossRequestDialog(const QStringList &dialogs, const QString &background) {
+void Level::onTeacherBossRequestDialog(const QStringList& dialogs, const QString& background) {
     qDebug() << "[Level] TeacherBoss请求显示对话";
 
     // 暂停所有敌人的定时器
@@ -2842,12 +2911,12 @@ void Level::onTeacherBossRequestDialog(const QStringList &dialogs, const QString
     showStoryDialog(dialogs, true, background);
 }
 
-void Level::onTeacherBossRequestChangeBackground(const QString &backgroundPath) {
+void Level::onTeacherBossRequestChangeBackground(const QString& backgroundPath) {
     qDebug() << "[Level] TeacherBoss请求切换背景:" << backgroundPath;
     changeBackground(backgroundPath);
 }
 
-void Level::onTeacherBossRequestTransitionText(const QString &text) {
+void Level::onTeacherBossRequestTransitionText(const QString& text) {
     qDebug() << "[Level] TeacherBoss请求显示文字:" << text;
     showPhaseTransitionText(text);
 }
@@ -2872,7 +2941,7 @@ void Level::checkEliteRoomPhase2() {
         return;
     }
 
-    const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
+    const RoomConfig& roomCfg = config.getRoom(m_currentRoomIndex);
 
     if (roomCfg.elitePhase2Dialog.isEmpty()) {
         qDebug() << "没有第二阶段对话，直接开始第二阶段";
@@ -2911,7 +2980,7 @@ void Level::spawnZhuhaoEnemy() {
     }
 
     // 创建朱浩敌人 - 使用较小的缩放比例避免卡在地图外
-    ZhuhaoEnemy *zhuhao = new ZhuhaoEnemy(zhuhaoPic, 0.08);
+    ZhuhaoEnemy* zhuhao = new ZhuhaoEnemy(zhuhaoPic, 0.08);
     zhuhao->setPlayer(m_player);
 
     // 添加到场景
@@ -2926,7 +2995,7 @@ void Level::spawnZhuhaoEnemy() {
 
     // 添加到当前房间的敌人列表
     if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size()) {
-        Room *currentRoom = m_rooms[m_currentRoomIndex];
+        Room* currentRoom = m_rooms[m_currentRoomIndex];
         if (currentRoom) {
             currentRoom->currentEnemies.append(zhuhaoPtr);
         }

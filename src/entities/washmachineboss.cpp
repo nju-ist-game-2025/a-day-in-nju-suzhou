@@ -303,7 +303,7 @@ void WashMachineBoss::onDialogFinished() {
     if (m_phase == 1 && !m_firstDialogShown) {
         m_firstDialogShown = true;
         qDebug() << "第一轮对话结束，显示清理提示";
-        emit requestShowTransitionText("已将袜子、内裤以及衣物移出洗衣机。\n        接下来开始全面清理！");
+        emit requestShowTransitionText("善良的宿管阿姨已将袜子、内裤以及衣物移出洗衣机。\n         接下来请你全力与洗衣机战斗吧！");
         return;
     }
 

@@ -186,7 +186,7 @@ void CharacterSelector::loadCharacters() {
     // 角色配置：名称、图片与能力说明
     QList<CharacterConfig> characterConfigs = {
             {"美少女",   "beautifulGirl.png",   "子弹伤害翻倍。"},
-            {"高雅人士", "HighGracePeople.png", "初始心之容器 +2 且额外获得 2 点魂心。"},
+            {"高雅人士", "HighGracePeople.png", "初始心之容器 +2 且额外获得 2 点护盾。"},
             {"小蓝鲸",   "njuFish.png",         "移动速度 +25%，子弹速度 +20%，射击冷却 -40ms。"},
             {"权服侠",   "quanfuxia.png",       "初始携带 2 枚炸弹、2 把钥匙和 1 点黑心。"}};
 

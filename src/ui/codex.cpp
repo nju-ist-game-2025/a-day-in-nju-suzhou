@@ -443,7 +443,7 @@ void Codex::loadBossData() {
     washmachine.attackMethod = "普通阶段：四方向水柱冲击\n愤怒阶段：高速冲刺\n变异阶段：毒气攻击（扩散+追踪）";
     washmachine.skills = "【愤怒】70%血量触发，召唤旋转臭袜子护盾\n【变异】40%血量触发，吸收场上所有物体进行强化，释放有毒气体";
     washmachine.traits = "三阶段Boss，每个阶段有独特的攻击模式，20%伤害减免";
-    washmachine.weakness = "变异前的吸收阶段完全无敌，需要等待变异完成";
+    washmachine.weakness = "";
     washmachine.backstory = "洗衣机情不自禁地转动着滚筒。是什么节奏呢？嗨，是同学们塞进来的臭袜子散发的独特韵律，这种频率的震动，只有洗衣机才能感受到。\n\n它曾经只是一台普通的公共洗衣机，直到有一天，一个同学往里面塞了三天没洗的袜子和一周没换的内裤。从那以后，洗衣机就变了。";
     washmachine.isCharacter = false;
     washmachine.phaseImages = {
@@ -460,7 +460,7 @@ void Codex::loadBossData() {
     teacher.attackMethod = "授课阶段：正态分布弹幕、随机点名红圈\n期中考试：追踪考卷、极大似然估计陷阱、召唤监考员\n方差爆炸：环形弹幕、挂科警告、喜忧参半分裂弹";
     teacher.skills = "【正态分布弹幕】发射15发弹幕，角度服从N(μ,15°)\n【随机点名】在玩家位置生成延时伤害红圈\n【极大似然估计】预判玩家移动方向放置陷阱\n【喜忧参半】发射在2/3距离处分裂成5发的大型弹幕";
     teacher.traits = "三阶段Boss，调离阶段会飞出屏幕后以更强姿态返回，拥有全图视野";
-    teacher.weakness = "弹幕服从正态分布，站在边缘位置可以降低命中概率";
+    teacher.weakness = "";
     teacher.backstory = "奶牛张很凶悍，他是在概率论的海洋中成长的。他不在乎任何人的看法，无论是学霸还是学渣，他发出的考卷，是为了让所有人知道什么叫做正态分布。\n\n其实呢，奶牛张一直暗暗地希望有人能理解他的极大似然估计。他即将调往北京，对此表示喜忧参半。";
     teacher.isCharacter = false;
     teacher.phaseImages = {
@@ -479,7 +479,7 @@ void Codex::loadEnemyData() {
     clockNormal.attackMethod = "近战接触攻击";
     clockNormal.skills = "【惊吓】接触玩家时100%触发惊吓效果，使玩家移速增加但受伤提升150%，持续3秒";
     clockNormal.traits = "Z字形移动模式，难以预判";
-    clockNormal.weakness = "血量较低，可以快速击杀";
+    clockNormal.weakness = "";
     clockNormal.backstory = "普通闹钟很烦躁，它每天的工作就是在固定时间尖叫。它不理解为什么人类需要睡觉，也不理解为什么每次它完成工作后都会被狠狠地拍一下。\n\n它只知道，响铃是它的使命。";
     clockNormal.isCharacter = false;
     m_enemyEntries.append(clockNormal);
@@ -503,7 +503,7 @@ void Codex::loadEnemyData() {
     pillow.attackMethod = "近战接触攻击";
     pillow.skills = "【昏睡】接触玩家时100%触发昏睡效果，使玩家无法移动1.5秒";
     pillow.traits = "绕圈移动模式，移速较快";
-    pillow.weakness = "移动轨迹固定，容易预判";
+    pillow.weakness = "";
     pillow.backstory = "枕头怪非常柔软，柔软到它认为任何碰到它的人都应该立刻睡着。它不明白为什么人类要挣扎着起床，在它看来，睡眠才是生命的真谛。\n\n它的梦想是让全世界都陷入永恒的睡眠。";
     pillow.isCharacter = false;
     m_enemyEntries.append(pillow);
@@ -516,7 +516,7 @@ void Codex::loadEnemyData() {
     sockNormal.attackMethod = "近战接触攻击";
     sockNormal.skills = "【中毒】50%概率触发中毒效果，每秒扣1点血，持续3秒";
     sockNormal.traits = "斜向移动模式，擅长躲避直线子弹";
-    sockNormal.weakness = "血量较低，中毒概率只有50%";
+    sockNormal.weakness = "";
     sockNormal.backstory = "普通臭袜子曾经是一只普通的袜子。在被主人连续穿了三天之后，它获得了自我意识。它现在只想做一件事——报复所有的脚。\n\n它散发的气味足以让人感到恶心。";
     sockNormal.isCharacter = false;
     m_enemyEntries.append(sockNormal);
@@ -528,7 +528,7 @@ void Codex::loadEnemyData() {
     sockAngrily.attackMethod = "冲刺攻击";
     sockAngrily.skills = "【中毒】50%概率触发中毒效果\n【冲刺】1.2秒蓄力后高速冲向玩家";
     sockAngrily.traits = "移速提升150%，伤害提升150%";
-    sockAngrily.weakness = "蓄力期间可以提前躲避";
+    sockAngrily.weakness = "";
     sockAngrily.backstory = "愤怒臭袜子是在洗衣机里被其他衣物霸凌后产生的变异体。它比普通臭袜子更臭、更快、更暴躁。\n\n它发誓要让所有把它扔进洗衣机的人付出代价。";
     sockAngrily.isCharacter = false;
     m_enemyEntries.append(sockAngrily);
@@ -540,7 +540,7 @@ void Codex::loadEnemyData() {
     pants.attackMethod = "近战接触攻击 + 旋转技能";
     pants.skills = "【旋转】每20秒释放，持续5秒，期间移速x2，对范围内玩家每0.5秒造成3点伤害";
     pants.traits = "Z字形移动，开局立即释放一次旋转";
-    pants.weakness = "旋转结束后有较长冷却时间";
+    pants.weakness = "";
     pants.backstory = "内裤怪是洗衣房最不愿意提起的存在。没人知道它是谁的内裤，也没人敢认领它。它在洗衣房的角落里待了太久，久到它开始产生了自己的想法。\n\n它的旋转攻击据说是在模仿洗衣机的滚筒。";
     pants.isCharacter = false;
     m_enemyEntries.append(pants);
@@ -552,7 +552,7 @@ void Codex::loadEnemyData() {
     walker.attackMethod = "无接触伤害，依靠毒痕造成间接伤害";
     walker.skills = "【毒痕】快速移动时留下墨绿色毒痕，持续3秒\n【感染】玩家踩到毒痕100%中毒\n【鼓舞】其他敌人踩到毒痕移速+50%";
     walker.traits = "极快移动速度，每3秒随机改变方向，全图游走";
-    walker.weakness = "血量较低，本身不造成接触伤害";
+    walker.weakness = "";
     walker.backstory = "毒行者是洗衣房里最特立独行的存在。它不攻击任何人，只是默默地走自己的路，留下自己的痕迹。\n\n它身后的毒痕是三天没洗的袜子汁浓缩而成的。如果你问它为什么要留下这些痕迹，它只会说：路过而已。";
     walker.isCharacter = false;
     m_enemyEntries.append(walker);
@@ -564,7 +564,7 @@ void Codex::loadEnemyData() {
     orbitingSock.attackMethod = "近战接触攻击";
     orbitingSock.skills = "【环绕】围绕洗衣机Boss公转\n【护盾】可以为Boss抵挡子弹";
     orbitingSock.traits = "由洗衣机愤怒阶段召唤，轨道固定，移速恒定";
-    orbitingSock.weakness = "轨迹可预判，无法主动追击玩家";
+    orbitingSock.weakness = "";
     orbitingSock.backstory = "旋转臭袜子是洗衣机最忠诚的护卫。它们围绕着主人旋转，就像当年在滚筒里被甩了一圈又一圈一样。\n\n它们已经习惯了这种生活。甚至有点喜欢上了。";
     orbitingSock.isCharacter = false;
     m_enemyEntries.append(orbitingSock);
@@ -577,22 +577,34 @@ void Codex::loadEnemyData() {
     digitalSystem.attackMethod = "近战接触攻击";
     digitalSystem.skills = "【成长】随时间逐渐变大，体型和伤害同步增加";
     digitalSystem.traits = "绕圈移动模式，初始较小但会不断成长";
-    digitalSystem.weakness = "尽早击杀，避免它成长到难以对付的程度";
+    digitalSystem.weakness = "";
     digitalSystem.backstory = "数字系统是从《数字系统设计基础》这门课里跑出来的。它不断地成长，就像你对它的恐惧一样。\n\n据说只要你看懂了它，它就会消失。可惜没人看懂过。";
     digitalSystem.isCharacter = false;
     m_enemyEntries.append(digitalSystem);
 
     CodexEntry optimization;
-    optimization.name = "优化问题";
+    optimization.name = "凸优化";
     optimization.imagePath = "assets/enemy/level_3/optimization.png";
     optimization.health = 25;
     optimization.attackMethod = "近战接触攻击";
     optimization.skills = "【成长】随时间逐渐变大";
     optimization.traits = "绕圈移动模式";
-    optimization.weakness = "与数字系统相同的弱点";
-    optimization.backstory = "优化问题是每个工科生的噩梦。它的存在本身就是一个需要求解的问题，而答案永远是：再多学一遍。\n\n它在寻找全局最优解的过程中迷失了自己。";
+    optimization.weakness = "";
+    optimization.backstory = "凸优化是每个工科生的噩梦。它的存在本身就是一个需要求解的问题，而答案永远是：再多学一遍。\n\n它在寻找全局最优解的过程中迷失了自己。";
     optimization.isCharacter = false;
     m_enemyEntries.append(optimization);
+
+    CodexEntry probabilityTheory;
+    probabilityTheory.name = "概率论";
+    probabilityTheory.imagePath = "assets/enemy/level_3/probability_theory.png";
+    probabilityTheory.health = 50;
+    probabilityTheory.attackMethod = "接触伤害2点，爆炸时将玩家血量强制设为1";
+    probabilityTheory.skills = "【成长】静止不动，随时间逐渐膨胀至占满屏幕\n【治愈光环】接触其他敌人时持续为其回血\n【概率爆炸】成长完成后闪烁2.5秒，随后爆炸：玩家血量变为1，所有敌人回满血";
+    probabilityTheory.traits = "固定刷新在地图正中央，不移动，被击杀不会触发爆炸效果";
+    probabilityTheory.weakness = "";
+    probabilityTheory.backstory = "概率论什么也不做。它只是静静地待在那里，慢慢地变大。\n\n其他敌人喜欢靠近它取暖，因为它能治愈一切伤痛。这让概率论感到很温暖，尽管它自己也说不清这种温暖的期望值是多少。\n\n\"你看我的存在本身就是一个随机事件，\"概率论曾经对一只路过的凸优化说，\"但我膨胀的速度是确定性的。这难道不是一种浪漫吗？\"\n\n凸优化没有回答，它正忙着追赶玩家。\n\n当概率论开始闪烁的时候，所有人都知道：大数定律要显灵了。在无限次重复的期末考试中，挂科的概率终究会收敛于1。";
+    probabilityTheory.isCharacter = false;
+    m_enemyEntries.append(probabilityTheory);
 
     CodexEntry yanglin;
     yanglin.name = "杨林";
@@ -601,7 +613,7 @@ void Codex::loadEnemyData() {
     yanglin.attackMethod = "近战接触攻击（5点伤害）+ 旋转技能";
     yanglin.skills = "【旋转】开局10秒后释放，之后每30秒释放，持续5秒，无可视圆但伤害范围随体型增加";
     yanglin.traits = "精英怪，全图视野，会随时间成长，属性接近Boss一阶段";
-    yanglin.weakness = "旋转技能没有可视指示器，需要通过观察判断";
+    yanglin.weakness = "";
     yanglin.backstory = "杨林是凸优化考试中最可怕的大题。它庞大的身躯里装满了各种公式和定理，每一个都在等待着吞噬不及格的学生。\n\n传说中，能解出杨林的人会获得永恒的智慧。至今无人验证过这个传说。";
     yanglin.isCharacter = false;
     m_enemyEntries.append(yanglin);
@@ -613,7 +625,7 @@ void Codex::loadEnemyData() {
     zhuhao.attackMethod = "远程弹幕攻击，360°全方位发射";
     zhuhao.skills = "【zzz弹幕】无伤害，100%昏迷\n【叽里咕噜】2点伤害，50%昏迷或惊吓\n【CPU弹幕】2点伤害，100%惊吓";
     zhuhao.traits = "精英怪，沿地图边缘移动，每3秒发射一波弹幕";
-    zhuhao.weakness = "移动轨迹固定，站在地图中央可以有更多躲避空间";
+    zhuhao.weakness = "";
     zhuhao.backstory = "朱昊喜欢沿着边缘走。不是因为他害怕站在中间，而是因为这样可以照顾到每一个角落。\n\n他发射的弹幕均匀地覆盖360度，一视同仁，绝不偏心。有人说这很公平，有人说这很可怕。朱昊觉得这只是基本的职业素养。\n\n「叽里咕噜」是他的口头禅，没人知道是什么意思。也许连他自己也不知道。";
     zhuhao.isCharacter = false;
     m_enemyEntries.append(zhuhao);
@@ -625,7 +637,7 @@ void Codex::loadEnemyData() {
     invigilator.attackMethod = "巡逻阶段无攻击，追击阶段冲刺攻击";
     invigilator.skills = "【巡逻】围绕奶牛张Boss环形巡逻\n【警觉】发现玩家后切换为愤怒状态\n【冲刺】愤怒状态下快速冲向玩家";
     invigilator.traits = "由奶牛张期中考试阶段召唤，有巡逻和追击两种状态";
-    invigilator.weakness = "巡逻时视野较小，可以趁机绕开";
+    invigilator.weakness = "";
     invigilator.phaseImages = {
         {"assets/boss/Teacher/invigilatorNormal.png", "巡逻"},
         {"assets/boss/Teacher/invigilatorAngry.png", "追击"}};
@@ -648,7 +660,7 @@ void Codex::loadPlayerData() {
     highGracePeople.imagePath = "assets/player/HighGracePeople.png";
     highGracePeople.health = -1;
     highGracePeople.isCharacter = true;
-    highGracePeople.backstory = "高雅人士是一只神秘优雅的企鹅，戴着墨镜，插着腰，脸上挂着迷之微笑。没人知道墨镜后面藏着什么样的眼神，也没人敢问。\n\n它的高雅不仅体现在姿态上，还体现在它额外的心之容器和魂心上。高雅，是要有代价的。";
+    highGracePeople.backstory = "高雅人士是一只神秘优雅的企鹅，戴着墨镜，插着腰，脸上挂着迷之微笑。没人知道墨镜后面藏着什么样的眼神，也没人敢问。\n\n它的高雅不仅体现在姿态上，还体现在它额外的心之容器和护盾上。高雅，是要有代价的。";
     m_playerEntries.append(highGracePeople);
 
     CodexEntry njuFish;

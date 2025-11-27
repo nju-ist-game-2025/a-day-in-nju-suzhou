@@ -5,8 +5,8 @@
 #include <QGraphicsView>
 #include <QKeyEvent>
 #include <QList>
-#include <QWidget>
 #include <QPushButton>
+#include <QWidget>
 #include "../entities/enemy.h"
 #include "../entities/player.h"
 #include "ui/hud.h"
@@ -16,15 +16,15 @@ class Level;
 class PauseMenu;
 
 class GameView : public QWidget {
-Q_OBJECT
+    Q_OBJECT
 
-private:
-    QGraphicsView *view;
-    QGraphicsScene *scene;
-    Player *player;
-    Level *level;  // 关卡管理器
-    HUD *hud{};
-    PauseMenu *m_pauseMenu;  // 暂停菜单
+   private:
+    QGraphicsView* view;
+    QGraphicsScene* scene;
+    Player* player;
+    Level* level;  // 关卡管理器
+    HUD* hud{};
+    PauseMenu* m_pauseMenu;    // 暂停菜单
     int currentLevel{};        // 添加当前关卡变量
     bool isLevelTransition{};  // 防止重复触发
     bool m_isInStoryMode{};
@@ -36,14 +36,15 @@ private:
     int m_devBulletDamage = 1;      // 开发者模式子弹伤害
     bool m_devSkipToBoss = false;   // 开发者模式直接进入Boss房
 
-public:
-    explicit GameView(QWidget *parent = nullptr);
+   public:
+    explicit GameView(QWidget* parent = nullptr);
 
     ~GameView() override;
 
     void initGame();
+    void cleanupGame();  // 彻底清理游戏状态
 
-    void setPlayerCharacter(const QString &characterPath);                       // 设置玩家角色
+    void setPlayerCharacter(const QString& characterPath);                       // 设置玩家角色
     void setStartLevel(int level) { m_startLevel = level; }                      // 设置起始关卡（开发者模式）
     void setDevModeSettings(int maxHealth, int bulletDamage, bool skipToBoss) {  // 设置开发者模式参数
         m_devMaxHealth = maxHealth;
@@ -52,20 +53,20 @@ public:
         m_isDevMode = true;
     }
 
-    [[nodiscard]] HUD *getHUD() const { return hud; }
+    [[nodiscard]] HUD* getHUD() const { return hud; }
 
-protected:
-    void showEvent(QShowEvent *event) override;
+   protected:
+    void showEvent(QShowEvent* event) override;
 
-    void mousePressEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent* event) override;
 
-    void keyPressEvent(QKeyEvent *event) override;
+    void keyPressEvent(QKeyEvent* event) override;
 
-    void keyReleaseEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
 
-    void resizeEvent(QResizeEvent *event) override;  // 处理窗口大小变化
+    void resizeEvent(QResizeEvent* event) override;  // 处理窗口大小变化
 
-private:
+   private:
     void adjustViewToWindow();
 
     void initAudio();
@@ -73,18 +74,26 @@ private:
     void togglePause();  // 切换暂停状态
     void resumeGame();   // 继续游戏
     void pauseGame();    // 暂停游戏
-    void applyCharacterAbility(Player *player, const QString &characterPath);
+    void applyCharacterAbility(Player* player, const QString& characterPath);
 
-    [[nodiscard]] QString resolveCharacterKey(const QString &characterPath) const;
+    [[nodiscard]] QString resolveCharacterKey(const QString& characterPath) const;
+
+    // 死亡界面相关（scene->clear()后会被自动删除，需要重置指针）
     QGraphicsRectItem* m_deathOverlay = nullptr;
-    QPushButton *m_retryButton = nullptr;
-    QPushButton *m_menuButton2 = nullptr;
-    QPushButton *m_quitButton2 = nullptr;
-    QGraphicsProxyWidget *m_retryProxy = nullptr;
-    QGraphicsProxyWidget *m_menuProxy2 = nullptr;
-    QGraphicsProxyWidget *m_quitProxy2 = nullptr;
+    QPushButton* m_retryButton = nullptr;
+    QPushButton* m_menuButton2 = nullptr;
+    QPushButton* m_quitButton2 = nullptr;
+    QGraphicsProxyWidget* m_retryProxy = nullptr;
+    QGraphicsProxyWidget* m_menuProxy2 = nullptr;
+    QGraphicsProxyWidget* m_quitProxy2 = nullptr;
 
-private slots:
+    // 胜利界面相关（scene->clear()后会被自动删除，需要重置指针）
+    QGraphicsRectItem* m_victoryOverlay = nullptr;
+    QPushButton* m_victoryMenuButton = nullptr;
+    QPushButton* m_victoryAgainButton = nullptr;
+    QPushButton* m_victoryQuitButton = nullptr;
+
+   private slots:
 
     void
     updateHUD();  // 更新HUD
@@ -103,7 +112,7 @@ private slots:
 
     void onStoryFinished();
 
-signals:
+   signals:
 
     void backToMenu();
 
