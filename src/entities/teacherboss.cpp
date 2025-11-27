@@ -21,7 +21,7 @@ TeacherBoss::TeacherBoss(const QPixmap &pic, double scale)
           m_isTransitioning(false),
           m_waitingForDialog(false),
           m_isDefeated(false),
-          m_firstDialogShown(true),  // JSON的bossDialog已经显示过了
+          m_firstDialogShown(false),  // 初始化为未播放，等待Level通知
           m_isFlyingOut(false),
           m_isFlyingIn(false),
           m_flyTimer(nullptr),
@@ -264,9 +264,11 @@ void TeacherBoss::enterPhase2() {
     setDashSpeed(6.0);
     setContactDamage(4);
 
-    // 暂停并显示对话
+    // 暂停并显示对话，开始背景是teacher1_dia
     m_waitingForDialog = true;
-    emit requestShowDialog(getPhase2Dialog(), "assets/boss_dia/boss3_1.png");
+    // 在第5句"友好的测验"时切换到teacher2_dia（索引4）
+    emit requestDialogBackgroundChange(4, "teacher2_dia");
+    emit requestShowDialog(getPhase2Dialog(), "assets/background/teacher1_dia.png");
 }
 
 void TeacherBoss::enterPhase3() {
@@ -345,9 +347,9 @@ void TeacherBoss::onFlyOutComplete() {
         setPixmap(m_finalPixmap);
     }
 
-    // 请求切换背景和显示对话
-    emit requestChangeBackground("assets/background/examRoom.png");
-    emit requestShowDialog(getPhase3Dialog(), "assets/boss_dia/boss3_2.png");
+    // 三阶段对话开始背景是teacher2_dia，在"真正的概率论"那句时切换到teacher3_dia（索引6）
+    emit requestDialogBackgroundChange(6, "teacher3_dia");
+    emit requestShowDialog(getPhase3Dialog(), "assets/background/teacher2_dia.png");
 }
 
 void TeacherBoss::startFlyInAnimation() {
@@ -370,9 +372,11 @@ void TeacherBoss::startFlyInAnimation() {
 void TeacherBoss::onDialogFinished() {
     m_waitingForDialog = false;
 
-    // 如果是击败对话结束，则真正死亡
+    // 如果是击败对话结束，则触发背景渐变并死亡
     if (m_isDefeated) {
-        qDebug() << "[TeacherBoss] 击败对话结束，Boss真正死亡";
+        qDebug() << "[TeacherBoss] 击败对话结束，开始地图背景渐变";
+        // 地图背景从teacher3_map渐变到classroom
+        emit requestFadeBackground("assets/background/classRoom.png", 3000);
         emit dying(this);
         if (scene()) {
             scene()->removeItem(this);
@@ -386,6 +390,8 @@ void TeacherBoss::onDialogFinished() {
         m_firstDialogShown = true;
         m_isTransitioning = false;
         qDebug() << "[TeacherBoss] 初始对话结束，开始授课阶段";
+        // 切换到一阶段战斗背景
+        emit requestChangeBackground("assets/background/teacher1_map.png");
         emit requestShowTransitionText("「随堂测验」开始！");
         startPhase1Skills();
         resumeTimers();
@@ -395,6 +401,8 @@ void TeacherBoss::onDialogFinished() {
     // 期中考试阶段对话结束
     if (m_phase == 2) {
         qDebug() << "[TeacherBoss] 期中考试对话结束，继续战斗";
+        // 切换到二阶段战斗背景
+        emit requestChangeBackground("assets/background/teacher2_map.png");
         emit requestShowTransitionText("「期中考试」开始！");
         m_isTransitioning = false;
         startPhase2Skills();
@@ -405,6 +413,8 @@ void TeacherBoss::onDialogFinished() {
     // 调离阶段对话结束，开始飞入动画
     if (m_phase == 3 && !m_isFlyingIn) {
         qDebug() << "[TeacherBoss] 调离阶段对话结束，开始飞入";
+        // 切换到三阶段战斗背景
+        emit requestChangeBackground("assets/background/teacher3_map.png");
         emit requestShowTransitionText("「方差爆炸」！");
         startFlyInAnimation();
         return;
@@ -445,7 +455,10 @@ void TeacherBoss::onBossDefeated() {
     }
 
     AudioManager::instance().playSound("enemy_death");
-    emit requestShowDialog(getDefeatedDialog(), "assets/boss_dia/boss3_3.png");
+    
+    // 击败对话：使用teacher3_dia背景，从对话开始渐变到teacher1_dia（使用渐变动画）
+    emit requestFadeDialogBackground("assets/background/teacher1_dia.png", 2000);
+    emit requestShowDialog(getDefeatedDialog(), "assets/background/teacher3_dia.png");
 }
 
 void TeacherBoss::move() {
@@ -993,7 +1006,8 @@ QStringList TeacherBoss::getPhase2Dialog() {
             "【奶牛张】\n『看来你还挺能扛的...』",
             "【奶牛张】\n『那么，是时候进行【期中考试】了！』",
             "**智科er** \n 什么？！",
-            "【奶牛张】\n『别紧张，这只是一场「友好」的测验...』"};
+            "【奶牛张】\n『别紧张，这只是一场...』",
+            "【奶牛张】\n『「友好」的测验』"};
 }
 
 QStringList TeacherBoss::getPhase3Dialog() {
@@ -1003,7 +1017,8 @@ QStringList TeacherBoss::getPhase3Dialog() {
             "**智科er** \n 恭喜老师高升？",
             "【奶牛张】\n『高升？哈哈，喜忧参半吧！』",
             "【奶牛张】\n『喜的是，终于可以离开这里...』",
-            "【奶牛张】\n『忧的是，我还没来得及...让你们见识真正的概率论！』",
+            "【奶牛张】\n『忧的是，我还没来得及...』",
+            "【奶牛张】\n『让你们见识真正的概率论！』",
             "**智科er** \n （不妙...）",
             "【奶牛张】\n『在我离开之前，让你体验一下什么叫做...』",
             "【奶牛张】\n『【方差爆炸】！』"};

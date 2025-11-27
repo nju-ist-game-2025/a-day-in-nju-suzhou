@@ -607,6 +607,36 @@ void Level::nextDialog() {
         return;
     }
 
+    // 第一次显示对话时，检查是否有待执行的对话框背景渐变
+    if (m_currentDialogIndex == 0 && !m_pendingFadeDialogBackground.isEmpty()) {
+        qDebug() << "[Level] 执行待处理的对话框背景渐变:" << m_pendingFadeDialogBackground;
+        // 延迟一小段时间后开始渐变，确保对话框已完全显示
+        QTimer::singleShot(100, this, [this]() {
+            fadeDialogBackgroundTo(m_pendingFadeDialogBackground, m_pendingFadeDialogDuration);
+            m_pendingFadeDialogBackground.clear();
+            m_pendingFadeDialogDuration = 0;
+        });
+    }
+
+    // 检查是否需要在当前对话索引处切换对话框背景（瞬间切换）
+    if (m_pendingDialogBackgrounds.contains(m_currentDialogIndex)) {
+        QString backgroundPath = m_pendingDialogBackgrounds.value(m_currentDialogIndex);
+        qDebug() << "[Level] 对话中切换对话框背景到:" << backgroundPath;
+        // 瞬间切换对话框背景（不使用渐变）
+        QString fullPath = backgroundPath;
+        if (!backgroundPath.startsWith("assets/")) {
+            fullPath = "assets/background/" + backgroundPath;
+            if (!fullPath.endsWith(".png")) {
+                fullPath += ".png";
+            }
+        }
+        QPixmap newBg(fullPath);
+        if (!newBg.isNull() && m_dialogBox) {
+            m_dialogBox->setPixmap(newBg.scaled(m_dialogBox->pixmap().size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+        }
+        m_pendingDialogBackgrounds.remove(m_currentDialogIndex);
+    }
+
     QString currentText = m_currentDialogs[m_currentDialogIndex];
     // 空指针检查，防止崩溃
     if (m_dialogText) {
@@ -619,9 +649,74 @@ void Level::nextDialog() {
     qDebug() << "显示对话:" << m_currentDialogIndex << "/" << m_currentDialogs.size();
 }
 
+void Level::fadeDialogBackgroundTo(const QString &imagePath, int duration) {
+    if (!m_scene || !m_dialogBox)
+        return;
+
+    QString fullPath = imagePath;
+    // 如果路径不包含assets/前缀，添加它
+    if (!imagePath.startsWith("assets/")) {
+        fullPath = "assets/background/" + imagePath;
+        if (!fullPath.endsWith(".png")) {
+            fullPath += ".png";
+        }
+    }
+
+    QPixmap newBg;
+    try {
+        newBg = ResourceFactory::loadImage(fullPath);
+    }
+    catch (const QString &e) {
+        qWarning() << "fadeDialogBackgroundTo: 加载图片失败:" << e;
+        return;
+    }
+
+    if (newBg.isNull()) {
+        qWarning() << "fadeDialogBackgroundTo: 无法加载图片:" << fullPath;
+        return;
+    }
+
+    // 创建覆盖在对话框背景上的新背景（渐变进入）
+    QGraphicsPixmapItem *dialogOverlay = new QGraphicsPixmapItem(
+            newBg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    dialogOverlay->setPos(0, 0);
+    dialogOverlay->setZValue(10000);  // 与m_dialogBox相同的层级
+    dialogOverlay->setOpacity(0.0);
+    m_scene->addItem(dialogOverlay);
+
+    // 动画从0到1
+    QVariantAnimation *anim = new QVariantAnimation(this);
+    anim->setStartValue(0.0);
+    anim->setEndValue(1.0);
+    anim->setDuration(duration);
+    connect(anim, &QVariantAnimation::valueChanged, this, [dialogOverlay](const QVariant &value) {
+        if (dialogOverlay)
+            dialogOverlay->setOpacity(value.toDouble());
+    });
+    connect(anim, &QVariantAnimation::finished, this, [this, dialogOverlay, newBg]() {
+        // 动画结束后，把主对话框背景替换为目标图，并移除覆盖项
+        if (m_dialogBox) {
+            m_dialogBox->setPixmap(newBg.scaled(800, 600, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+        }
+        if (dialogOverlay && m_scene) {
+            m_scene->removeItem(dialogOverlay);
+            delete dialogOverlay;
+        }
+    });
+
+    anim->start(QAbstractAnimation::DeleteWhenStopped);
+    qDebug() << "[Level] 对话框背景渐变动画开始:" << fullPath;
+}
+
 void Level::finishStory() {
     qDebug() << "剧情播放完毕";
     m_skipRequested = false;
+    
+    // 清理待切换的对话背景
+    m_pendingDialogBackgrounds.clear();
+    m_pendingFadeDialogBackground.clear();
+    m_pendingFadeDialogDuration = 0;
+    
     // 清理渐变背景
     if (m_textBackground) {
         m_scene->removeItem(m_textBackground);
@@ -749,8 +844,14 @@ void Level::finishStory() {
             // 不需要initCurrentRoom，只需通知Boss继续战斗
             qDebug() << "TeacherBoss阶段转换对话结束，继续战斗";
             m_currentTeacherBoss->onDialogFinished();
+        } else if (m_currentTeacherBoss && m_currentTeacherBoss->getPhase() == 1) {
+            // TeacherBoss初始对话结束（第一阶段）
+            // Boss已经在房间中创建，不需要重新initCurrentRoom
+            // 直接通知Boss开始战斗（Boss会设置正确的战斗背景）
+            qDebug() << "TeacherBoss初始对话结束，通知Boss开始第一阶段战斗";
+            m_currentTeacherBoss->onDialogFinished();
         } else {
-            // 初始Boss对话结束，或WashMachineBoss第一轮对话结束
+            // WashMachineBoss或其他Boss的初始对话结束
             // 需要初始化房间（创建Boss和敌人）
             if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size()) {
                 qDebug() << "Boss对话结束，初始化boss房间" << m_currentRoomIndex;
@@ -761,10 +862,12 @@ void Level::finishStory() {
                 checkChange->start(100);
             }
             // 在房间初始化后再通知Boss（这样文字会显示在最顶层）
-            if (m_currentWashMachineBoss) {
+            if (m_currentTeacherBoss) {
+                qDebug() << "TeacherBoss实例创建完成，通知其进入战斗";
+                m_currentTeacherBoss->onDialogFinished();
+            } else if (m_currentWashMachineBoss) {
                 m_currentWashMachineBoss->onDialogFinished();
             }
-            // TeacherBoss在构造函数中已经自动启动了第一阶段技能
         }
     } else {
         // 关卡开始对话结束
@@ -1321,6 +1424,12 @@ Boss* Level::createBossByLevel(int levelNumber, const QPixmap& pic, double scale
 
 void Level::spawnDoors(const RoomConfig& roomCfg) {
     try {
+        // 加载关卡配置以检查目标房间是否是boss房间
+        LevelConfig config;
+        if (!config.loadFromFile(m_levelNumber)) {
+            qWarning() << "无法加载关卡配置，跳过boss门检查";
+        }
+        
         // 检查是否已有该房间的门对象（复用逻辑）
         if (m_roomDoors.contains(m_currentRoomIndex)) {
             // 复用已存在的门对象
@@ -1363,7 +1472,9 @@ void Level::spawnDoors(const RoomConfig& roomCfg) {
         // 上下门：120x80，左右门：80x120
 
         if (roomCfg.doorUp >= 0) {
-            Door* door = new Door(Door::Up);
+            // 检查目标房间是否是boss房间
+            bool isBossDoor = config.getRoom(roomCfg.doorUp).hasBoss;
+            Door *door = new Door(Door::Up, isBossDoor);
             // 上门：水平居中在顶部 (800-120)/2 = 340
             door->setPos(340, 0);
             m_scene->addItem(door);
@@ -1376,7 +1487,9 @@ void Level::spawnDoors(const RoomConfig& roomCfg) {
             }
         }
         if (roomCfg.doorDown >= 0) {
-            Door* door = new Door(Door::Down);
+            // 检查目标房间是否是boss房间
+            bool isBossDoor = config.getRoom(roomCfg.doorDown).hasBoss;
+            Door *door = new Door(Door::Down, isBossDoor);
             // 下门：水平居中在底部 (600-80) = 520
             door->setPos(340, 520);
             m_scene->addItem(door);
@@ -1388,7 +1501,9 @@ void Level::spawnDoors(const RoomConfig& roomCfg) {
             }
         }
         if (roomCfg.doorLeft >= 0) {
-            Door* door = new Door(Door::Left);
+            // 检查目标房间是否是boss房间
+            bool isBossDoor = config.getRoom(roomCfg.doorLeft).hasBoss;
+            Door *door = new Door(Door::Left, isBossDoor);
             // 左门：垂直居中在左侧 (600-120)/2 = 240
             door->setPos(0, 240);
             m_scene->addItem(door);
@@ -1400,7 +1515,9 @@ void Level::spawnDoors(const RoomConfig& roomCfg) {
             }
         }
         if (roomCfg.doorRight >= 0) {
-            Door* door = new Door(Door::Right);
+            // 检查目标房间是否是boss房间
+            bool isBossDoor = config.getRoom(roomCfg.doorRight).hasBoss;
+            Door *door = new Door(Door::Right, isBossDoor);
             // 右门：垂直居中在右侧 800-80 = 720
             door->setPos(720, 240);
             m_scene->addItem(door);
@@ -2890,6 +3007,18 @@ void Level::connectTeacherBossSignals(TeacherBoss* boss) {
     // 连接请求显示文字提示信号
     connect(boss, &TeacherBoss::requestShowTransitionText,
             this, &Level::onTeacherBossRequestTransitionText);
+    
+    // 连接请求渐变背景信号
+    connect(boss, &TeacherBoss::requestFadeBackground,
+            this, &Level::onTeacherBossRequestFadeBackground);
+    
+    // 连接请求渐变对话背景信号
+    connect(boss, &TeacherBoss::requestFadeDialogBackground,
+            this, &Level::onTeacherBossRequestFadeDialogBackground);
+    
+    // 连接请求对话中切换背景信号
+    connect(boss, &TeacherBoss::requestDialogBackgroundChange,
+            this, &Level::onTeacherBossRequestDialogBackgroundChange);
 
     // 连接召唤敌人信号
     connect(boss, &TeacherBoss::requestSpawnEnemies,
@@ -2919,6 +3048,24 @@ void Level::onTeacherBossRequestChangeBackground(const QString& backgroundPath) 
 void Level::onTeacherBossRequestTransitionText(const QString& text) {
     qDebug() << "[Level] TeacherBoss请求显示文字:" << text;
     showPhaseTransitionText(text);
+}
+
+void Level::onTeacherBossRequestFadeBackground(const QString &backgroundPath, int duration) {
+    qDebug() << "[Level] TeacherBoss请求渐变背景:" << backgroundPath << "持续" << duration << "ms";
+    // backgroundPath已经是完整路径（如assets/background/classRoom.png）
+    fadeBackgroundTo(backgroundPath, duration);
+}
+
+void Level::onTeacherBossRequestFadeDialogBackground(const QString &backgroundPath, int duration) {
+    qDebug() << "[Level] TeacherBoss请求渐变对话背景:" << backgroundPath << "持续" << duration << "ms";
+    // 存储渐变信息，在对话框创建后执行
+    m_pendingFadeDialogBackground = backgroundPath;
+    m_pendingFadeDialogDuration = duration;
+}
+
+void Level::onTeacherBossRequestDialogBackgroundChange(int dialogIndex, const QString &backgroundName) {
+    qDebug() << "[Level] TeacherBoss请求在对话索引" << dialogIndex << "时切换背景到:" << backgroundName;
+    m_pendingDialogBackgrounds[dialogIndex] = backgroundName;
 }
 
 // ========== 精英房间相关函数 ==========

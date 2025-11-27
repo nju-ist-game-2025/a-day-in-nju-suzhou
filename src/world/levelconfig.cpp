@@ -150,6 +150,11 @@ RoomConfig LevelConfig::parseRoomConfig(const QJsonObject &roomObj) {
         cfg.bossDialogBackground = roomObj.value("bossDialogBackground").toString();
     }
 
+    // Boss战斗地图背景配置
+    if (roomObj.contains("bossMapBackground")) {
+        cfg.bossMapBackground = roomObj.value("bossMapBackground").toString();
+    }
+
     // Boss奖励道具配置
     if (roomObj.contains("bossRewardItems") && roomObj.value("bossRewardItems").isArray()) {
         QJsonArray rewardArray = roomObj.value("bossRewardItems").toArray();
