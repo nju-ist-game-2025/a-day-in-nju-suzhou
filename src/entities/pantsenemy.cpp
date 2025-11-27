@@ -7,22 +7,22 @@
 #include <QtMath>
 #include "player.h"
 
-PantsEnemy::PantsEnemy(const QPixmap &pic, double scale)
-        : Enemy(pic, scale),
-          m_isSpinning(false),
-          m_spinningCooldownTimer(nullptr),
-          m_spinningUpdateTimer(nullptr),
-          m_spinningDurationTimer(nullptr),
-          m_spinningCircle(nullptr),
-          m_currentFrameIndex(0),
-          m_lastSpinningDamageTime(0) {
+PantsEnemy::PantsEnemy(const QPixmap& pic, double scale)
+    : Enemy(pic, scale),
+      m_isSpinning(false),
+      m_spinningCooldownTimer(nullptr),
+      m_spinningUpdateTimer(nullptr),
+      m_spinningDurationTimer(nullptr),
+      m_spinningCircle(nullptr),
+      m_currentFrameIndex(0),
+      m_lastSpinningDamageTime(0) {
     // 设置基础属性
-    setHealth(20);           // 生命值
-    setContactDamage(2);     // 普通接触伤害
-    setVisionRange(300.0);   // 视野范围
-    setAttackRange(50.0);    // 攻击范围
-    setAttackCooldown(1000); // 攻击冷却
-    setSpeed(2.5);           // 基础移速
+    setHealth(20);            // 生命值
+    setContactDamage(2);      // 普通接触伤害
+    setVisionRange(300.0);    // 视野范围
+    setAttackRange(50.0);     // 攻击范围
+    setAttackCooldown(1000);  // 攻击冷却
+    setSpeed(2.5);            // 基础移速
 
     // 设置移动模式为 Z 字形
     setMovementPattern(MOVE_ZIGZAG);
@@ -133,14 +133,14 @@ void PantsEnemy::startSpinning() {
     // 创建旋转伤害圆（浅灰色填充）
     double circleRadius = SPINNING_CIRCLE_RADIUS;
     m_spinningCircle = new QGraphicsEllipseItem(
-            -circleRadius, -circleRadius,
-            circleRadius * 2, circleRadius * 2);
+        -circleRadius, -circleRadius,
+        circleRadius * 2, circleRadius * 2);
 
     // 设置浅灰色半透明填充
-    QColor fillColor(180, 180, 180, 120); // 浅灰色，半透明
+    QColor fillColor(180, 180, 180, 120);  // 浅灰色，半透明
     m_spinningCircle->setBrush(QBrush(fillColor));
-    m_spinningCircle->setPen(QPen(QColor(150, 150, 150), 2)); // 边框
-    m_spinningCircle->setZValue(zValue() - 1);                // 在怪物下方
+    m_spinningCircle->setPen(QPen(QColor(150, 150, 150), 2));  // 边框
+    m_spinningCircle->setZValue(zValue() - 1);                 // 在怪物下方
 
     // 添加到场景并定位
     scene()->addItem(m_spinningCircle);
@@ -215,7 +215,7 @@ void PantsEnemy::checkSpinningDamage() {
 
     // 伤害间隔检测（避免连续伤害太快）
     qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
-    if (currentTime - m_lastSpinningDamageTime < 500) // 0.5秒伤害间隔
+    if (currentTime - m_lastSpinningDamageTime < 500)  // 0.5秒伤害间隔
         return;
 
     // 计算玩家中心和旋转圆圆心的距离
@@ -237,21 +237,18 @@ void PantsEnemy::checkSpinningDamage() {
     }
 }
 
-void PantsEnemy::onContactWithPlayer(Player *p) {
+void PantsEnemy::onContactWithPlayer(Player* p) {
     Q_UNUSED(p);
     // 普通接触伤害由基类处理，这里不需要额外效果
     // 旋转伤害由 checkSpinningDamage() 单独处理
 }
 
-void PantsEnemy::takeDamage(int damage)
-{
+void PantsEnemy::takeDamage(int damage) {
     // 先检查是否会导致死亡
     int realDamage = qMax(1, damage);
-    if (health - realDamage <= 0)
-    {
+    if (health - realDamage <= 0) {
         // 即将死亡，先清理 spinning 资源（此时 scene() 还有效）
-        if (m_spinningCircle && scene())
-        {
+        if (m_spinningCircle && scene()) {
             scene()->removeItem(m_spinningCircle);
             delete m_spinningCircle;
             m_spinningCircle = nullptr;
@@ -264,8 +261,7 @@ void PantsEnemy::takeDamage(int damage)
     Enemy::takeDamage(damage);
 }
 
-void PantsEnemy::attackPlayer()
-{
+void PantsEnemy::attackPlayer() {
     if (!player)
         return;
 
@@ -273,16 +269,11 @@ void PantsEnemy::attackPlayer()
         return;
 
     // 如果正在旋转，旋转伤害由 checkSpinningDamage 处理
-    // 普通攻击仍然生效
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item: collisions) {
-        Player *p = dynamic_cast<Player *>(item);
-        if (p) {
-            // 旋转状态下不造成普通接触伤害（旋转伤害更高且单独计算）
-            if (!m_isSpinning) {
-                p->takeDamage(contactDamage);
-            }
-            break;
+    // 普通攻击仍然生效：使用像素级碰撞检测
+    if (Entity::pixelCollision(this, player)) {
+        // 旋转状态下不造成普通接触伤害（旋转伤害更高且单独计算）
+        if (!m_isSpinning) {
+            player->takeDamage(contactDamage);
         }
     }
 }
@@ -314,7 +305,7 @@ void PantsEnemy::resumeTimers() {
         // 注意：m_spinningDurationTimer 是单次定时器，暂停后恢复比较复杂
         // 简化处理：暂停后恢复时如果正在旋转，继续旋转一小段时间
         if (m_spinningDurationTimer) {
-            m_spinningDurationTimer->start(1000); // 恢复后再持续1秒
+            m_spinningDurationTimer->start(1000);  // 恢复后再持续1秒
         }
     }
 }

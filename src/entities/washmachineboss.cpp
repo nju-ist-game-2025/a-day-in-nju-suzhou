@@ -132,8 +132,11 @@ void WashMachineBoss::takeDamage(int damage) {
     // 触发闪烁效果（先闪烁，后检查阶段）
     flash();
 
-    // 计算实际伤害
+    // 计算实际伤害（确保至少为1，防止低伤害被缩放为0）
     int realDamage = static_cast<int>(damage * damageScale);
+    if (damage > 0 && realDamage < 1) {
+        realDamage = 1;
+    }
 
     // 计算阶段临界血量，防止一击秒杀跳过阶段
     int phase2Threshold = static_cast<int>(maxHealth * 0.7);  // 70% - 进入愤怒阶段

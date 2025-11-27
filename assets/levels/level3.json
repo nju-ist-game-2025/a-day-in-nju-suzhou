@@ -45,8 +45,8 @@
       "background": "convexBook",
       "enemies": [
         {
-          "type": "sock_normal",
-          "count": 3
+          "type": "yanglin",
+          "count": 1
         }
       ],
       "hasBoss": false,
@@ -80,8 +80,12 @@
       "background": "convexBook",
       "enemies": [
         {
-          "type": "sock_normal",
-          "count": 7
+          "type": "optimization",
+          "count": 3
+        },
+        {
+          "type": "digital_system",
+          "count": 3
         }
       ],
       "hasBoss": false,
@@ -100,8 +104,12 @@
       "background": "convexBook",
       "enemies": [
         {
-          "type": "sock_normal",
-          "count": 5
+          "type": "optimization",
+          "count": 2
+        },
+        {
+          "type": "digital_system",
+          "count": 2
         }
       ],
       "hasBoss": false,
@@ -120,8 +128,12 @@
       "background": "convexBook",
       "enemies": [
         {
-          "type": "sock_normal",
-          "count": 7
+          "type": "optimization",
+          "count": 3
+        },
+        {
+          "type": "digital_system",
+          "count": 3
         }
       ],
       "hasBoss": false,
@@ -181,20 +193,38 @@
     },
     {
       "id": 9,
-      "name": "Room 10 - Special (Boss)",
-      "background": "convexBook",
-      "enemies": [
-        {
-          "type": "sock_normal",
-          "count": 12
-        }
-      ],
+      "name": "Room 10 - Boss Room (奶牛张)",
+      "background": "classRoom",
+      "enemies": [],
       "hasBoss": true,
       "bossDialog": [
-        "（Boss战即将开始）"
+        "（玩家进入boss房，感到一股强大的压力。房间里弥漫着数学公式的气息。）",
+        "【奶牛张】\n『哦？又来了一位勇敢的同学？』",
+        "【奶牛张】\n『让我看看...根据极大似然估计，你通过这场考试的概率是...』",
+        "【奶牛张】\n『嗯，不太乐观啊！』",
+        "**智科er** \n 老师，我只是想通过这一关...",
+        "【奶牛张】\n『通过？哈哈，这让我想起了那次期中考试...』",
+        "【奶牛张】\n『全班的成绩呈完美的正态分布，均值μ=62，方差σ²=144...』",
+        "【奶牛张】\n『多么美丽的数据啊！』",
+        "**智科er** \n （那不就是大家都差点挂科吗...）",
+        "【奶牛张】\n『好了，让我们开始今天的「随堂测验」吧！』"
       ],
-      "bossDialogBackground": "assets/boss_dia/boss1.png",
-      "hasChest": true,
+      "bossDialogBackground": "assets/boss_dia/boss3_1.png",
+      "bossRewardItems": [
+        {
+          "type": "damage_up",
+          "value": 1.2
+        },
+        {
+          "type": "speed_up",
+          "value": 1.15
+        },
+        {
+          "type": "red_heart",
+          "value": 3
+        }
+      ],
+      "hasChest": false,
       "isChestLocked": false,
       "doors": {
         "up": -1,

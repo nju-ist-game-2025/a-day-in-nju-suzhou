@@ -146,6 +146,9 @@ void GameView::initGame() {
         player = new Player(playerPixmap, 1.0);
         applyCharacterAbility(player, characterPath);
 
+        // 预加载碰撞掩码（避免运行时生成）
+        player->preloadCollisionMask();
+
         // 应用开发者模式设置（如果启用）
         if (m_isDevMode) {
             // 直接设置血量上限（无限制）

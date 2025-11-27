@@ -6,21 +6,17 @@
 #include <QtMath>
 #include "../core/audiomanager.h"
 #include "../ui/explosion.h"
-#include "player.h"
 #include "nightmareboss.h"
+#include "player.h"
 
-ClockBoom::ClockBoom(const QPixmap &normalPic, const QPixmap &redPic, double scale)
-        : Enemy(normalPic, scale), m_triggered(false), m_exploded(false), m_normalPixmap(
-        normalPic.scaled(normalPic.width() * scale, normalPic.height() * scale, Qt::KeepAspectRatio,
-                         Qt::SmoothTransformation)), m_redPixmap(
-        redPic.scaled(redPic.width() * scale, redPic.height() * scale, Qt::KeepAspectRatio, Qt::SmoothTransformation)),
-          m_isRed(false) {
+ClockBoom::ClockBoom(const QPixmap& normalPic, const QPixmap& redPic, double scale)
+    : Enemy(normalPic, scale), m_triggered(false), m_exploded(false), m_normalPixmap(normalPic.scaled(normalPic.width() * scale, normalPic.height() * scale, Qt::KeepAspectRatio, Qt::SmoothTransformation)), m_redPixmap(redPic.scaled(redPic.width() * scale, redPic.height() * scale, Qt::KeepAspectRatio, Qt::SmoothTransformation)), m_isRed(false) {
     // ClockBoom的特殊属性
-    setHealth(6);        // 6点血，可以被攻击摧毁
-    setContactDamage(0); // 碰撞不造成伤害
-    setVisionRange(0);   // 无视野
-    setAttackRange(0);   // 无攻击范围
-    setSpeed(0);         // 不移动
+    setHealth(6);         // 6点血，可以被攻击摧毁
+    setContactDamage(0);  // 碰撞不造成伤害
+    setVisionRange(0);    // 无视野
+    setAttackRange(0);    // 无攻击范围
+    setSpeed(0);          // 不移动
 
     // 停止所有继承的定时器（因为不需要移动、AI和攻击检测）
     if (aiTimer) {
@@ -36,7 +32,7 @@ ClockBoom::ClockBoom(const QPixmap &normalPic, const QPixmap &redPic, double sca
     // 创建独立的碰撞检测定时器
     m_collisionTimer = new QTimer(this);
     connect(m_collisionTimer, &QTimer::timeout, this, &ClockBoom::onCollisionCheck);
-    m_collisionTimer->start(50); // 每50ms检测一次碰撞
+    m_collisionTimer->start(50);  // 每50ms检测一次碰撞
 
     // 创建闪烁定时器（倒计时闪烁）
     m_blinkTimer = new QTimer(this);
@@ -78,16 +74,16 @@ ClockBoom::~ClockBoom() {
 
 void ClockBoom::move() {
     // ClockBoom不移动
-    }
+}
 
 void ClockBoom::takeDamage(int damage) {
     // ClockBoom被攻击时的特殊处理
     // 避免走父类Enemy::takeDamage的死亡流程（会重复创建爆炸效果）
 
     if (m_exploded)
-        return; // 已经爆炸了，不再处理
+        return;  // 已经爆炸了，不再处理
 
-    flash(); // 显示受击闪烁
+    flash();  // 显示受击闪烁
     health -= qMax(1, damage);
 
     if (health <= 0) {
@@ -112,22 +108,17 @@ void ClockBoom::checkCollisionWithPlayer() {
     if (m_isPaused)
         return;
 
-    // 检测与玩家的碰撞
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item: collisions) {
-        auto *p = dynamic_cast<Player *>(item);
-        if (p) {
-            // 首次碰撞，触发倒计时
-            startCountdown();
-            break;
-        }
+    // 检测与玩家的碰撞：使用像素级碰撞检测
+    if (Entity::pixelCollision(this, player)) {
+        // 首次碰撞，触发倒计时
+        startCountdown();
     }
 }
 
 void ClockBoom::attackPlayer() {
     // ClockBoom不使用常规攻击系统，使用独立的碰撞检测
     // 此方法为空实现，避免基类调用
-    }
+}
 
 void ClockBoom::triggerCountdown() {
     if (!m_triggered) {
@@ -191,7 +182,7 @@ void ClockBoom::explode(bool dealDamage) {
 
     // 创建爆炸动画 - 立即创建以确保显示
     if (scene()) {
-        auto *explosion = new Explosion();
+        auto* explosion = new Explosion();
         explosion->setPos(this->pos());
         scene()->addItem(explosion);
         explosion->startAnimation();
@@ -211,33 +202,33 @@ void ClockBoom::damageNearbyEntities() {
     if (!scene())
         return;
 
-    const double explosionRadius = 150.0; // 爆炸范围
+    const double explosionRadius = 150.0;  // 爆炸范围
     QPointF bombPos = pos();
     const double radiusSquared = explosionRadius * explosionRadius;
 
     // 使用空间查询代替遍历所有物品
     QRectF searchRect(bombPos.x() - explosionRadius, bombPos.y() - explosionRadius,
                       explosionRadius * 2, explosionRadius * 2);
-    QList<QGraphicsItem *> nearbyItems = scene()->items(searchRect);
+    QList<QGraphicsItem*> nearbyItems = scene()->items(searchRect);
 
     // 性能优化：先进行一次类型筛选，减少重复的dynamic_cast
-    Player *targetPlayer = nullptr;
-    QVector < Enemy * > targetEnemies;
-    targetEnemies.reserve(nearbyItems.size() / 2); // 预分配避免频繁扩容
+    Player* targetPlayer = nullptr;
+    QVector<Enemy*> targetEnemies;
+    targetEnemies.reserve(nearbyItems.size() / 2);  // 预分配避免频繁扩容
 
-    for (QGraphicsItem *item: nearbyItems) {
+    for (QGraphicsItem* item : nearbyItems) {
         // 跳过自己
         if (item == this)
             continue;
 
         // 先尝试转换为Enemy（更常见），如果失败再尝试Player
-        if (Enemy *enemy = dynamic_cast<Enemy *>(item)) {
+        if (Enemy* enemy = dynamic_cast<Enemy*>(item)) {
             // 跳过其他 ClockBoom（同类不互相伤害）
-            if (dynamic_cast<ClockBoom *>(enemy))
+            if (dynamic_cast<ClockBoom*>(enemy))
                 continue;
             targetEnemies.append(enemy);
-        } else if (!targetPlayer) { // 只需要找到一次玩家
-            targetPlayer = dynamic_cast<Player *>(item);
+        } else if (!targetPlayer) {  // 只需要找到一次玩家
+            targetPlayer = dynamic_cast<Player*>(item);
         }
     }
 
@@ -253,7 +244,7 @@ void ClockBoom::damageNearbyEntities() {
         }
     }
 
-    for (Enemy *enemy: targetEnemies) {
+    for (Enemy* enemy : targetEnemies) {
         QPointF itemPos = enemy->pos();
         double dx = itemPos.x() - bombPos.x();
         double dy = itemPos.y() - bombPos.y();
@@ -261,11 +252,11 @@ void ClockBoom::damageNearbyEntities() {
 
         if (distanceSquared <= radiusSquared) {
             // 对NightmareBoss造成50点伤害的特判
-            if (dynamic_cast<NightmareBoss *>(enemy)) {
+            if (dynamic_cast<NightmareBoss*>(enemy)) {
                 enemy->takeDamage(50);
                 qDebug() << "ClockBoom对梦魇Boss造成50点爆炸伤害";
             } else {
-                enemy->takeDamage(6); // 对普通敌人造成6点伤害
+                enemy->takeDamage(6);  // 对普通敌人造成6点伤害
             }
         }
     }
@@ -308,7 +299,7 @@ void ClockBoom::resumeTimers() {
         } else if (m_explodeTimer) {
             // 如果定时器停止了但还没爆炸，继续倒计时
             // 这是一个近似处理
-            m_explodeTimer->start(500); // 给一个短时间爆炸
+            m_explodeTimer->start(500);  // 给一个短时间爆炸
         }
     }
 }

@@ -187,7 +187,7 @@
     {
       "id": 8,
       "name": "Room 9 - Special (Boss)",
-      "background": "startRoom",
+      "background": "nightmare1_map",
       "enemies": [
         {
           "type": "clock_normal",

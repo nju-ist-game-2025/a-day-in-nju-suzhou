@@ -59,6 +59,16 @@ set(ENTITY_SOURCES
         src/entities/nightmareboss.h
         src/entities/washmachineboss.cpp
         src/entities/washmachineboss.h
+        src/entities/teacherboss.cpp
+        src/entities/teacherboss.h
+        src/entities/invigilator.cpp
+        src/entities/invigilator.h
+        src/entities/chalkbeam.cpp
+        src/entities/chalkbeam.h
+        src/entities/exampaper.cpp
+        src/entities/exampaper.h
+        src/entities/mletrap.cpp
+        src/entities/mletrap.h
         src/entities/clockenemy.cpp
         src/entities/clockenemy.h
         src/entities/clockboom.cpp
@@ -81,6 +91,14 @@ set(ENTITY_SOURCES
         src/entities/walker.h
         src/entities/usagi.cpp
         src/entities/usagi.h
+        src/entities/scalingenemy.cpp
+        src/entities/scalingenemy.h
+        src/entities/optimizationenemy.cpp
+        src/entities/optimizationenemy.h
+        src/entities/digitalsystemenemy.cpp
+        src/entities/digitalsystemenemy.h
+        src/entities/yanglinenemy.cpp
+        src/entities/yanglinenemy.h
 )
 
 set(WORLD_SOURCES
