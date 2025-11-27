@@ -10,10 +10,10 @@
 #include "entity.h"
 #include "projectile.h"
 
-const int max_red_contain = 9;
+const int max_red_contain = 12;
 const int max_soul = 6;
-const int bomb_r = 60;
-const int bombHurt = 1;
+const int bomb_r = 100;
+const int bombHurt = 5;
 
 class Player : public Entity {
     Q_OBJECT
@@ -109,6 +109,7 @@ class Player : public Entity {
     void setPermanentInvincible(bool invincible);  // 持久无敌（手动取消）
 
     void addBombs(int n) { bombs += n; };
+    int getBombs() {return bombs;};
 
     void placeBomb();
 

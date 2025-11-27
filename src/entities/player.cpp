@@ -91,7 +91,7 @@ Player::Player(const QPixmap &pic_player, double scale)
     hurt = 1;      // 后续可修改
     crash_r = 40;  // 增大碰撞半径以匹配新的角色大小
 
-    bombs = 0;
+    bombs = 1;
 
     // 初始化射击按键
     shootKeysPressed[Qt::Key_Up] = false;
@@ -105,6 +105,7 @@ Player::Player(const QPixmap &pic_player, double scale)
     keysPressed[Qt::Key_S] = false;
     keysPressed[Qt::Key_D] = false;
     keysPressed[Qt::Key_Space] = false;
+    keysPressed[Qt::Key_E] = false;
 
     keysTimer = new QTimer(this);
     connect(keysTimer, &QTimer::timeout, this, &Player::move);
@@ -132,6 +133,12 @@ void Player::keyPressEvent(QKeyEvent *event) {
 
     if (event->key() == Qt::Key_Q) {
         tryTeleport();
+        event->accept();
+        return;
+    }
+
+    if (event->key() == Qt::Key_E) {
+        placeBomb();
         event->accept();
         return;
     }
@@ -558,17 +565,19 @@ void Player::placeBomb() {
     if (bombs <= 0)
         return;
     auto posi = this->pos();
-    QTimer::singleShot(2000, this, [this, posi]() {
-                foreach (QGraphicsItem *item, scene()->items()) {
-                if (auto it = dynamic_cast<Enemy *>(item)) {
-                    if (abs(it->pos().x() - posi.x()) > bomb_r ||
-                        abs(it->pos().y() - posi.y()) > bomb_r)
-                        continue;
-                    else
-                        it->takeDamage(bombHurt);
+    QTimer::singleShot(500, this, [this, posi]() {
+        foreach (QGraphicsItem *item, scene()->items()) {
+            if (auto it = dynamic_cast<Enemy *>(item)) {
+                if (abs(it->pos().x() - posi.x()) > bomb_r ||
+                    abs(it->pos().y() - posi.y()) > bomb_r)
+                    continue;
+                else{
+                    it->takeDamage(bombHurt);
                 }
             }
+        }
     });
+    bombs--;
 }
 
 void Player::focusOutEvent(QFocusEvent *event) {
