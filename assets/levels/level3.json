@@ -61,9 +61,39 @@
     },
     {
       "id": 2,
-      "name": "Room 3 - Special",
+      "name": "Room 3 - Elite Combat (精英战斗)",
       "background": "classRoom",
-      "enemies": [],
+      "isEliteRoom": true,
+      "eliteDialog": [
+        "（智科er推开教室的门，一股奇异的压迫感扑面而来）",
+        "**智科er** \n 这里的气氛...好奇怪",
+        "【？？？】\n「哈哈哈，又来了一个不自量力的家伙」",
+        "**智科er** \n 谁？！是谁在说话？",
+        "【杨林】\n「我们是最优化方法的化身！」",
+        "【杨林】\n「想要通过这里？先过了我们这一关再说吧！」",
+        "（三道身影从阴影中浮现）",
+        "**智科er** \n 三个？！这也太过分了...",
+        "【杨林】\n「准备好接受最优化的洗礼了吗？」"
+      ],
+      "eliteDialogBackground": "assets/boss_dia/special_1.png",
+      "elitePhase2Dialog": [
+        "（一只杨林倒下，但战斗远未结束）",
+        "【？？？】\n「呵...你以为这样就结束了？」",
+        "**智科er** \n 还有？！",
+        "【朱昊】\n「让我来教教你什么叫做真正的弹幕！」",
+        "（一个身影从地图边缘缓缓出现）",
+        "【朱昊】\n「准备好迎接CPU的审判了吗？」",
+        "**智科er** \n 又来一个...而且是远程攻击？！",
+        "【朱昊】\n「叽里咕噜...zzz...你听懂了吗？」",
+        "（朱昊开始沿着边缘移动，准备发射弹幕）"
+      ],
+      "elitePhase2DialogBackground": "assets/boss_dia/special_2.png",
+      "enemies": [
+        {
+          "type": "yanglin",
+          "count": 3
+        }
+      ],
       "hasBoss": false,
       "hasChest": true,
       "isChestLocked": true,
