@@ -139,6 +139,26 @@ void Level::init(int levelNumber) {
     m_hasEncounteredBossDoor = false;
     m_bossDoorsAlreadyOpened = false;
 
+    // 重置Boss相关状态（关键：防止跨关卡状态污染导致崩溃）
+    m_currentWashMachineBoss = nullptr;
+    m_currentTeacherBoss = nullptr;
+    m_bossDefeated = false;
+    m_rewardSequenceActive = false;
+    m_usagi = nullptr;
+
+    // 重置精英房间状态
+    m_isEliteRoom = false;
+    m_elitePhase2Triggered = false;
+    m_eliteYanglinDeathCount = 0;
+    m_isEliteDialog = false;
+    m_zhuhaoEnemy = nullptr;
+
+    // 重置对话状态
+    m_isBossDialog = false;
+    m_isStoryFinished = true;
+    m_currentDialogIndex = 0;
+    m_currentDialogs.clear();
+
     LevelConfig config;
     if (!config.loadFromFile(levelNumber)) {
         qWarning() << "加载关卡配置失败，使用默认配置";
