@@ -145,7 +145,7 @@ MainMenu::MainMenu(QWidget* parent) : QWidget(parent) {
     startButton->setStyleSheet(buttonStyle);
 
     // 创建图鉴按钮
-    codexButton = new QPushButton("怪物图鉴", this);
+    codexButton = new QPushButton("游戏图鉴", this);
     codexButton->setFixedSize(220, 60);
     codexButton->setFont(buttonFont);
     codexButton->setStyleSheet(codexButtonStyle);
