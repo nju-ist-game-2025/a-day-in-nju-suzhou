@@ -6,6 +6,7 @@
 #include <QKeyEvent>
 #include <QList>
 #include <QWidget>
+#include <QPushButton>
 #include "../entities/enemy.h"
 #include "../entities/player.h"
 #include "ui/hud.h"
@@ -24,9 +25,9 @@ private:
     Level *level;  // 关卡管理器
     HUD *hud{};
     PauseMenu *m_pauseMenu;  // 暂停菜单
-    int currentLevel;        // 添加当前关卡变量
-    bool isLevelTransition;  // 防止重复触发
-    bool m_isInStoryMode;
+    int currentLevel{};        // 添加当前关卡变量
+    bool isLevelTransition{};  // 防止重复触发
+    bool m_isInStoryMode{};
     bool m_isPaused;                // 游戏是否暂停
     QString m_playerCharacterPath;  // 玩家角色图片路径
     int m_startLevel = 1;           // 起始关卡（开发者模式）
@@ -51,7 +52,7 @@ public:
         m_isDevMode = true;
     }
 
-    HUD *getHUD() const { return hud; }
+    [[nodiscard]] HUD *getHUD() const { return hud; }
 
 protected:
     void showEvent(QShowEvent *event) override;
@@ -74,7 +75,14 @@ private:
     void pauseGame();    // 暂停游戏
     void applyCharacterAbility(Player *player, const QString &characterPath);
 
-    QString resolveCharacterKey(const QString &characterPath) const;
+    [[nodiscard]] QString resolveCharacterKey(const QString &characterPath) const;
+    QGraphicsRectItem* m_deathOverlay = nullptr;
+    QPushButton *m_retryButton = nullptr;
+    QPushButton *m_menuButton2 = nullptr;
+    QPushButton *m_quitButton2 = nullptr;
+    QGraphicsProxyWidget *m_retryProxy = nullptr;
+    QGraphicsProxyWidget *m_menuProxy2 = nullptr;
+    QGraphicsProxyWidget *m_quitProxy2 = nullptr;
 
 private slots:
 
@@ -82,10 +90,8 @@ private slots:
     updateHUD();  // 更新HUD
     void
     handlePlayerDeath();  // 处理玩家死亡
-    void
-    restartGame();  // 重新开始游戏（槽）
-    void
-    quitGame();  // 退出游戏（槽）
+    // 重新开始游戏（槽）
+    // 退出游戏（槽）
     void onEnemiesCleared(int roomIndex, bool up = false, bool down = false, bool left = false,
                           bool right = false);  // 房间敌人清空提示
     void
