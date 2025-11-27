@@ -8,77 +8,64 @@
 #include <QTimer>
 #include "player.h"
 
-ScalingEnemy::ScalingEnemy(const QPixmap &pic, double scale)
+ScalingEnemy::ScalingEnemy(const QPixmap& pic, double scale)
     : Enemy(pic, scale),
       m_scalingTimer(nullptr),
       m_baseScale(scale),
-      m_minScale(1.0), // 最小缩放到100%
-      m_maxScale(3.0), // 最大放大到300%
+      m_minScale(3.0),  // 相对于baseScale）
+      m_maxScale(9.0),  //（相对于baseScale，确保高分辨率图片时也有足够大的最大尺寸）
       m_currentScale(1.0),
-      m_scaleSpeed(0.04), // 每次缩放4%
+      m_scaleSpeed(0.04),  // 每次缩放4%
       m_scalingUp(true),
-      m_originalPixmap(pic)
-{
+      m_originalPixmap(pic) {
     // 设置移动模式为绕圈移动
     setMovementPattern(MOVE_CIRCLE);
 
     // 设置绕圈参数
-    setCircleRadius(180.0); // 绕圈半径
-    setSpeed(2.5);          // 移动速度
-    setHealth(25);          // 生命值
-    setContactDamage(3);    // 接触伤害
+    setCircleRadius(180.0);  // 绕圈半径
+    setSpeed(2.5);           // 移动速度
+    setHealth(25);           // 生命值
+    setContactDamage(3);     // 接触伤害
 
     // 创建缩放定时器
     m_scalingTimer = new QTimer(this);
     connect(m_scalingTimer, &QTimer::timeout, this, &ScalingEnemy::updateScaling);
-    m_scalingTimer->start(50); // 每50ms更新一次缩放
+    m_scalingTimer->start(50);  // 每50ms更新一次缩放
 }
 
-ScalingEnemy::~ScalingEnemy()
-{
-    if (m_scalingTimer)
-    {
+ScalingEnemy::~ScalingEnemy() {
+    if (m_scalingTimer) {
         m_scalingTimer->stop();
         delete m_scalingTimer;
         m_scalingTimer = nullptr;
     }
 }
 
-void ScalingEnemy::pauseTimers()
-{
+void ScalingEnemy::pauseTimers() {
     Enemy::pauseTimers();
-    if (m_scalingTimer)
-    {
+    if (m_scalingTimer) {
         m_scalingTimer->stop();
     }
 }
 
-void ScalingEnemy::resumeTimers()
-{
+void ScalingEnemy::resumeTimers() {
     Enemy::resumeTimers();
-    if (m_scalingTimer)
-    {
+    if (m_scalingTimer) {
         m_scalingTimer->start(50);
     }
 }
 
-void ScalingEnemy::updateScaling()
-{
+void ScalingEnemy::updateScaling() {
     // 更新缩放比例
-    if (m_scalingUp)
-    {
+    if (m_scalingUp) {
         m_currentScale += m_scaleSpeed;
-        if (m_currentScale >= m_maxScale)
-        {
+        if (m_currentScale >= m_maxScale) {
             m_currentScale = m_maxScale;
             m_scalingUp = false;
         }
-    }
-    else
-    {
+    } else {
         m_currentScale -= m_scaleSpeed;
-        if (m_currentScale <= m_minScale)
-        {
+        if (m_currentScale <= m_minScale) {
             m_currentScale = m_minScale;
             m_scalingUp = true;
         }
@@ -89,18 +76,15 @@ void ScalingEnemy::updateScaling()
     setScale(m_baseScale * m_currentScale);
 }
 
-void ScalingEnemy::onContactWithPlayer(Player *p)
-{
+void ScalingEnemy::onContactWithPlayer(Player* p) {
     Q_UNUSED(p);
     // 接触时50%概率触发昏睡效果
-    if (QRandomGenerator::global()->bounded(100) < 50)
-    {
+    if (QRandomGenerator::global()->bounded(100) < 50) {
         applySleepEffect();
     }
 }
 
-void ScalingEnemy::attackPlayer()
-{
+void ScalingEnemy::attackPlayer() {
     if (!player)
         return;
 
@@ -108,28 +92,18 @@ void ScalingEnemy::attackPlayer()
     if (m_isPaused)
         return;
 
-    // 近战攻击：检测碰撞
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item : collisions)
-    {
-        Player *p = dynamic_cast<Player *>(item);
-        if (p)
-        {
-            p->takeDamage(contactDamage);
+    // 近战攻击：使用像素级碰撞检测
+    if (Entity::pixelCollision(this, player)) {
+        player->takeDamage(contactDamage);
 
-            // 50%概率触发昏睡效果
-            if (QRandomGenerator::global()->bounded(100) < 50)
-            {
-                applySleepEffect();
-            }
-
-            break;
+        // 50%概率触发昏睡效果
+        if (QRandomGenerator::global()->bounded(100) < 50) {
+            applySleepEffect();
         }
     }
 }
 
-void ScalingEnemy::applySleepEffect()
-{
+void ScalingEnemy::applySleepEffect() {
     if (!player || !scene())
         return;
 
@@ -147,12 +121,12 @@ void ScalingEnemy::applySleepEffect()
     player->setEffectCooldown(true);
 
     // 显示"昏睡ZZZ"文字提示
-    QGraphicsTextItem *sleepText = new QGraphicsTextItem("昏睡ZZZ");
+    QGraphicsTextItem* sleepText = new QGraphicsTextItem("昏睡ZZZ");
     QFont font;
     font.setPointSize(16);
     font.setBold(true);
     sleepText->setFont(font);
-    sleepText->setDefaultTextColor(QColor(128, 128, 128)); // 灰色
+    sleepText->setDefaultTextColor(QColor(128, 128, 128));  // 灰色
     sleepText->setPos(player->pos().x(), player->pos().y() - 40);
     sleepText->setZValue(200);
     scene()->addItem(sleepText);
@@ -164,8 +138,7 @@ void ScalingEnemy::applySleepEffect()
     QPointer<Player> playerPtr = player;
 
     // 1.5秒后恢复移动并删除文字
-    QTimer::singleShot(1500, [playerPtr, sleepText]()
-                       {
+    QTimer::singleShot(1500, [playerPtr, sleepText]() {
         if (playerPtr) {
             playerPtr->setCanMove(true);
             qDebug() << "昏睡效果结束，玩家恢复移动，3秒后可再次触发";

@@ -177,8 +177,9 @@ QRectF Entity::pixmapSceneBoundingRect() const {
     if (pix.isNull()) {
         return QRectF();
     }
-    // 直接使用pixmap的尺寸和当前位置计算场景边界框
-    return QRectF(scenePos(), QSizeF(pix.width(), pix.height()));
+    // 考虑scale变换，使用实际显示尺寸
+    qreal s = scale();
+    return QRectF(scenePos(), QSizeF(pix.width() * s, pix.height() * s));
 }
 
 bool Entity::pixelCollision(Entity* a, Entity* b) {
@@ -257,7 +258,9 @@ bool Entity::pixelCollisionWithPixmapItem(Entity* entity, QGraphicsPixmapItem* i
 
     // 使用实际pixmap边界框
     QRectF rectA = entity->pixmapSceneBoundingRect();
-    QRectF rectB = QRectF(item->scenePos(), QSizeF(item->pixmap().width(), item->pixmap().height()));
+    // 考虑scale变换
+    qreal scaleB = item->scale();
+    QRectF rectB = QRectF(item->scenePos(), QSizeF(item->pixmap().width() * scaleB, item->pixmap().height() * scaleB));
 
     // 快速 AABB 检测：如果边界框不相交，直接返回 false
     QRectF intersection = rectA.intersected(rectB);
