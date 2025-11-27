@@ -108,6 +108,8 @@ signals:
     void backToMenu();
 
     void requestRestart();
+
+    void showVictoryUI();
 };
 
 #endif  // GAMEVIEW_H

@@ -286,14 +286,124 @@ void GameView::onLevelCompleted() {
     QTimer::singleShot(2000, this, &GameView::advanceToNextLevel);
 }
 
+void GameView::showVictoryUI()
+{
+    QRectF rect = scene->sceneRect();
+    int W = rect.width();
+    int H = rect.height();
+
+    // ====== 半透明遮罩 ======
+    auto *overlay = new QGraphicsRectItem(0, 0, W, H);
+    overlay->setBrush(QColor(0, 0, 0, 160));
+    overlay->setPen(Qt::NoPen);
+    overlay->setZValue(30000);
+    scene->addItem(overlay);
+
+    // ====== 金色背景板 ======
+    int bgW = 420;
+    int bgH = 300;
+    int bgX = (W - bgW) / 2;
+    int bgY = (H - bgH) / 2;
+
+    auto *bg = new QGraphicsRectItem(bgX, bgY, bgW, bgH, overlay);
+    bg->setBrush(QColor(60, 45, 10, 220));  // 金棕色
+    bg->setPen(QPen(QColor(255, 215, 0), 4)); // 金色边框
+
+
+    // ====== 金色标题 ======
+    QGraphicsTextItem *title = new QGraphicsTextItem("🎉 恭喜通关！🎉", overlay);
+    QFont titleFont("Microsoft YaHei", 28, QFont::Bold);
+    title->setFont(titleFont);
+    title->setDefaultTextColor(QColor(255, 230, 150));  // 柔金色
+
+    qreal tW = title->boundingRect().width();
+    title->setPos((W - tW) / 2, bgY + 25);
+
+    // ====== 统一的金色按钮样式 ======
+    QString goldButtonStyle =
+            "QPushButton {"
+            "   background-color: qlineargradient("
+            "       x1:0, y1:0, x2:0, y2:1,"
+            "       stop:0 #FFD700, stop:1 #E6BE8A"
+            "   );"
+            "   color: #4a3500;"
+            "   border: 2px solid #cfa300;"
+            "   border-radius: 10px;"
+            "   padding: 8px;"
+            "   font-family: 'Microsoft YaHei';"
+            "   font-size: 16px;"
+            "   font-weight: bold;"
+            "   letter-spacing: 2px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient("
+            "       x1:0, y1:0, x2:0, y2:1,"
+            "       stop:0 #FFE066, stop:1 #F1C27D"
+            "   );"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: qlineargradient("
+            "       x1:0, y1:0, x2:0, y2:1,"
+            "       stop:0 #E6BE8A, stop:1 #C9A368"
+            "   );"
+            "}";
+
+    int btnW = 240;
+    int btnH = 48;
+    int btnX = (W - btnW) / 2;
+    int btnY = bgY + 110;
+    int spacing = 60;
+
+    // ====== 返回主菜单 ======
+    QPushButton *menuBtn = new QPushButton("返回主菜单");
+    menuBtn->setFixedSize(btnW, btnH);
+    menuBtn->setStyleSheet(goldButtonStyle);
+
+    auto *menuProxy = new QGraphicsProxyWidget(overlay);
+    menuProxy->setWidget(menuBtn);
+    menuProxy->setPos(btnX, btnY);
+
+    // ====== 继续挑战（可选） ======
+    QPushButton *againBtn = new QPushButton("再次挑战");
+    againBtn->setFixedSize(btnW, btnH);
+    againBtn->setStyleSheet(goldButtonStyle);
+
+    auto *againProxy = new QGraphicsProxyWidget(overlay);
+    againProxy->setWidget(againBtn);
+    againProxy->setPos(btnX, btnY + spacing);
+
+    // ====== 退出游戏 ======
+    QPushButton *quitBtn = new QPushButton("退出游戏");
+    quitBtn->setFixedSize(btnW, btnH);
+    quitBtn->setStyleSheet(goldButtonStyle);
+
+    auto *quitProxy = new QGraphicsProxyWidget(overlay);
+    quitProxy->setWidget(quitBtn);
+    quitProxy->setPos(btnX, btnY + spacing * 2);
+
+    // ====== 信号连接 ======
+    connect(menuBtn, &QPushButton::clicked, this, [this, overlay]() {
+        overlay->hide();
+        emit backToMenu();
+    });
+
+    connect(againBtn, &QPushButton::clicked, this, [this, overlay]() {
+        overlay->hide();
+        emit requestRestart();
+    });
+
+    connect(quitBtn, &QPushButton::clicked, this, []() {
+        QApplication::quit();
+    });
+}
+
 void GameView::advanceToNextLevel() {
     currentLevel++;
 
     // 检查是否所有关卡都已完成
     if (currentLevel > 3) {
         // 游戏通关
-        QMessageBox::information(this, "恭喜", "你已通关所有关卡！");
-        emit backToMenu();
+        showVictoryUI();
         return;
     }
 
