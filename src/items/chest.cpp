@@ -4,36 +4,35 @@
 #include "../core/audiomanager.h"
 #include "player.h"
 
-Chest::Chest(Player *pl, bool locked_, const QPixmap &pic_chest, double scale) : locked(locked_), isOpened(false),
-                                                                                 player(pl) {
+Chest::Chest(Player* pl, bool locked_, const QPixmap& pic_chest, double scale) : locked(locked_), isOpened(false), player(pl) {
     if (scale == 1.0) {
         this->setPixmap(pic_chest);
     } else {
         this->setPixmap(pic_chest.scaled(
-                pic_chest.width() * scale,
-                pic_chest.height() * scale,
-                Qt::KeepAspectRatio,
-                Qt::SmoothTransformation));
+            pic_chest.width() * scale,
+            pic_chest.height() * scale,
+            Qt::KeepAspectRatio,
+            Qt::SmoothTransformation));
     }
 
-    DamageUpItem *dam = new DamageUpItem("", 1.05);
+    DamageUpItem* dam = new DamageUpItem("", 1.05);
     items.push_back(dam);
-    SpeedUpItem *spd = new SpeedUpItem("", 1.05);
+    SpeedUpItem* spd = new SpeedUpItem("", 1.05);
     items.push_back(spd);
-    ShootSpeedUpItem *shootspd = new ShootSpeedUpItem("", 1.05);
+    ShootSpeedUpItem* shootspd = new ShootSpeedUpItem("", 1.05);
     items.push_back(shootspd);
-    BulletSpeedUpItem *bltspd = new BulletSpeedUpItem("", 1.05);
+    BulletSpeedUpItem* bltspd = new BulletSpeedUpItem("", 1.05);
     items.push_back(bltspd);
-    RedHeartItem *redheart1 = new RedHeartItem("", 1);
-    RedHeartContainerItem *redheart2 = new RedHeartContainerItem("", 1);
+    RedHeartItem* redheart1 = new RedHeartItem("", 1);
+    RedHeartContainerItem* redheart2 = new RedHeartContainerItem("", 1);
     items.push_back(redheart1);
     items.push_back(redheart2);
     // BrimstoneItem *brim = new BrimstoneItem("");
     // items.push_back(brim);
-    BombItem *bmb = new BombItem("", 1);
-    items.push_back(bmb);
-    KeyItem *key1 = new KeyItem("", 1);
-    KeyItem *key2 = new KeyItem("", 2);
+    // BombItem *bmb = new BombItem("", 1);  // 已移除炸弹
+    // items.push_back(bmb);
+    KeyItem* key1 = new KeyItem("", 1);
+    KeyItem* key2 = new KeyItem("", 2);
     items.push_back(key1);
     items.push_back(key2);
 
@@ -119,23 +118,23 @@ void Chest::bonusEffects() {
     }
 
     // 获取原始指针用于创建效果
-    Player *pl = player.data();
+    Player* pl = player.data();
 
-    QVector<StatusEffect *> effectstoPlayer;
+    QVector<StatusEffect*> effectstoPlayer;
 
-    SpeedEffect *sp = new SpeedEffect(5, 1.5);
+    SpeedEffect* sp = new SpeedEffect(5, 1.5);
     effectstoPlayer.push_back(sp);
-    DamageEffect *dam = new DamageEffect(5, 1.5);
+    DamageEffect* dam = new DamageEffect(5, 1.5);
     effectstoPlayer.push_back(dam);
-    shootSpeedEffect *shootsp = new shootSpeedEffect(5, 1.5);
+    shootSpeedEffect* shootsp = new shootSpeedEffect(5, 1.5);
     effectstoPlayer.push_back(shootsp);
-    blackHeartEffect *black1 = new blackHeartEffect(pl, 1);
-    blackHeartEffect *black2 = new blackHeartEffect(pl, 1);
+    blackHeartEffect* black1 = new blackHeartEffect(pl, 1);
+    blackHeartEffect* black2 = new blackHeartEffect(pl, 1);
     effectstoPlayer.push_back(black1);
     effectstoPlayer.push_back(black2);
-    decDamage *dec = new decDamage(5, 0.5);
+    decDamage* dec = new decDamage(5, 0.5);
     effectstoPlayer.push_back(dec);
-    InvincibleEffect *inv = new InvincibleEffect(5);
+    InvincibleEffect* inv = new InvincibleEffect(5);
     effectstoPlayer.push_back(inv);
 
     // 以1/3的概率获得额外增益效果
@@ -145,35 +144,35 @@ void Chest::bonusEffects() {
         if (player) {
             effectstoPlayer[i]->applyTo(player.data());
         }
-        for (StatusEffect *effect: effectstoPlayer) {
-            if (effect != effectstoPlayer[i]) { // 只删除未使用的
+        for (StatusEffect* effect : effectstoPlayer) {
+            if (effect != effectstoPlayer[i]) {  // 只删除未使用的
                 effect->deleteLater();
             }
         }
     } else {
         // 如果没有选中任何效果，清理所有效果
-        for (StatusEffect *effect: effectstoPlayer) {
+        for (StatusEffect* effect : effectstoPlayer) {
             effect->deleteLater();
         }
     }
 }
 
-lockedChest::lockedChest(Player *pl, const QPixmap &pic_chest, double scale) : Chest(pl, true, pic_chest, scale) {
+lockedChest::lockedChest(Player* pl, const QPixmap& pic_chest, double scale) : Chest(pl, true, pic_chest, scale) {
     items.clear();
 
     // 锁住的箱子奖励提高
-    DamageUpItem *dam = new DamageUpItem("", 1.1);
+    DamageUpItem* dam = new DamageUpItem("", 1.1);
     items.push_back(dam);
-    SpeedUpItem *spd = new SpeedUpItem("", 1.1);
+    SpeedUpItem* spd = new SpeedUpItem("", 1.1);
     items.push_back(spd);
-    ShootSpeedUpItem *shootspd = new ShootSpeedUpItem("", 1.1);
+    ShootSpeedUpItem* shootspd = new ShootSpeedUpItem("", 1.1);
     items.push_back(shootspd);
-    BulletSpeedUpItem *bltspd = new BulletSpeedUpItem("", 1.1);
+    BulletSpeedUpItem* bltspd = new BulletSpeedUpItem("", 1.1);
     items.push_back(bltspd);
-    RedHeartContainerItem *redheart1 = new RedHeartContainerItem("", 2);
+    RedHeartContainerItem* redheart1 = new RedHeartContainerItem("", 2);
     items.push_back(redheart1);
-    BrimstoneItem *brim = new BrimstoneItem("");
+    BrimstoneItem* brim = new BrimstoneItem("");
     items.push_back(brim);
-    BombItem *bmb = new BombItem("", 2);
-    items.push_back(bmb);
+    // BombItem *bmb = new BombItem("", 2);  // 已移除炸弹
+    // items.push_back(bmb);
 }

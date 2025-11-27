@@ -64,10 +64,8 @@ ScalingEnemy::ScalingEnemy(const QPixmap &pic, double scale)
     painter.end();
 }
 
-ScalingEnemy::~ScalingEnemy()
-{
-    if (m_scalingTimer)
-    {
+ScalingEnemy::~ScalingEnemy() {
+    if (m_scalingTimer) {
         m_scalingTimer->stop();
         delete m_scalingTimer;
         m_scalingTimer = nullptr;
@@ -80,11 +78,9 @@ ScalingEnemy::~ScalingEnemy()
     }
 }
 
-void ScalingEnemy::pauseTimers()
-{
+void ScalingEnemy::pauseTimers() {
     Enemy::pauseTimers();
-    if (m_scalingTimer)
-    {
+    if (m_scalingTimer) {
         m_scalingTimer->stop();
     }
     if (m_flashTimer)
@@ -93,11 +89,9 @@ void ScalingEnemy::pauseTimers()
     }
 }
 
-void ScalingEnemy::resumeTimers()
-{
+void ScalingEnemy::resumeTimers() {
     Enemy::resumeTimers();
-    if (m_scalingTimer)
-    {
+    if (m_scalingTimer) {
         m_scalingTimer->start(50);
     }
 }
@@ -115,20 +109,15 @@ void ScalingEnemy::updateScaledPixmaps()
 void ScalingEnemy::updateScaling()
 {
     // 更新缩放比例
-    if (m_scalingUp)
-    {
+    if (m_scalingUp) {
         m_currentScale += m_scaleSpeed;
-        if (m_currentScale >= m_maxScale)
-        {
+        if (m_currentScale >= m_maxScale) {
             m_currentScale = m_maxScale;
             m_scalingUp = false;
         }
-    }
-    else
-    {
+    } else {
         m_currentScale -= m_scaleSpeed;
-        if (m_currentScale <= m_minScale)
-        {
+        if (m_currentScale <= m_minScale) {
             m_currentScale = m_minScale;
             m_scalingUp = true;
         }
@@ -220,8 +209,7 @@ QPainterPath ScalingEnemy::shape() const
     return path;
 }
 
-void ScalingEnemy::onContactWithPlayer(Player *p)
-{
+void ScalingEnemy::onContactWithPlayer(Player* p) {
     Q_UNUSED(p);
     if (QRandomGenerator::global()->bounded(100) < 50)
     {
@@ -229,8 +217,7 @@ void ScalingEnemy::onContactWithPlayer(Player *p)
     }
 }
 
-void ScalingEnemy::attackPlayer()
-{
+void ScalingEnemy::attackPlayer() {
     if (!player)
         return;
 
@@ -254,8 +241,7 @@ void ScalingEnemy::attackPlayer()
     }
 }
 
-void ScalingEnemy::applySleepEffect()
-{
+void ScalingEnemy::applySleepEffect() {
     if (!player || !scene())
         return;
 

@@ -16,15 +16,15 @@ const int bomb_r = 100;
 const int bombHurt = 5;
 
 class Player : public Entity {
-Q_OBJECT
+    Q_OBJECT
     int redContainers;
     double redHearts;
     int soulHearts;
     int blackHearts;                   // 是否短暂无敌，防止持续攻击
     QMap<int, bool> shootKeysPressed;  // 射击按键状态
-    QTimer *keysTimer;
-    QTimer *crashTimer;
-    QTimer *shootTimer;  // 射击检测定时器（持续检测）
+    QTimer* keysTimer;
+    QTimer* crashTimer;
+    QTimer* shootTimer;  // 射击检测定时器（持续检测）
     int shootCooldown;   // 射击冷却时间（毫秒）
     int shootType;       // 0=普通, 1=激光
     QPixmap pic_bullet;
@@ -39,22 +39,22 @@ Q_OBJECT
     int bulletHurt;  // 玩家子弹伤害，可配置
     bool isDead;     // 玩家是否已死亡
 
-public:
+   public:
     friend class Item;
 
     QMap<int, bool> keysPressed;
 
-    explicit Player(const QPixmap &pic_player, double scale = 1.0);
+    explicit Player(const QPixmap& pic_player, double scale = 1.0);
 
-    void keyPressEvent(QKeyEvent *event) override;  // 控制移动
-    void keyReleaseEvent(QKeyEvent *event) override;
+    void keyPressEvent(QKeyEvent* event) override;  // 控制移动
+    void keyReleaseEvent(QKeyEvent* event) override;
 
     void move() override;
 
-    void tryTeleport();  // Q键瞬移
-    void activateUltimate(); // E键大招
+    void tryTeleport();       // Q键瞬移
+    void activateUltimate();  // E键大招
 
-    void setBulletPic(const QPixmap &pic) { pic_bullet = pic; };
+    void setBulletPic(const QPixmap& pic) { pic_bullet = pic; };
 
     void setShootCooldown(int milliseconds) { shootCooldown = milliseconds; }  // 设置射击冷却时间
     [[nodiscard]] int getShootCooldown() const { return shootCooldown; };
@@ -122,7 +122,7 @@ public:
     void setPermanentInvincible(bool invincible);  // 持久无敌（手动取消）
 
     void addBombs(int n) { bombs += n; };
-    int getBombs() {return bombs;};
+    int getBombs() { return bombs; };
 
     void placeBomb();
 
@@ -176,14 +176,14 @@ public:
 
     bool isPaused() const { return m_isPaused; }
 
-signals:
+   signals:
 
     void playerDied();  // 玩家死亡信号
     void healthChanged(float current, float max);
 
     void playerDamaged();
 
-private:
+   private:
     bool m_canMove = true;               // 是否可以移动
     bool m_canShoot = true;              // 是否可以射击
     bool m_isPaused = false;             // 是否暂停
@@ -195,23 +195,23 @@ private:
     int m_teleportCooldownMs = 5000;     // 瞬移冷却（毫秒）
     double m_teleportDistance = 120.0;   // 瞬移距离
 
-    bool m_isUltimateActive = false;    // 大招是否进行中
-    qint64 m_lastUltimateTime = 0;      // 上次大招释放时间
-    int m_ultimateCooldownMs = 20000;   // 大招冷却
-    int m_ultimateDurationMs = 5000;    // 大招持续时间
-    double m_ultimateSpeedMultiplier = 1.5; // 大招移速倍率
-    int m_ultimateOriginalBulletHurt = 0;   // 大招前的伤害
-    double m_ultimateOriginalSpeed = 0.0;   // 大招前的速度
-    QTimer *m_ultimateTimer = nullptr;      // 大招持续计时
+    bool m_isUltimateActive = false;       // 增伤技能是否进行中
+    qint64 m_lastUltimateTime = 0;         // 上次技能释放时间
+    int m_ultimateCooldownMs = 60000;      // 技能冷却60秒
+    int m_ultimateDurationMs = 10000;      // 技能持续10秒
+    int m_ultimateOriginalBulletHurt = 0;  // 技能前的伤害
+    double m_bulletScaleMultiplier = 2.0;  // 技能期间子弹缩放倍率
+    QPixmap m_originalBulletPic;           // 原始子弹图片
+    QTimer* m_ultimateTimer = nullptr;     // 技能持续计时
 
     QPointF currentMoveDirection() const;
 
-    QPointF clampPositionWithinRoom(const QPointF &candidate) const;
+    QPointF clampPositionWithinRoom(const QPointF& candidate) const;
 
     void endUltimate();
 
-protected:
-    void focusOutEvent(QFocusEvent *event) override;
+   protected:
+    void focusOutEvent(QFocusEvent* event) override;
 };
 
 #endif  // PLAYER_H

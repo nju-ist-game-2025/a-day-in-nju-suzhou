@@ -4,6 +4,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
 #include "../core/audiomanager.h"
+#include "entity.h"
 #include "player.h"
 
 ExamPaper::ExamPaper(QPointF startPos, QPointF direction, const QPixmap& pic, Player* player)
@@ -83,17 +84,12 @@ void ExamPaper::checkCollision() {
     if (!m_player || m_isDestroying)
         return;
 
-    // 检测与玩家的碰撞
-    QList<QGraphicsItem*> collisions = collidingItems();
-    for (QGraphicsItem* item : collisions) {
-        Player* p = dynamic_cast<Player*>(item);
-        if (p) {
-            // 击中玩家
-            p->takeDamage(m_damage);
-            applyStunEffect();
-            destroy();
-            break;
-        }
+    // 使用像素级碰撞检测
+    if (Entity::pixelCollisionWithPixmapItem(m_player, this)) {
+        // 击中玩家
+        m_player->takeDamage(m_damage);
+        applyStunEffect();
+        destroy();
     }
 }
 

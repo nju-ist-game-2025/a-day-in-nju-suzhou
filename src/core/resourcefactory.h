@@ -15,14 +15,14 @@
  * 支持从文件加载PNG图片或使用默认图形
  */
 class ResourceFactory {
-public:
+   public:
     /**
      * @brief 从文件加载图片，如果失败则抛出错误
      * @param filePath 图片文件路径（相对于exe或绝对路径）
      * @return 加载的QPixmap
      * @throws QString 加载失败时抛出错误信息
      */
-    static QPixmap loadImage(const QString &filePath) {
+    static QPixmap loadImage(const QString& filePath) {
         if (!QFile::exists(filePath)) {
             QString errorMsg = QString("资源文件不存在: %1").arg(filePath);
             qCritical() << errorMsg;
@@ -47,7 +47,7 @@ public:
      * @return 缩放后的QPixmap
      * @throws QString 加载失败时抛出错误信息
      */
-    static QPixmap loadImageScaled(const QString &filePath, int width, int height) {
+    static QPixmap loadImageScaled(const QString& filePath, int width, int height) {
         QPixmap pixmap = loadImage(filePath);
         if (pixmap.width() != width || pixmap.height() != height) {
             return pixmap.scaled(width, height, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -89,7 +89,7 @@ public:
      * @param enemyType 敌人类型名称（如 "clock_normal", "sock_angrily"）
      * @return 缩放后的敌人图片
      */
-    static QPixmap createEnemyImage(int size, int levelNumber = 1, const QString &enemyType = "") {
+    static QPixmap createEnemyImage(int size, int levelNumber = 1, const QString& enemyType = "") {
         QString imagePath;
 
         if (!enemyType.isEmpty()) {
@@ -104,13 +104,40 @@ public:
     }
 
     /**
+     * @brief 加载高分辨率敌人图片（不缩放或仅轻微缩放）
+     * 用于ScalingEnemy等需要动态缩放的敌人，避免先缩小再放大导致画质损失
+     * @param levelNumber 关卡号
+     * @param enemyType 敌人类型名称
+     * @param maxSize 最大尺寸限制（0表示不限制，保持原始尺寸）
+     * @return 原始或轻微缩放后的敌人图片
+     */
+    static QPixmap createEnemyImageHighRes(int levelNumber, const QString& enemyType, int maxSize = 200) {
+        QString imagePath;
+
+        if (!enemyType.isEmpty()) {
+            imagePath = QString("assets/enemy/level_%1/%2.png").arg(levelNumber).arg(enemyType);
+        } else {
+            imagePath = ConfigManager::instance().getAssetPath("enemy");
+        }
+
+        QPixmap pixmap = loadImage(imagePath);
+
+        // 如果指定了maxSize且图片超过该尺寸，则缩小到maxSize（保持高质量）
+        if (maxSize > 0 && (pixmap.width() > maxSize || pixmap.height() > maxSize)) {
+            return pixmap.scaled(maxSize, maxSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        }
+
+        return pixmap;
+    }
+
+    /**
      * @brief 加载Boss图像
      * @param size 图片尺寸
      * @param levelNumber 关卡号
      * @param bossType Boss类型名称（如 "nightmare", "nightmare2", "washmachine"）
      * @throws QString 加载失败时抛出错误信息
      */
-    static QPixmap createBossImage(int size, int levelNumber = 1, const QString &bossType = "") {
+    static QPixmap createBossImage(int size, int levelNumber = 1, const QString& bossType = "") {
         QString imagePath;
 
         if (!bossType.isEmpty()) {
@@ -146,7 +173,7 @@ public:
      * @param height 目标高度
      * @throws QString 加载失败时抛出错误信息
      */
-    static QPixmap loadBackgroundImage(const QString &backgroundType, int width = 800, int height = 600) {
+    static QPixmap loadBackgroundImage(const QString& backgroundType, int width = 800, int height = 600) {
         QString imagePath = ConfigManager::instance().getAssetPath(backgroundType);
         QPixmap pixmap = loadImage(imagePath);
         return pixmap.scaled(width, height, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
