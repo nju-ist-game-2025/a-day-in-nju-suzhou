@@ -28,9 +28,8 @@ class ZhuhaoEnemy;
 
 class QGraphicsScene;
 
-class Level : public QObject
-{
-    Q_OBJECT
+class Level : public QObject {
+Q_OBJECT
 
 public:
     explicit Level(Player *player, QGraphicsScene *scene, QObject *parent = nullptr);
@@ -86,8 +85,9 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:
+
     void levelCompleted(int
-                            levelNumber);
+                        levelNumber);
 
     void roomEntered(int roomIndex);
 
@@ -132,13 +132,18 @@ private:
 
     // TeacherBoss相关
     void connectTeacherBossSignals(TeacherBoss *boss);
+
     void onTeacherBossRequestDialog(const QStringList &dialogs, const QString &background);
+
     void onTeacherBossRequestChangeBackground(const QString &backgroundPath);
+
     void onTeacherBossRequestTransitionText(const QString &text);
 
     // Boss奖励机制（乌萨奇）
     void startBossRewardSequence();
+
     void onUsagiRequestShowDialog(const QStringList &dialog);
+
     void onUsagiRewardCompleted();
 
     // 精英房间相关
@@ -148,6 +153,7 @@ private:
 
     // 辅助方法：批量暂停/恢复敌人定时器
     void pauseAllEnemyTimers();
+
     void resumeAllEnemyTimers();
 
     int m_levelNumber;
@@ -227,15 +233,18 @@ private:
     QPointer<ZhuhaoEnemy> m_zhuhaoEnemy; // 朱昊精英怪引用
 
 public slots:
+
     void onDialogClicked();
 
     void nextDialog();
+
     void showPhaseTransitionText(const QString &text); // 显示阶段转换文字提示（可被信号连接或直接调用）
 
     // 背景渐变接口：将背景渐变到给定路径（绝对路径或相对 assets/），duration 毫秒
     void fadeBackgroundTo(const QString &imagePath, int duration);
 
 private slots:
+
     void onEnemyDying(Enemy *enemy);
 
     void finishStory();

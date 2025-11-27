@@ -19,35 +19,44 @@ class Player;
  * - 触发后或超时后消失
  */
 class MleTrap : public QObject, public QGraphicsItem {
-    Q_OBJECT
+Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
 
-   public:
-    MleTrap(QPointF position, Player* player);
+public:
+    MleTrap(QPointF position, Player *player);
+
     ~MleTrap() override;
 
     // QGraphicsItem 接口
     QRectF boundingRect() const override;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
     // 设置陷阱参数
     void setRadius(double radius) { m_radius = radius; }
+
     void setRootDuration(int ms) { m_rootDuration = ms; }
+
     void setLifetime(int ms) { m_lifetime = ms; }
 
-   private slots:
+private slots:
+
     void onUpdateTimer();
+
     void onLifetimeTimeout();
 
-   private:
+private:
     void checkPlayerCollision();
+
     void applyRootEffect();
+
     void destroy();
-    void drawSpiral(QPainter* painter);
+
+    void drawSpiral(QPainter *painter);
 
     QPointer<Player> m_player;
-    QTimer* m_updateTimer;    // 更新定时器
-    QTimer* m_lifetimeTimer;  // 生命周期定时器
+    QTimer *m_updateTimer;    // 更新定时器
+    QTimer *m_lifetimeTimer;  // 生命周期定时器
 
     QPointF m_position;    // 陷阱位置
     double m_radius;       // 陷阱半径

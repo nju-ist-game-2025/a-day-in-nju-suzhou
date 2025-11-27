@@ -50,11 +50,14 @@ public:
 signals:
 
     // 请求Level执行操作
-    void requestSpawnEnemies(const QVector<QPair<QString, int>>& enemies);
-    void requestShowDialog(const QStringList& dialogs, const QString& background);
-    void requestChangeBackground(const QString& backgroundPath);
+    void requestSpawnEnemies(const QVector<QPair<QString, int>> &enemies);
+
+    void requestShowDialog(const QStringList &dialogs, const QString &background);
+
+    void requestChangeBackground(const QString &backgroundPath);
+
     void requestAbsorbAllEntities();                      // 请求吸纳所有实体
-    void requestShowTransitionText(const QString& text);  // 请求显示阶段转换文字
+    void requestShowTransitionText(const QString &text);  // 请求显示阶段转换文字
 
     // 阶段变化通知
     void phaseChanged(int newPhase);

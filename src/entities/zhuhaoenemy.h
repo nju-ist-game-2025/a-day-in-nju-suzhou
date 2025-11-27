@@ -6,6 +6,7 @@
 #include <QVector>
 
 class Player;
+
 class ZhuhaoProjectile;
 
 /**
@@ -20,12 +21,12 @@ class ZhuhaoProjectile;
  *   2. 听不懂子弹 "叽里咕噜" - 2点伤害，50%昏迷或50%惊吓
  *   3. CPU子弹 - 2点伤害，100%惊吓效果
  */
-class ZhuhaoEnemy : public Enemy
-{
-    Q_OBJECT
+class ZhuhaoEnemy : public Enemy {
+Q_OBJECT
 
 public:
     explicit ZhuhaoEnemy(const QPixmap &pic, double scale = 1.0);
+
     ~ZhuhaoEnemy() override;
 
     // 重写移动方法，不跟随玩家
@@ -36,14 +37,14 @@ public:
 
     // 暂停/恢复定时器
     void pauseTimers() override;
+
     void resumeTimers() override;
 
     // 初始化到随机边缘位置（公开方法，供Level调用）
     void initializeAtRandomEdge();
 
     // 边缘位置枚举
-    enum EdgePosition
-    {
+    enum EdgePosition {
         EDGE_TOP,           // 上边缘
         EDGE_BOTTOM,        // 下边缘
         EDGE_LEFT,          // 左边缘
@@ -58,6 +59,7 @@ protected:
     void attackPlayer() override; // 不使用近战攻击
 
 private slots:
+
     void onMoveTimer();  // 移动更新
     void onShootTimer(); // 射击定时器
 
@@ -97,26 +99,28 @@ private:
 /**
  * @brief 朱昊的特殊弹幕子弹基类
  */
-class ZhuhaoProjectile : public QObject, public QGraphicsPixmapItem
-{
-    Q_OBJECT
+class ZhuhaoProjectile : public QObject, public QGraphicsPixmapItem {
+Q_OBJECT
 
 public:
-    enum BulletType
-    {
+    enum BulletType {
         SLEEP_ZZZ, // 昏睡子弹 "zzz"
         CONFUSED,  // 听不懂子弹 "叽里咕噜"
         CPU        // CPU子弹
     };
 
     ZhuhaoProjectile(BulletType type, QPointF startPos, double angle, double speed, QGraphicsScene *scene);
+
     ~ZhuhaoProjectile() override;
 
     void setPaused(bool paused);
+
     bool isPaused() const { return m_isPaused; }
 
 private slots:
+
     void onMoveTimer();
+
     void checkCollision();
 
 private:

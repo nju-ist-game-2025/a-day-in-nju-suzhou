@@ -23,7 +23,7 @@ struct SoundPool {
 };
 
 class AudioManager : public QObject {
-    Q_OBJECT
+Q_OBJECT
 
 public:
     static AudioManager &instance();
@@ -66,8 +66,9 @@ private:
 
 private
     slots:
-            void onMediaStatusChanged(QMediaPlayer::MediaStatus
-    status);
+
+    void onMediaStatusChanged(QMediaPlayer::MediaStatus
+                              status);
 };
 
 #endif  // AUDIOMANAGER_H

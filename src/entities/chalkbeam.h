@@ -19,10 +19,11 @@ class Player;
  * - 在爆炸范围内对玩家造成伤害
  */
 class ChalkBeam : public QObject, public QGraphicsPixmapItem {
-    Q_OBJECT
+Q_OBJECT
 
-   public:
-    ChalkBeam(QPointF targetPos, const QPixmap& beamPic, QGraphicsScene* scene);
+public:
+    ChalkBeam(QPointF targetPos, const QPixmap &beamPic, QGraphicsScene *scene);
+
     ~ChalkBeam() override;
 
     // 开始警告阶段
@@ -37,24 +38,30 @@ class ChalkBeam : public QObject, public QGraphicsPixmapItem {
     // 设置爆炸半径
     void setExplosionRadius(double radius) { m_explosionRadius = radius; }
 
-   private slots:
+private slots:
+
     void onWarningTimeout();
+
     void onFallTimer();
+
     void onExplosionComplete();
 
-   private:
+private:
     void createWarningCircle();
+
     void startFalling();
+
     void explode();
+
     void damagePlayer();
 
-    QGraphicsScene* m_scene;
+    QGraphicsScene *m_scene;
     QPointF m_targetPos;   // 目标位置
     QPixmap m_beamPixmap;  // 粉笔图片
 
-    QGraphicsEllipseItem* m_warningCircle;  // 警告圈
-    QTimer* m_warningTimer;                 // 警告定时器
-    QTimer* m_fallTimer;                    // 下落定时器
+    QGraphicsEllipseItem *m_warningCircle;  // 警告圈
+    QTimer *m_warningTimer;                 // 警告定时器
+    QTimer *m_fallTimer;                    // 下落定时器
 
     int m_warningTime;         // 警告时间（毫秒）
     int m_damage;              // 伤害

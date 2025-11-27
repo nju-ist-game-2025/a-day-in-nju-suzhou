@@ -7,8 +7,8 @@
 #include <QTimer>
 #include "player.h"
 
-PillowEnemy::PillowEnemy(const QPixmap& pic, double scale)
-    : Enemy(pic, scale) {
+PillowEnemy::PillowEnemy(const QPixmap &pic, double scale)
+        : Enemy(pic, scale) {
     // 设置移动模式为绕圈移动
     setMovementPattern(MOVE_CIRCLE);
 
@@ -19,7 +19,7 @@ PillowEnemy::PillowEnemy(const QPixmap& pic, double scale)
     setContactDamage(2);     // 接触伤害
 }
 
-void PillowEnemy::onContactWithPlayer(Player* p) {
+void PillowEnemy::onContactWithPlayer(Player *p) {
     Q_UNUSED(p);
     // 接触时100%触发昏睡效果
     applySleepEffect();
@@ -60,7 +60,7 @@ void PillowEnemy::applySleepEffect() {
     player->setEffectCooldown(true);
 
     // 显示"昏睡ZZZ"文字提示
-    QGraphicsTextItem* sleepText = new QGraphicsTextItem("昏睡ZZZ");
+    QGraphicsTextItem *sleepText = new QGraphicsTextItem("昏睡ZZZ");
     QFont font;
     font.setPointSize(16);
     font.setBold(true);

@@ -8,9 +8,8 @@
 #include "enemy.h"
 #include "player.h"
 
-class Room : public QGraphicsScene
-{
-    Q_OBJECT
+class Room : public QGraphicsScene {
+Q_OBJECT
 
     int door_size;
     int change_x;
@@ -29,6 +28,7 @@ class Room : public QGraphicsScene
 
 public:
     Room();
+
     ~Room(); // 析构函数，清理敌人和宝箱
 
     Room(Player *p, bool u, bool d, bool l, bool r);
@@ -39,8 +39,7 @@ public:
 
     int getChangeY() { return change_y; };
 
-    void resetChangeDir()
-    {
+    void resetChangeDir() {
         change_x = 0;
         change_y = 0;
     };
@@ -80,6 +79,7 @@ public:
 
     // 房间清除状态控制（开发者模式用）
     void setCleared(bool cleared);
+
     bool isCleared() const;
 
     void testChange();

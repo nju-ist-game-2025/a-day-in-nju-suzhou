@@ -20,7 +20,8 @@
 #include "level.h"
 #include "pausemenu.h"
 
-GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr), level(nullptr), m_pauseMenu(nullptr), m_isPaused(false), m_playerCharacterPath("assets/player/player.png") {
+GameView::GameView(QWidget *parent) : QWidget(parent), player(nullptr), level(nullptr), m_pauseMenu(nullptr),
+                                      m_isPaused(false), m_playerCharacterPath("assets/player/player.png") {
     // 维持基础可玩尺寸，同时允许继续放大
     setMinimumSize(scene_bound_x, scene_bound_y);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -50,7 +51,7 @@ GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr), level(nu
     scene->setBackgroundBrush(Qt::NoBrush);
 
     // 设置布局
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(view);
 
@@ -67,7 +68,7 @@ GameView::~GameView() {
     }
 }
 
-void GameView::setPlayerCharacter(const QString& characterPath) {
+void GameView::setPlayerCharacter(const QString &characterPath) {
     m_playerCharacterPath = characterPath;
 }
 
@@ -137,7 +138,8 @@ void GameView::initGame() {
         QString characterPath = configCharacterPath.isEmpty() ? m_playerCharacterPath : configCharacterPath;
 
         if (!characterPath.isEmpty() && QFile::exists(characterPath)) {
-            playerPixmap = QPixmap(characterPath).scaled(playerSize, playerSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            playerPixmap = QPixmap(characterPath).scaled(playerSize, playerSize, Qt::KeepAspectRatio,
+                                                         Qt::SmoothTransformation);
         } else {
             playerPixmap = ResourceFactory::createPlayerImage(playerSize);
         }
@@ -230,7 +232,7 @@ void GameView::initGame() {
 
         // 确保初始化后视图立即拉伸到当前窗口大小
         adjustViewToWindow();
-    } catch (const QString& error) {
+    } catch (const QString &error) {
         QMessageBox::critical(this, "资源加载失败", error);
         emit backToMenu();
     }
@@ -268,7 +270,7 @@ void GameView::onLevelCompleted() {
         return;
     isLevelTransition = true;
 
-    QGraphicsTextItem* levelTextItem = new QGraphicsTextItem(QString("关卡完成！准备进入下一关..."));
+    QGraphicsTextItem *levelTextItem = new QGraphicsTextItem(QString("关卡完成！准备进入下一关..."));
     levelTextItem->setDefaultTextColor(Qt::black);
     levelTextItem->setFont(QFont("Arial", 20, QFont::Bold));
     levelTextItem->setPos(200, 200);
@@ -331,7 +333,7 @@ void GameView::advanceToNextLevel() {
 }
 
 void GameView::initAudio() {
-    AudioManager& audio = AudioManager::instance();
+    AudioManager &audio = AudioManager::instance();
 
     // 预加载音效
     audio.preloadSound("player_shoot", "assets/sounds/shoot.wav");
@@ -348,7 +350,7 @@ void GameView::initAudio() {
     qDebug() << "音频系统初始化完成";
 }
 
-void GameView::mousePressEvent(QMouseEvent* event) {
+void GameView::mousePressEvent(QMouseEvent *event) {
     // 剧情模式下，任何鼠标点击都继续对话
     if (level && m_isInStoryMode) {
         level->nextDialog();
@@ -357,7 +359,7 @@ void GameView::mousePressEvent(QMouseEvent* event) {
     }
 }
 
-void GameView::keyPressEvent(QKeyEvent* event) {
+void GameView::keyPressEvent(QKeyEvent *event) {
     if (!event)
         return;
 
@@ -392,7 +394,7 @@ void GameView::keyPressEvent(QKeyEvent* event) {
     }
     // 同时传递给当前房间（用于触发切换检测）
     if (level) {
-        Room* r = level->currentRoom();
+        Room *r = level->currentRoom();
         if (r)
             QCoreApplication::sendEvent(r, event);
     }
@@ -400,7 +402,7 @@ void GameView::keyPressEvent(QKeyEvent* event) {
     QWidget::keyPressEvent(event);
 }
 
-void GameView::keyReleaseEvent(QKeyEvent* event) {
+void GameView::keyReleaseEvent(QKeyEvent *event) {
     if (!event)
         return;
 
@@ -410,7 +412,7 @@ void GameView::keyReleaseEvent(QKeyEvent* event) {
     }
     // 同时传递给当前房间，更新按键释放状态
     if (level) {
-        Room* r = level->currentRoom();
+        Room *r = level->currentRoom();
         if (r)
             QCoreApplication::sendEvent(r, event);
     }
@@ -418,7 +420,7 @@ void GameView::keyReleaseEvent(QKeyEvent* event) {
     QWidget::keyReleaseEvent(event);
 }
 
-void GameView::applyCharacterAbility(Player* player, const QString& characterPath) {
+void GameView::applyCharacterAbility(Player *player, const QString &characterPath) {
     if (!player)
         return;
 
@@ -447,7 +449,7 @@ void GameView::applyCharacterAbility(Player* player, const QString& characterPat
     }
 }
 
-QString GameView::resolveCharacterKey(const QString& characterPath) const {
+QString GameView::resolveCharacterKey(const QString &characterPath) const {
     if (characterPath.isEmpty())
         return QString();
 
@@ -494,9 +496,9 @@ void GameView::handlePlayerDeath() {
         msgBox.setIcon(QMessageBox::Information);
 
         // 添加三个按钮
-        QPushButton* retryButton = msgBox.addButton("再试一次", QMessageBox::ActionRole);
-        QPushButton* menuButton = msgBox.addButton("返回主菜单", QMessageBox::ActionRole);
-        QPushButton* quitButton = msgBox.addButton("退出游戏", QMessageBox::ActionRole);
+        QPushButton *retryButton = msgBox.addButton("再试一次", QMessageBox::ActionRole);
+        QPushButton *menuButton = msgBox.addButton("返回主菜单", QMessageBox::ActionRole);
+        QPushButton *quitButton = msgBox.addButton("退出游戏", QMessageBox::ActionRole);
 
         msgBox.exec();
 
@@ -540,7 +542,7 @@ void GameView::onEnemiesCleared(int roomIndex, bool up, bool down, bool left, bo
         text += QString("右侧 ");
     if (up || down || left || right)
         text += QString("房间的门已打开");
-    QGraphicsTextItem* hint = new QGraphicsTextItem(text);
+    QGraphicsTextItem *hint = new QGraphicsTextItem(text);
     hint->setDefaultTextColor(Qt::red);
     hint->setFont(QFont("Arial", 16, QFont::Bold));
     hint->setPos(150, 250);
@@ -561,7 +563,7 @@ void GameView::onBossDoorsOpened() {
 
     // 在战斗房间文案下一行显示boss门开启提示（深紫色）
     QString text = "所有普通房间已肃清！boss房间开启，祝你好运";
-    QGraphicsTextItem* hint = new QGraphicsTextItem(text);
+    QGraphicsTextItem *hint = new QGraphicsTextItem(text);
     hint->setDefaultTextColor(QColor(75, 0, 130));  // 深紫色
     hint->setFont(QFont("Arial", 16, QFont::Bold));
     hint->setPos(150, 280);  // 在战斗文案（y=250）下方30像素
@@ -644,12 +646,12 @@ void GameView::resumeGame() {
     setFocus();
 }
 
-void GameView::showEvent(QShowEvent* event) {
+void GameView::showEvent(QShowEvent *event) {
     QWidget::showEvent(event);
     adjustViewToWindow();
 }
 
-void GameView::resizeEvent(QResizeEvent* event) {
+void GameView::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
     adjustViewToWindow();
 }

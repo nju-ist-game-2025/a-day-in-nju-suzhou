@@ -4,8 +4,9 @@
 #include <QPainter>
 #include <QTimer>
 
-HUD::HUD(Player* pl, QGraphicsItem* parent)
-    : QGraphicsItem(parent), currentHealth(3.0f), maxHealth(3.0f), isFlashing(false), isScreenFlashing(false), flashCount(0), currentRoomIndex(0) {
+HUD::HUD(Player *pl, QGraphicsItem *parent)
+        : QGraphicsItem(parent), currentHealth(3.0f), maxHealth(3.0f), isFlashing(false), isScreenFlashing(false),
+          flashCount(0), currentRoomIndex(0) {
     player = pl;
 
     flashTimer = new QTimer(this);
@@ -19,7 +20,7 @@ HUD::HUD(Player* pl, QGraphicsItem* parent)
     });
 
     // ***** 60 FPS HUD刷新定时器 *****
-    auto* hudTimer = new QTimer();
+    auto *hudTimer = new QTimer();
     hudTimer->setInterval(16);
     connect(hudTimer, &QTimer::timeout, [this]() {
         this->update();  // 直接调用 HUD 的 update()
@@ -28,12 +29,12 @@ HUD::HUD(Player* pl, QGraphicsItem* parent)
     setPos(0, 0);
 }
 
-void HUD::setMapLayout(const QVector<RoomNode>& nodes) {
+void HUD::setMapLayout(const QVector<RoomNode> &nodes) {
     mapNodes = nodes;
     update();
 }
 
-void HUD::syncVisitedRooms(const QVector<bool>& visitedArray) {
+void HUD::syncVisitedRooms(const QVector<bool> &visitedArray) {
     for (int i = 0; i < mapNodes.size(); ++i) {
         int roomId = mapNodes[i].id;
         if (roomId >= 0 && roomId < visitedArray.size()) {
@@ -48,7 +49,7 @@ QRectF HUD::boundingRect() const {
     return QRectF(0, 0, 800, 200);
 }
 
-void HUD::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
+void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
@@ -150,7 +151,7 @@ void HUD::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidg
     paintMinimap(painter);
 }
 
-void HUD::paintKey(QPainter* painter) {
+void HUD::paintKey(QPainter *painter) {
     const int textAreaWidth = 150;  // 文字区域宽度
     const int Y = 10;               // 原炸弹位置
     const int Height = 25;          // 血条高度
@@ -163,7 +164,7 @@ void HUD::paintKey(QPainter* painter) {
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }
 
-void HUD::paintBomb(QPainter* painter) {
+void HUD::paintBomb(QPainter *painter) {
     const int textAreaWidth = 200;  // 文字区域宽度
     const int Y = 10;               // 血条Y坐标
     const int Height = 25;          // 血条高度
@@ -176,7 +177,7 @@ void HUD::paintBomb(QPainter* painter) {
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }
 
-void HUD::paintSoul(QPainter* painter) {
+void HUD::paintSoul(QPainter *painter) {
     const int textAreaWidth = 150;  // 文字区域宽度
     const int Y = 40;               // 血条Y坐标
     const int Height = 25;          // 血条高度
@@ -189,7 +190,7 @@ void HUD::paintSoul(QPainter* painter) {
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }
 
-void HUD::paintBlack(QPainter* painter) {
+void HUD::paintBlack(QPainter *painter) {
     const int textAreaWidth = 150;  // 文字区域宽度
     const int X = textAreaWidth;    // 血条起始X坐标
     const int Y = 60;               // 血条Y坐标
@@ -203,7 +204,7 @@ void HUD::paintBlack(QPainter* painter) {
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }
 
-void HUD::paintTeleportCooldown(QPainter* painter) {
+void HUD::paintTeleportCooldown(QPainter *painter) {
     if (!player)
         return;
 
@@ -239,7 +240,7 @@ void HUD::paintTeleportCooldown(QPainter* painter) {
     painter->drawText(gaugeRect.adjusted(0, 62, 0, 0), Qt::AlignHCenter | Qt::AlignTop, "");
 }
 
-void HUD::paintUltimateStatus(QPainter* painter) {
+void HUD::paintUltimateStatus(QPainter *painter) {
     if (!player)
         return;
 
@@ -288,7 +289,7 @@ void HUD::paintUltimateStatus(QPainter* painter) {
     painter->drawText(boxRect.adjusted(0, 28, 0, -10), Qt::AlignCenter, stateText);
 }
 
-void HUD::paintEffects(QPainter* painter, const QString& text, int count, double duration, QColor color) {
+void HUD::paintEffects(QPainter *painter, const QString &text, int count, double duration, QColor color) {
     const int textAreaWidth = 120;
     const int Y = 100 + 30 * count;
     const int Width = 150;
@@ -344,16 +345,20 @@ void HUD::triggerDamageFlash() {
 
     QTimer::singleShot(0, this, [this]() {
         update();
-        flashCount++; });
+        flashCount++;
+    });
     QTimer::singleShot(150, this, [this]() {
         update();
-        flashCount++; });
+        flashCount++;
+    });
     QTimer::singleShot(300, this, [this]() {
         update();
-        flashCount++; });
+        flashCount++;
+    });
     QTimer::singleShot(450, this, [this]() {
         isFlashing = false;
-        update(); });
+        update();
+    });
 
     update();
 }
@@ -363,7 +368,7 @@ void HUD::endDamageFlash() {
     update();
 }
 
-void HUD::paintMinimap(QPainter* painter) {
+void HUD::paintMinimap(QPainter *painter) {
     if (mapNodes.isEmpty()) {
         return;
     }
@@ -391,7 +396,7 @@ void HUD::paintMinimap(QPainter* painter) {
     int centerX = startX + mapSize / 2;
     int centerY = startY + mapSize / 2;
 
-    for (const RoomNode& node : mapNodes) {
+    for (const RoomNode &node: mapNodes) {
         // Only draw visited rooms or all rooms? User said "overall room structure". Let's draw all but dim unvisited.
         // Or just draw all for now as requested.
 
@@ -434,11 +439,11 @@ void HUD::paintMinimap(QPainter* painter) {
     }
 }
 
-void HUD::updateMinimap(int currentRoom, const QVector<int>& /*roomLayout*/) {
+void HUD::updateMinimap(int currentRoom, const QVector<int> & /*roomLayout*/) {
     currentRoomIndex = currentRoom;
 
     // Update visited status
-    for (auto& mapNode : mapNodes) {
+    for (auto &mapNode: mapNodes) {
         if (mapNode.id == currentRoom) {
             mapNode.visited = true;
             break;

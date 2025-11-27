@@ -6,19 +6,19 @@
 #include <QtMath>
 #include "player.h"
 
-MleTrap::MleTrap(QPointF position, Player* player)
-    : QObject(),
-      QGraphicsItem(),
-      m_player(player),
-      m_updateTimer(nullptr),
-      m_lifetimeTimer(nullptr),
-      m_position(position),
-      m_radius(40.0),        // 陷阱半径40像素
-      m_rootDuration(1500),  // 定身1.5秒
-      m_lifetime(8000),      // 存在8秒
-      m_spiralAngle(0.0),
-      m_triggered(false),
-      m_isDestroying(false) {
+MleTrap::MleTrap(QPointF position, Player *player)
+        : QObject(),
+          QGraphicsItem(),
+          m_player(player),
+          m_updateTimer(nullptr),
+          m_lifetimeTimer(nullptr),
+          m_position(position),
+          m_radius(40.0),        // 陷阱半径40像素
+          m_rootDuration(1500),  // 定身1.5秒
+          m_lifetime(8000),      // 存在8秒
+          m_spiralAngle(0.0),
+          m_triggered(false),
+          m_isDestroying(false) {
     // 设置位置
     setPos(m_position);
     setZValue(50);  // 在地面之上
@@ -55,7 +55,7 @@ QRectF MleTrap::boundingRect() const {
     return QRectF(-m_radius, -m_radius, m_radius * 2, m_radius * 2);
 }
 
-void MleTrap::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
+void MleTrap::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
@@ -77,7 +77,7 @@ void MleTrap::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, Q
     }
 }
 
-void MleTrap::drawSpiral(QPainter* painter) {
+void MleTrap::drawSpiral(QPainter *painter) {
     // 绘制螺旋图案（类似陷阱纹理）
     painter->setPen(QPen(QColor(200, 0, 0, 180), 2));
 
@@ -163,7 +163,7 @@ void MleTrap::applyRootEffect() {
     m_player->setEffectCooldown(true);
 
     // 显示"定身"文字提示
-    QGraphicsTextItem* rootText = new QGraphicsTextItem("定身!");
+    QGraphicsTextItem *rootText = new QGraphicsTextItem("定身!");
     QFont font;
     font.setPointSize(16);
     font.setBold(true);
@@ -178,7 +178,7 @@ void MleTrap::applyRootEffect() {
 
     // 保存玩家指针
     QPointer<Player> playerPtr = m_player;
-    QGraphicsScene* currentScene = scene();
+    QGraphicsScene *currentScene = scene();
 
     // 定身结束后恢复移动
     QTimer::singleShot(m_rootDuration, [playerPtr, rootText, currentScene]() {

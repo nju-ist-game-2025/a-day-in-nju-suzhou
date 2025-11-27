@@ -15,15 +15,15 @@ class Level;
 class PauseMenu;
 
 class GameView : public QWidget {
-    Q_OBJECT
+Q_OBJECT
 
-   private:
-    QGraphicsView* view;
-    QGraphicsScene* scene;
-    Player* player;
-    Level* level;  // 关卡管理器
-    HUD* hud{};
-    PauseMenu* m_pauseMenu;  // 暂停菜单
+private:
+    QGraphicsView *view;
+    QGraphicsScene *scene;
+    Player *player;
+    Level *level;  // 关卡管理器
+    HUD *hud{};
+    PauseMenu *m_pauseMenu;  // 暂停菜单
     int currentLevel;        // 添加当前关卡变量
     bool isLevelTransition;  // 防止重复触发
     bool m_isInStoryMode;
@@ -35,14 +35,14 @@ class GameView : public QWidget {
     int m_devBulletDamage = 1;      // 开发者模式子弹伤害
     bool m_devSkipToBoss = false;   // 开发者模式直接进入Boss房
 
-   public:
-    explicit GameView(QWidget* parent = nullptr);
+public:
+    explicit GameView(QWidget *parent = nullptr);
 
     ~GameView() override;
 
     void initGame();
 
-    void setPlayerCharacter(const QString& characterPath);                       // 设置玩家角色
+    void setPlayerCharacter(const QString &characterPath);                       // 设置玩家角色
     void setStartLevel(int level) { m_startLevel = level; }                      // 设置起始关卡（开发者模式）
     void setDevModeSettings(int maxHealth, int bulletDamage, bool skipToBoss) {  // 设置开发者模式参数
         m_devMaxHealth = maxHealth;
@@ -50,20 +50,21 @@ class GameView : public QWidget {
         m_devSkipToBoss = skipToBoss;
         m_isDevMode = true;
     }
-    HUD* getHUD() const { return hud; }
 
-   protected:
-    void showEvent(QShowEvent* event) override;
+    HUD *getHUD() const { return hud; }
 
-    void mousePressEvent(QMouseEvent* event) override;
+protected:
+    void showEvent(QShowEvent *event) override;
 
-    void keyPressEvent(QKeyEvent* event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 
-    void keyReleaseEvent(QKeyEvent* event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
-    void resizeEvent(QResizeEvent* event) override;  // 处理窗口大小变化
+    void keyReleaseEvent(QKeyEvent *event) override;
 
-   private:
+    void resizeEvent(QResizeEvent *event) override;  // 处理窗口大小变化
+
+private:
     void adjustViewToWindow();
 
     void initAudio();
@@ -71,11 +72,11 @@ class GameView : public QWidget {
     void togglePause();  // 切换暂停状态
     void resumeGame();   // 继续游戏
     void pauseGame();    // 暂停游戏
-    void applyCharacterAbility(Player* player, const QString& characterPath);
+    void applyCharacterAbility(Player *player, const QString &characterPath);
 
-    QString resolveCharacterKey(const QString& characterPath) const;
+    QString resolveCharacterKey(const QString &characterPath) const;
 
-   private slots:
+private slots:
 
     void
     updateHUD();  // 更新HUD
@@ -96,7 +97,7 @@ class GameView : public QWidget {
 
     void onStoryFinished();
 
-   signals:
+signals:
 
     void backToMenu();
 

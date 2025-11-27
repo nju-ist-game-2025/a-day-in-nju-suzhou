@@ -11,38 +11,38 @@
  * 支持从JSON配置文件读取各种游戏设置
  */
 class ConfigManager {
-   public:
+public:
     /**
      * @brief 获取单例实例
      */
-    static ConfigManager& instance();
+    static ConfigManager &instance();
 
     /**
      * @brief 加载配置文件
      * @param configPath 配置文件路径
      * @return 是否加载成功
      */
-    bool loadConfig(const QString& configPath = "assets/config.json");
+    bool loadConfig(const QString &configPath = "assets/config.json");
 
     /**
      * @brief 获取资产路径
      */
-    [[nodiscard]] QString getAssetPath(const QString& assetName) const;
+    [[nodiscard]] QString getAssetPath(const QString &assetName) const;
 
     /**
      * @brief 设置资产路径
      */
-    void setAssetPath(const QString& assetName, const QString& path);
+    void setAssetPath(const QString &assetName, const QString &path);
 
     /**
      * @brief 保存配置到文件
      */
-    bool saveConfig(const QString& configPath = "assets/config.json");
+    bool saveConfig(const QString &configPath = "assets/config.json");
 
     /**
      * @brief 获取尺寸配置
      */
-    [[nodiscard]] int getSize(const QString& sizeName) const;
+    [[nodiscard]] int getSize(const QString &sizeName) const;
 
     /**
      * @brief 获取特定类型实体的尺寸
@@ -50,21 +50,21 @@ class ConfigManager {
      * @param typeName 具体类型名称，如 clock_normal, nightmare
      * @return 尺寸值，如果找不到则返回该分类的默认值
      */
-    [[nodiscard]] int getEntitySize(const QString& category, const QString& typeName) const;
+    [[nodiscard]] int getEntitySize(const QString &category, const QString &typeName) const;
 
     /**
      * @brief 获取子弹尺寸
      * @param bulletType 子弹类型名称：player, sock_shooter, boss_washmachine 等
      * @return 尺寸值，如果找不到则返回默认值
      */
-    [[nodiscard]] int getBulletSize(const QString& bulletType) const;
+    [[nodiscard]] int getBulletSize(const QString &bulletType) const;
 
     /**
      * @brief 获取游戏配置
      */
-    [[nodiscard]] int getGameInt(const QString& key) const;
+    [[nodiscard]] int getGameInt(const QString &key) const;
 
-    [[nodiscard]] double getGameDouble(const QString& key) const;
+    [[nodiscard]] double getGameDouble(const QString &key) const;
 
     /**
      * @brief 检查开发者模式是否启用
@@ -72,14 +72,14 @@ class ConfigManager {
      */
     [[nodiscard]] bool isDevModeEnabled() const;
 
-   private:
+private:
     ConfigManager() = default;
 
     ~ConfigManager() = default;
 
-    ConfigManager(const ConfigManager&) = delete;
+    ConfigManager(const ConfigManager &) = delete;
 
-    ConfigManager& operator=(const ConfigManager&) = delete;
+    ConfigManager &operator=(const ConfigManager &) = delete;
 
     QJsonObject configObject;
     bool loaded = false;

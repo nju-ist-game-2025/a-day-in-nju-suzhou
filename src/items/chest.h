@@ -15,8 +15,7 @@ const int open_r = 40; // 打开宝箱的半径，后期可调
 /**
  * @brief 宝箱类型枚举
  */
-enum class ChestType
-{
+enum class ChestType {
     Normal, // 普通宝箱 - 无需钥匙，使用 chest.png
     Locked, // 高级宝箱 - 需要钥匙，使用 chest_up.png
     Boss    // Boss特供宝箱 - 乌萨奇提供，使用 chest_boss.png
@@ -25,9 +24,8 @@ enum class ChestType
 /**
  * @brief 宝箱基类
  */
-class Chest : public QObject, public QGraphicsPixmapItem
-{
-    Q_OBJECT
+class Chest : public QObject, public QGraphicsPixmapItem {
+Q_OBJECT
 
 protected:
     ChestType m_chestType;
@@ -44,10 +42,13 @@ protected:
 
 public:
     Chest(Player *pl, ChestType type, const QPixmap &pic_chest, double scale = 1.0);
+
     ~Chest() override;
 
     void addItem(Item *it) { m_items.push_back(it); }
+
     ChestType getChestType() const { return m_chestType; }
+
     bool isOpened() const { return m_isOpened; }
 
     virtual void tryOpen(); // 尝试打开（检查条件）
@@ -55,6 +56,7 @@ public:
     virtual void bonusEffects();
 
 signals:
+
     void opened(Chest *chest);
 };
 
@@ -62,9 +64,8 @@ signals:
  * @brief 普通宝箱 - 无需钥匙直接打开
  * 使用图片：chest.png
  */
-class NormalChest : public Chest
-{
-    Q_OBJECT
+class NormalChest : public Chest {
+Q_OBJECT
 
 protected:
     void initItems() override;
@@ -78,15 +79,15 @@ public:
  * 使用图片：chest_up.png
  * 没有钥匙时显示提示："你需要1把钥匙来打开它！\n钥匙可以在探索过程中获取"
  */
-class LockedChest : public Chest
-{
-    Q_OBJECT
+class LockedChest : public Chest {
+Q_OBJECT
 
 protected:
     void initItems() override;
 
 public:
     LockedChest(Player *pl, const QPixmap &pic_chest, double scale = 1.0);
+
     void tryOpen() override;
 };
 
@@ -95,15 +96,15 @@ public:
  * 使用图片：chest_boss.png
  * 包含普通宝箱内容 + 必定额外3点血量
  */
-class BossChest : public Chest
-{
-    Q_OBJECT
+class BossChest : public Chest {
+Q_OBJECT
 
 protected:
     void initItems() override;
 
 public:
     BossChest(Player *pl, const QPixmap &pic_chest, double scale = 1.0);
+
     void doOpen() override; // 重写以添加额外3点血量
 };
 

@@ -7,21 +7,21 @@
 #include "../ui/explosion.h"
 #include "player.h"
 
-ChalkBeam::ChalkBeam(QPointF targetPos, const QPixmap& beamPic, QGraphicsScene* scene)
-    : QObject(),
-      QGraphicsPixmapItem(),
-      m_scene(scene),
-      m_targetPos(targetPos),
-      m_beamPixmap(beamPic),
-      m_warningCircle(nullptr),
-      m_warningTimer(nullptr),
-      m_fallTimer(nullptr),
-      m_warningTime(1500),      // 默认1.5秒警告时间
-      m_damage(2),              // 默认2点伤害
-      m_explosionRadius(50.0),  // 爆炸半径50像素
-      m_fallSpeed(15.0),        // 下落速度
-      m_currentY(-50),          // 从屏幕上方开始
-      m_isDestroying(false) {
+ChalkBeam::ChalkBeam(QPointF targetPos, const QPixmap &beamPic, QGraphicsScene *scene)
+        : QObject(),
+          QGraphicsPixmapItem(),
+          m_scene(scene),
+          m_targetPos(targetPos),
+          m_beamPixmap(beamPic),
+          m_warningCircle(nullptr),
+          m_warningTimer(nullptr),
+          m_fallTimer(nullptr),
+          m_warningTime(1500),      // 默认1.5秒警告时间
+          m_damage(2),              // 默认2点伤害
+          m_explosionRadius(50.0),  // 爆炸半径50像素
+          m_fallSpeed(15.0),        // 下落速度
+          m_currentY(-50),          // 从屏幕上方开始
+          m_isDestroying(false) {
     // 设置粉笔图片
     if (!m_beamPixmap.isNull()) {
         QPixmap scaledPix = m_beamPixmap.scaled(30, 60, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -77,10 +77,10 @@ void ChalkBeam::createWarningCircle() {
     // 创建红色警告圈（只有边框）
     double radius = m_explosionRadius;
     m_warningCircle = new QGraphicsEllipseItem(
-        m_targetPos.x() - radius,
-        m_targetPos.y() - radius,
-        radius * 2,
-        radius * 2);
+            m_targetPos.x() - radius,
+            m_targetPos.y() - radius,
+            radius * 2,
+            radius * 2);
 
     // 设置样式：红色边框，透明填充
     QPen pen(Qt::red, 3);
@@ -131,7 +131,7 @@ void ChalkBeam::explode() {
 
     // 创建爆炸动画
     if (m_scene) {
-        Explosion* explosion = new Explosion();
+        Explosion *explosion = new Explosion();
         explosion->setPos(m_targetPos);
         m_scene->addItem(explosion);
         explosion->startAnimation();
@@ -156,9 +156,9 @@ void ChalkBeam::damagePlayer() {
         return;
 
     // 查找场景中的玩家
-    QList<QGraphicsItem*> items = m_scene->items();
-    for (QGraphicsItem* item : items) {
-        Player* player = dynamic_cast<Player*>(item);
+    QList<QGraphicsItem *> items = m_scene->items();
+    for (QGraphicsItem *item: items) {
+        Player *player = dynamic_cast<Player *>(item);
         if (player) {
             // 计算与玩家的距离
             QPointF playerCenter = player->pos() +
