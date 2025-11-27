@@ -78,6 +78,19 @@ public:
     }
 };
 
+
+//红心
+class RedHeartItem : public Item {
+    int heartCount;
+public:
+    RedHeartItem(const QString &name, int count)
+        : Item(name, "增加红心"), heartCount(count) {}
+    void onPickup(Player *player) override {
+        player->addRedHearts(heartCount);
+        showFloatText(player->scene(), QString("❤️") + this->getDescription(), player->pos(), Qt::green);
+    }
+};
+
 //红心容器
 class RedHeartContainerItem : public Item {
     int heartCount;

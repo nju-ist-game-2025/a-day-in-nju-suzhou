@@ -91,7 +91,7 @@ Player::Player(const QPixmap &pic_player, double scale)
     hurt = 1;      // 后续可修改
     crash_r = 40;  // 增大碰撞半径以匹配新的角色大小
 
-    bombs = 0;
+    bombs = 1;
 
     // 初始化射击按键
     shootKeysPressed[Qt::Key_Up] = false;
@@ -105,6 +105,7 @@ Player::Player(const QPixmap &pic_player, double scale)
     keysPressed[Qt::Key_S] = false;
     keysPressed[Qt::Key_D] = false;
     keysPressed[Qt::Key_Space] = false;
+    keysPressed[Qt::Key_E] = false;
 
     keysTimer = new QTimer(this);
     connect(keysTimer, &QTimer::timeout, this, &Player::move);
@@ -118,7 +119,6 @@ Player::Player(const QPixmap &pic_player, double scale)
     shootTimer = new QTimer(this);
     connect(shootTimer, &QTimer::timeout, this, &Player::checkShoot);
     shootTimer->start(16);  // 每16ms检测一次
-
     // 大招初始即可使用
     m_lastUltimateTime = QDateTime::currentMSecsSinceEpoch() - m_ultimateCooldownMs;
 
@@ -140,7 +140,7 @@ void Player::keyPressEvent(QKeyEvent *event) {
     }
 
     if (event->key() == Qt::Key_E) {
-        activateUltimate();
+        placeBomb();
         event->accept();
         return;
     }
@@ -417,8 +417,8 @@ double Player::getTeleportReadyRatio() const {
 bool Player::isTeleportReady() const {
     return getTeleportRemainingMs() <= 0;
 }
-
-void Player::activateUltimate() {
+void Player::activateUltimate()
+{
     if (isDead || m_isPaused || !m_canMove)
         return;
 
@@ -438,7 +438,8 @@ void Player::activateUltimate() {
     m_isUltimateActive = true;
     m_lastUltimateTime = now;
 
-    if (!m_ultimateTimer) {
+    if (!m_ultimateTimer)
+    {
         m_ultimateTimer = new QTimer(this);
         m_ultimateTimer->setSingleShot(true);
         connect(m_ultimateTimer, &QTimer::timeout, this, &Player::endUltimate);
@@ -448,7 +449,8 @@ void Player::activateUltimate() {
     AudioManager::instance().playSound("player_teleport");
 }
 
-void Player::endUltimate() {
+void Player::endUltimate()
+{
     if (!m_isUltimateActive)
         return;
 
@@ -462,7 +464,8 @@ void Player::endUltimate() {
         speed = m_ultimateOriginalSpeed;
 }
 
-int Player::getUltimateRemainingMs() const {
+int Player::getUltimateRemainingMs() const
+{
     if (m_isUltimateActive)
         return 0;
 
@@ -474,25 +477,28 @@ int Player::getUltimateRemainingMs() const {
     return qMax(0, remaining);
 }
 
-double Player::getUltimateReadyRatio() const {
+double Player::getUltimateReadyRatio() const
+{
     if (m_ultimateCooldownMs <= 0)
         return 1.0;
     if (m_isUltimateActive)
         return 1.0;
 
-    auto remaining = static_cast<double>(getUltimateRemainingMs());
-    auto total = static_cast<double>(m_ultimateCooldownMs);
+    double remaining = static_cast<double>(getUltimateRemainingMs());
+    double total = static_cast<double>(m_ultimateCooldownMs);
     double ratio = 1.0 - qBound(0.0, remaining / total, 1.0);
     return qBound(0.0, ratio, 1.0);
 }
 
-int Player::getUltimateActiveRemainingMs() const {
+int Player::getUltimateActiveRemainingMs() const
+{
     if (!m_isUltimateActive || !m_ultimateTimer)
         return 0;
     return qMax(0, m_ultimateTimer->remainingTime());
 }
 
-double Player::getUltimateActiveRatio() const {
+double Player::getUltimateActiveRatio() const
+{
     if (!m_isUltimateActive || m_ultimateDurationMs <= 0)
         return 0.0;
 
@@ -501,14 +507,15 @@ double Player::getUltimateActiveRatio() const {
     return qBound(0.0, ratio, 1.0);
 }
 
-bool Player::isUltimateReady() const {
+bool Player::isUltimateReady() const
+{
     return !m_isUltimateActive && getUltimateRemainingMs() <= 0;
 }
 
-bool Player::isUltimateActive() const {
+bool Player::isUltimateActive() const
+{
     return m_isUltimateActive;
 }
-
 void Player::takeDamage(int damage) {
     if (isDead || invincible)  // 已死亡或无敌则不受伤
         return;
@@ -660,17 +667,19 @@ void Player::placeBomb() {
     if (bombs <= 0)
         return;
     auto posi = this->pos();
-    QTimer::singleShot(2000, this, [this, posi]() {
-                foreach (QGraphicsItem *item, scene()->items()) {
-                if (auto it = dynamic_cast<Enemy *>(item)) {
-                    if (abs(it->pos().x() - posi.x()) > bomb_r ||
-                        abs(it->pos().y() - posi.y()) > bomb_r)
-                        continue;
-                    else
-                        it->takeDamage(bombHurt);
+    QTimer::singleShot(500, this, [this, posi]() {
+        foreach (QGraphicsItem *item, scene()->items()) {
+            if (auto it = dynamic_cast<Enemy *>(item)) {
+                if (abs(it->pos().x() - posi.x()) > bomb_r ||
+                    abs(it->pos().y() - posi.y()) > bomb_r)
+                    continue;
+                else{
+                    it->takeDamage(bombHurt);
                 }
             }
+        }
     });
+    bombs--;
 }
 
 void Player::focusOutEvent(QFocusEvent *event) {
