@@ -27,7 +27,7 @@
         "enemy": 40,
         "boss": 150,
         "bullet": 50,
-        "chest": 40,
+        "chest": 60,
         "players": {
             "default": 60,
             "HighGracePeople": 60,
