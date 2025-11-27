@@ -47,7 +47,9 @@
             "pants": 55,
             "walker": 45,
             "yanglin": 200,
-            "zhuhao": 30
+            "zhuhao": 30,
+            "xuke": 80,
+            "probability_theory": 100
         },
         "bosses": {
             "default": 150,
@@ -60,7 +62,9 @@
             "player": 50,
             "sock_shooter": 25,
             "boss_washmachine": 30,
-            "zhuhao": 80
+            "zhuhao": 80,
+            "xuke": 10,
+            "xuke_special": 25
         }
     },
     "game": {

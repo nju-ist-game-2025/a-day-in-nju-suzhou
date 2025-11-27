@@ -28,6 +28,8 @@
 #include "../entities/usagi.h"
 #include "../entities/walker.h"
 #include "../entities/washmachineboss.h"
+#include "../entities/xukeenemy.h"
+#include "../entities/probabilityenemy.h"
 #include "../entities/yanglinenemy.h"
 #include "../entities/zhuhaoenemy.h"
 #include "../items/chest.h"
@@ -1047,7 +1049,7 @@ void Level::spawnEnemiesInRoom(int roomIndex)
 
                 // 对于ScalingEnemy类型（Level 3的缩放敌人），使用高分辨率图片
                 // 避免先缩小再放大导致的画质损失
-                if (m_levelNumber == 3 && (enemyType == "optimization" || enemyType == "digital_system" || enemyType == "yanglin"))
+                if (m_levelNumber == 3 && (enemyType == "optimization" || enemyType == "digital_system" || enemyType == "yanglin" || enemyType == "probability_theory"))
                 {
                     // 加载高分辨率图片（最大200像素，保持高质量）
                     enemyPix = ResourceFactory::createEnemyImageHighRes(m_levelNumber, enemyType, 200);
@@ -1065,13 +1067,24 @@ void Level::spawnEnemiesInRoom(int roomIndex)
 
                 for (int i = 0; i < count; ++i)
                 {
-                    int x = QRandomGenerator::global()->bounded(100, 700);
-                    int y = QRandomGenerator::global()->bounded(100, 500);
+                    int x, y;
 
-                    if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100)
+                    // probability_theory固定刷新在地图正中间（使用setOffset后pos就是中心点）
+                    if (enemyType == "probability_theory")
                     {
-                        x += 150;
-                        y += 150;
+                        x = 400;  // 地图中央X
+                        y = 300;  // 地图中央Y
+                    }
+                    else
+                    {
+                        x = QRandomGenerator::global()->bounded(100, 700);
+                        y = QRandomGenerator::global()->bounded(100, 500);
+
+                        if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100)
+                        {
+                            x += 150;
+                            y += 150;
+                        }
                     }
 
                     // 根据关卡号和敌人类型创建具体的敌人实例
@@ -1337,6 +1350,14 @@ Enemy *Level::createEnemyByType(int levelNumber, const QString &enemyType, const
         else if (enemyType == "yanglin")
         {
             return new YanglinEnemy(pic, scale);
+        }
+        else if (enemyType == "xuke")
+        {
+            return new XukeEnemy(pic, scale);
+        }
+        else if (enemyType == "probability_theory")
+        {
+            return new ProbabilityEnemy(pic, scale);
         }
     }
 

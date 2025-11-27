@@ -101,6 +101,10 @@ set(ENTITY_SOURCES
         src/entities/yanglinenemy.h
         src/entities/zhuhaoenemy.cpp
         src/entities/zhuhaoenemy.h
+        src/entities/xukeenemy.cpp
+        src/entities/xukeenemy.h
+        src/entities/probabilityenemy.cpp
+        src/entities/probabilityenemy.h
 )
 
 set(WORLD_SOURCES

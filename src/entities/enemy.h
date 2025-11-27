@@ -58,6 +58,14 @@ public:
         health = hp;
         maxHealth = hp;
     }
+    
+    // 单独设置当前生命值（不改变上限）
+    void setCurrentHealth(int hp)
+    {
+        health = qMin(hp, maxHealth);
+    }
+    
+    int getMaxHealth() const { return maxHealth; }
 
     void setContactDamage(int dmg) { contactDamage = dmg; }
 
