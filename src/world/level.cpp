@@ -18,7 +18,6 @@
 #include "../entities/nightmareboss.h"
 #include "../entities/optimizationenemy.h"
 #include "../entities/pantsenemy.h"
-#include "../entities/yanglinenemy.h"
 #include "../entities/pillowenemy.h"
 #include "../entities/player.h"
 #include "../entities/projectile.h"
@@ -28,6 +27,7 @@
 #include "../entities/usagi.h"
 #include "../entities/walker.h"
 #include "../entities/washmachineboss.h"
+#include "../entities/yanglinenemy.h"
 #include "../items/chest.h"
 #include "../ui/gameview.h"
 #include "../ui/hud.h"
@@ -897,7 +897,7 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
 
                 // 对于ScalingEnemy类型（Level 3的缩放敌人），使用高分辨率图片
                 // 避免先缩小再放大导致的画质损失
-                if (m_levelNumber == 3 && (enemyType == "optimization" || enemyType == "digital_system")) {
+                if (m_levelNumber == 3 && (enemyType == "optimization" || enemyType == "digital_system" || enemyType == "yanglin")) {
                     // 加载高分辨率图片（最大200像素，保持高质量）
                     enemyPix = ResourceFactory::createEnemyImageHighRes(m_levelNumber, enemyType, 200);
                     // 计算初始缩放比例，使视觉大小与配置的enemySize一致
@@ -1117,9 +1117,7 @@ Enemy* Level::createEnemyByType(int levelNumber, const QString& enemyType, const
             return new OptimizationEnemy(pic, scale);
         } else if (enemyType == "digital_system") {
             return new DigitalSystemEnemy(pic, scale);
-        }
-        else if (enemyType == "yanglin")
-        {
+        } else if (enemyType == "yanglin") {
             return new YanglinEnemy(pic, scale);
         }
     }

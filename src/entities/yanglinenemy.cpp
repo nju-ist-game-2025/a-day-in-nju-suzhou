@@ -5,11 +5,11 @@
 #include <QPainter>
 #include <QTransform>
 #include <QtMath>
-#include "player.h"
 #include "../core/audiomanager.h"
 #include "../ui/explosion.h"
+#include "player.h"
 
-YanglinEnemy::YanglinEnemy(const QPixmap &pic, double scale)
+YanglinEnemy::YanglinEnemy(const QPixmap& pic, double scale)
     : ScalingEnemy(pic, scale),
       m_isSpinning(false),
       m_spinningCooldownTimer(nullptr),
@@ -19,16 +19,15 @@ YanglinEnemy::YanglinEnemy(const QPixmap &pic, double scale)
       m_rotationAngle(0.0),
       m_originalSpeed(2.0),
       m_isReturningToNormal(false),
-      m_lastSpinningDamageTime(0)
-{
+      m_lastSpinningDamageTime(0) {
     // 杨林属性接近Boss一阶段 - 直接设置成员变量
-    health = 200; // 高血量
+    health = 200;  // 高血量
     maxHealth = 200;
-    contactDamage = 5;    // 高接触伤害
-    visionRange = 9999.0; // 全图视野！
-    attackRange = 60.0;   // 攻击范围
-    attackCooldown = 800; // 攻击冷却
-    speed = 2.0;          // 移速
+    contactDamage = 5;     // 高接触伤害
+    visionRange = 9999.0;  // 全图视野！
+    attackRange = 60.0;    // 攻击范围
+    attackCooldown = 800;  // 攻击冷却
+    speed = 2.0;           // 移速
     m_originalSpeed = speed;
 
     // 确保变换原点在中心（继承自ScalingEnemy，但重新设置确保正确）
@@ -62,36 +61,30 @@ YanglinEnemy::YanglinEnemy(const QPixmap &pic, double scale)
              << "全图视野:" << visionRange << "当前缩放:" << getTotalScale();
 }
 
-YanglinEnemy::~YanglinEnemy()
-{
-    if (m_spinningCooldownTimer)
-    {
+YanglinEnemy::~YanglinEnemy() {
+    if (m_spinningCooldownTimer) {
         m_spinningCooldownTimer->stop();
         delete m_spinningCooldownTimer;
         m_spinningCooldownTimer = nullptr;
     }
-    if (m_spinningUpdateTimer)
-    {
+    if (m_spinningUpdateTimer) {
         m_spinningUpdateTimer->stop();
         delete m_spinningUpdateTimer;
         m_spinningUpdateTimer = nullptr;
     }
-    if (m_spinningDurationTimer)
-    {
+    if (m_spinningDurationTimer) {
         m_spinningDurationTimer->stop();
         delete m_spinningDurationTimer;
         m_spinningDurationTimer = nullptr;
     }
-    if (m_firstSpinningTimer)
-    {
+    if (m_firstSpinningTimer) {
         m_firstSpinningTimer->stop();
         delete m_firstSpinningTimer;
         m_firstSpinningTimer = nullptr;
     }
 }
 
-void YanglinEnemy::onFirstSpinning()
-{
+void YanglinEnemy::onFirstSpinning() {
     // 开局10秒后释放第一次技能
     qDebug() << "YanglinEnemy: 开局10秒，释放第一次旋转技能！";
     startSpinning();
@@ -100,17 +93,14 @@ void YanglinEnemy::onFirstSpinning()
     m_spinningCooldownTimer->start();
 }
 
-void YanglinEnemy::onSpinningTimer()
-{
+void YanglinEnemy::onSpinningTimer() {
     // 每30秒触发
-    if (!m_isSpinning && !m_isPaused)
-    {
+    if (!m_isSpinning && !m_isPaused) {
         startSpinning();
     }
 }
 
-void YanglinEnemy::startSpinning()
-{
+void YanglinEnemy::startSpinning() {
     if (m_isSpinning || !scene())
         return;
 
@@ -130,8 +120,7 @@ void YanglinEnemy::startSpinning()
     m_spinningDurationTimer->start();
 }
 
-void YanglinEnemy::stopSpinning()
-{
+void YanglinEnemy::stopSpinning() {
     if (!m_isSpinning)
         return;
 
@@ -148,38 +137,30 @@ void YanglinEnemy::stopSpinning()
     // 平滑回转到0度（计算最短路径）
     // 如果当前角度大于180度，继续正转到360度（即0度）
     // 如果当前角度小于等于180度，反转回0度
-    if (m_rotationAngle > 0)
-    {
+    if (m_rotationAngle > 0) {
         // 启动回正动画
         m_isReturningToNormal = true;
-        m_spinningUpdateTimer->start(); // 复用定时器来做回正动画
+        m_spinningUpdateTimer->start();  // 复用定时器来做回正动画
     }
 }
 
-void YanglinEnemy::onSpinningUpdate()
-{
+void YanglinEnemy::onSpinningUpdate() {
     // 处理回正动画
-    if (m_isReturningToNormal)
-    {
+    if (m_isReturningToNormal) {
         // 计算回正方向（选择最短路径）
-        if (m_rotationAngle > 180.0)
-        {
+        if (m_rotationAngle > 180.0) {
             // 继续正转到360度
             m_rotationAngle += ROTATION_SPEED;
-            if (m_rotationAngle >= 360.0)
-            {
+            if (m_rotationAngle >= 360.0) {
                 m_rotationAngle = 0.0;
                 m_isReturningToNormal = false;
                 m_spinningUpdateTimer->stop();
                 qDebug() << "YanglinEnemy: 回正完成";
             }
-        }
-        else
-        {
+        } else {
             // 反转回0度
             m_rotationAngle -= ROTATION_SPEED;
-            if (m_rotationAngle <= 0.0)
-            {
+            if (m_rotationAngle <= 0.0) {
                 m_rotationAngle = 0.0;
                 m_isReturningToNormal = false;
                 m_spinningUpdateTimer->stop();
@@ -195,8 +176,7 @@ void YanglinEnemy::onSpinningUpdate()
 
     // 更新旋转角度（使用setRotation而不是setPixmap，保持缩放效果）
     m_rotationAngle += ROTATION_SPEED;
-    if (m_rotationAngle >= 360.0)
-    {
+    if (m_rotationAngle >= 360.0) {
         m_rotationAngle -= 360.0;
     }
     setRotation(m_rotationAngle);
@@ -205,20 +185,17 @@ void YanglinEnemy::onSpinningUpdate()
     checkSpinningDamage();
 }
 
-void YanglinEnemy::onSpinningEnd()
-{
+void YanglinEnemy::onSpinningEnd() {
     stopSpinning();
 }
 
-double YanglinEnemy::getCurrentSpinningRadius() const
-{
+double YanglinEnemy::getCurrentSpinningRadius() const {
     // 旋转伤害半径随缩放变化
     // getTotalScale() 返回 m_baseScale * m_currentScale
     return BASE_SPINNING_RADIUS * getTotalScale();
 }
 
-void YanglinEnemy::checkSpinningDamage()
-{
+void YanglinEnemy::checkSpinningDamage() {
     if (!m_isSpinning || !player || !scene())
         return;
 
@@ -244,8 +221,7 @@ void YanglinEnemy::checkSpinningDamage()
     double currentRadius = getCurrentSpinningRadius();
 
     // 如果玩家在旋转圆范围内
-    if (distance <= currentRadius)
-    {
+    if (distance <= currentRadius) {
         player->takeDamage(SPINNING_DAMAGE);
         m_lastSpinningDamageTime = currentTime;
         qDebug() << "YanglinEnemy: 旋转技能命中玩家，造成" << SPINNING_DAMAGE
@@ -253,11 +229,9 @@ void YanglinEnemy::checkSpinningDamage()
     }
 }
 
-void YanglinEnemy::takeDamage(int damage)
-{
+void YanglinEnemy::takeDamage(int damage) {
     int realDamage = qMax(1, damage);
-    if (health - realDamage <= 0)
-    {
+    if (health - realDamage <= 0) {
         // 即将死亡，停止所有技能
         m_isSpinning = false;
         if (m_spinningUpdateTimer)
@@ -274,69 +248,52 @@ void YanglinEnemy::takeDamage(int damage)
     ScalingEnemy::takeDamage(damage);
 }
 
-void YanglinEnemy::attackPlayer()
-{
+void YanglinEnemy::attackPlayer() {
     if (!player)
         return;
 
     if (m_isPaused)
         return;
 
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item : collisions)
-    {
-        Player *p = dynamic_cast<Player *>(item);
-        if (p)
-        {
-            // 旋转状态下不造成普通接触伤害（旋转伤害单独计算，与pants相同）
-            if (!m_isSpinning)
-            {
-                p->takeDamage(contactDamage);
-            }
-            break;
-        }
+    // 旋转状态下不造成普通接触伤害（旋转伤害单独计算，与pants相同）
+    if (m_isSpinning)
+        return;
+
+    // 使用像素级碰撞检测
+    if (Entity::pixelCollision(this, player)) {
+        player->takeDamage(contactDamage);
     }
 }
 
-void YanglinEnemy::pauseTimers()
-{
+void YanglinEnemy::pauseTimers() {
     ScalingEnemy::pauseTimers();
 
-    if (m_spinningCooldownTimer && m_spinningCooldownTimer->isActive())
-    {
+    if (m_spinningCooldownTimer && m_spinningCooldownTimer->isActive()) {
         m_spinningCooldownTimer->stop();
     }
-    if (m_spinningUpdateTimer && m_spinningUpdateTimer->isActive())
-    {
+    if (m_spinningUpdateTimer && m_spinningUpdateTimer->isActive()) {
         m_spinningUpdateTimer->stop();
     }
-    if (m_spinningDurationTimer && m_spinningDurationTimer->isActive())
-    {
+    if (m_spinningDurationTimer && m_spinningDurationTimer->isActive()) {
         m_spinningDurationTimer->stop();
     }
-    if (m_firstSpinningTimer && m_firstSpinningTimer->isActive())
-    {
+    if (m_firstSpinningTimer && m_firstSpinningTimer->isActive()) {
         m_firstSpinningTimer->stop();
     }
 }
 
-void YanglinEnemy::resumeTimers()
-{
+void YanglinEnemy::resumeTimers() {
     ScalingEnemy::resumeTimers();
 
-    if (m_spinningCooldownTimer && !m_isSpinning)
-    {
+    if (m_spinningCooldownTimer && !m_isSpinning) {
         m_spinningCooldownTimer->start();
     }
-    if (m_isSpinning)
-    {
-        if (m_spinningUpdateTimer)
-        {
+    if (m_isSpinning) {
+        if (m_spinningUpdateTimer) {
             m_spinningUpdateTimer->start();
         }
-        if (m_spinningDurationTimer)
-        {
-            m_spinningDurationTimer->start(1000); // 恢复后再持续1秒
+        if (m_spinningDurationTimer) {
+            m_spinningDurationTimer->start(1000);  // 恢复后再持续1秒
         }
     }
 }
