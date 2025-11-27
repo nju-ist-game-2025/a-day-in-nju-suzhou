@@ -53,6 +53,15 @@ signals:
     void requestShowDialog(const QStringList &dialogs, const QString &background);
 
     void requestChangeBackground(const QString &backgroundPath);
+    
+    // 请求渐变背景（用于boss击败后的渐变效果）
+    void requestFadeBackground(const QString &backgroundPath, int duration);
+    
+    // 请求渐变对话背景（用于boss击败后对话框背景的渐变效果）
+    void requestFadeDialogBackground(const QString &backgroundPath, int duration);
+    
+    // 请求对话过程中切换对话背景（在指定对话索引时瞬间切换）
+    void requestDialogBackgroundChange(int dialogIndex, const QString &newBackground);
 
     void requestShowTransitionText(const QString &text);
 

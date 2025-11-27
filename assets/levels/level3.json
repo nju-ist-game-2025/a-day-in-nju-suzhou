@@ -251,7 +251,8 @@
         "**智科er** \n （那不就是大家都差点挂科吗...）",
         "【奶牛张】\n『好了，让我们开始今天的「随堂测验」吧！』"
       ],
-      "bossDialogBackground": "assets/boss_dia/boss3_1.png",
+      "bossDialogBackground": "assets/background/teacher1_dia.png",
+      "bossMapBackground": "assets/background/teacher1_map.png",
       "bossRewardItems": [
         {
           "type": "damage_up",

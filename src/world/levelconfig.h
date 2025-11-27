@@ -42,6 +42,7 @@ struct RoomConfig {
     bool hasBoss;                            // 是否有 Boss
     QStringList bossDialog;                  // Boss房间的对话文案
     QString bossDialogBackground;            // Boss对话背景图片路径（可选，为空则使用默认图片）
+    QString bossMapBackground;               // Boss战斗地图背景（可选，为空则使用房间默认背景）
     QVector<BossRewardItem> bossRewardItems; // Boss奖励道具配置
 
     // 精英房间配置

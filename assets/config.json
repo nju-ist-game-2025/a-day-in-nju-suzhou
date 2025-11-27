@@ -53,8 +53,8 @@
         },
         "bosses": {
             "default": 150,
-            "nightmare": 160,
-            "nightmare2": 180,
+            "nightmare": 200,
+            "nightmare2": 230,
             "washmachine": 160
         },
         "bullets": {

@@ -138,6 +138,12 @@ private:
     void onTeacherBossRequestChangeBackground(const QString &backgroundPath);
 
     void onTeacherBossRequestTransitionText(const QString &text);
+    
+    void onTeacherBossRequestFadeBackground(const QString &backgroundPath, int duration);
+    
+    void onTeacherBossRequestFadeDialogBackground(const QString &backgroundPath, int duration);
+    
+    void onTeacherBossRequestDialogBackgroundChange(int dialogIndex, const QString &backgroundName);
 
     // Boss奖励机制（乌萨奇）
     void startBossRewardSequence();
@@ -192,6 +198,13 @@ private:
     QGraphicsPixmapItem *m_dialogBossSprite = nullptr;
     QPropertyAnimation *m_dialogBossFlyAnimation = nullptr;
     bool m_isTeacherBossInitialDialog = false; // 标记是否为TeacherBoss初始对话
+    
+    // 对话中背景切换相关（TeacherBoss特殊需求）
+    QMap<int, QString> m_pendingDialogBackgrounds;  // 待切换的对话背景 <对话索引, 背景名称>
+    
+    // 待执行的对话背景渐变（在对话框创建后执行）
+    QString m_pendingFadeDialogBackground;  // 待渐变到的背景路径
+    int m_pendingFadeDialogDuration = 0;    // 渐变持续时间
 
     // 背景图片项
     QGraphicsPixmapItem *m_backgroundItem = nullptr;
@@ -242,6 +255,9 @@ public slots:
 
     // 背景渐变接口：将背景渐变到给定路径（绝对路径或相对 assets/），duration 毫秒
     void fadeBackgroundTo(const QString &imagePath, int duration);
+    
+    // 对话框背景渐变接口：将对话框背景渐变到给定路径，duration 毫秒
+    void fadeDialogBackgroundTo(const QString &imagePath, int duration);
 
 private slots:
 
