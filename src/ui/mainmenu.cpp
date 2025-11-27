@@ -20,13 +20,15 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
     setMinimumSize(800, 600);
 
     // 创建主布局
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    auto *mainLayout = new QVBoxLayout(this);
     mainLayout->setAlignment(Qt::AlignCenter);
     mainLayout->setSpacing(30);
 
     // 创建标题（优先尝试使用图片资源）
     titleLabel = new QLabel(this);
     titleLabel->setAlignment(Qt::AlignCenter);
+    titleLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    titleLabel->setMinimumHeight(100); // 避免被挤到太小
 
     // 优先从配置获取标题图片路径
     QString titlePath = ConfigManager::instance().getAssetPath("title");
@@ -59,7 +61,7 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
     }
 
     // 添加标题阴影效果
-    QGraphicsDropShadowEffect *shadowEffect = new QGraphicsDropShadowEffect(this);
+    auto *shadowEffect = new QGraphicsDropShadowEffect(this);
     shadowEffect->setBlurRadius(5);
     shadowEffect->setColor(QColor(0, 0, 0, 150));
     shadowEffect->setOffset(3, 3);
@@ -229,12 +231,12 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
         dialog.setWindowTitle("开发者模式设置");
         dialog.setFixedSize(350, 300);
 
-        QVBoxLayout *layout = new QVBoxLayout(&dialog);
+        auto *layout = new QVBoxLayout(&dialog);
 
         // 关卡选择
-        QHBoxLayout *levelLayout = new QHBoxLayout();
-        QLabel *levelLabel = new QLabel("起始关卡:", &dialog);
-        QComboBox *levelCombo = new QComboBox(&dialog);
+        auto *levelLayout = new QHBoxLayout();
+        auto *levelLabel = new QLabel("起始关卡:", &dialog);
+        auto *levelCombo = new QComboBox(&dialog);
         levelCombo->addItem("第1关 - 时钟梦境", 1);
         levelCombo->addItem("第2关 - 袜子王国", 2);
         levelCombo->addItem("第3关 - 终极挑战", 3);
@@ -244,9 +246,9 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
         layout->addLayout(levelLayout);
 
         // 血量上限
-        QHBoxLayout *healthLayout = new QHBoxLayout();
-        QLabel *healthLabel = new QLabel("血量上限:", &dialog);
-        QSpinBox *healthSpin = new QSpinBox(&dialog);
+        auto *healthLayout = new QHBoxLayout();
+        auto *healthLabel = new QLabel("血量上限:", &dialog);
+        auto *healthSpin = new QSpinBox(&dialog);
         healthSpin->setRange(1, 9999);
         healthSpin->setValue(3);  // 默认值
         healthLayout->addWidget(healthLabel);
@@ -254,9 +256,9 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
         layout->addLayout(healthLayout);
 
         // 子弹伤害
-        QHBoxLayout *damageLayout = new QHBoxLayout();
-        QLabel *damageLabel = new QLabel("子弹伤害:", &dialog);
-        QSpinBox *damageSpin = new QSpinBox(&dialog);
+        auto *damageLayout = new QHBoxLayout();
+        auto *damageLabel = new QLabel("子弹伤害:", &dialog);
+        auto *damageSpin = new QSpinBox(&dialog);
         damageSpin->setRange(1, 999);
         damageSpin->setValue(1);  // 默认值
         damageLayout->addWidget(damageLabel);
@@ -264,16 +266,16 @@ MainMenu::MainMenu(QWidget *parent) : QWidget(parent) {
         layout->addLayout(damageLayout);
 
         // 直接进入Boss房选项
-        QHBoxLayout *bossLayout = new QHBoxLayout();
-        QCheckBox *skipToBossCheck = new QCheckBox("直接进入Boss房", &dialog);
+        auto *bossLayout = new QHBoxLayout();
+        auto *skipToBossCheck = new QCheckBox("直接进入Boss房", &dialog);
         skipToBossCheck->setChecked(false);
         bossLayout->addWidget(skipToBossCheck);
         layout->addLayout(bossLayout);
 
         // 按钮
-        QHBoxLayout *buttonLayout = new QHBoxLayout();
-        QPushButton *startBtn = new QPushButton("开始游戏", &dialog);
-        QPushButton *cancelBtn = new QPushButton("取消", &dialog);
+        auto *buttonLayout = new QHBoxLayout();
+        auto *startBtn = new QPushButton("开始游戏", &dialog);
+        auto *cancelBtn = new QPushButton("取消", &dialog);
         buttonLayout->addWidget(startBtn);
         buttonLayout->addWidget(cancelBtn);
         layout->addLayout(buttonLayout);
@@ -336,12 +338,17 @@ void MainMenu::resizeEvent(QResizeEvent *event) {
     if (m_useTitleImage && !m_titlePixmap.isNull()) {
         adjustTitlePixmap();
     } else {
+        // 文本标题缩放，上限拉高一些
         QFont titleFont;
         titleFont.setFamily("Microsoft YaHei");
-        titleFont.setPointSize(static_cast<int>(48 * scale));
+        int size = static_cast<int>(48 * scale);
+        if (size < 20) size = 20;   // 避免太小
+        if (size > 96) size = 96;   // 避免太大
+        titleFont.setPointSize(size);
         titleFont.setBold(true);
         titleLabel->setFont(titleFont);
     }
+
 }
 
 void MainMenu::showEvent(QShowEvent *event) {
@@ -355,17 +362,27 @@ void MainMenu::adjustTitlePixmap() {
     if (!m_useTitleImage || m_titlePixmap.isNull())
         return;
 
-    const double widthRatio = 0.95;   // 宽度占窗口宽度的比例
-    const double heightRatio = 0.45;  // 增大高度占比以让图片更显眼
+    // 标题区域根据当前窗口大小动态分配
+    int targetW = width() * 0.75;   // 75% 窗口宽度
+    int targetH = height() * 0.30;  // 30% 窗口高度
 
-    QSize targetSize(static_cast<int>(width() * widthRatio), static_cast<int>(height() * heightRatio));
-
-    // 防止目标尺寸为0（窗口尚未布局），再尝试使用父窗口/默认值
-    if (targetSize.width() <= 0 || targetSize.height() <= 0) {
-        QSize fallback = QSize(800, 200);
-        targetSize = fallback;
+    // 防止初次布局尺寸为 0
+    if (targetW <= 0 || targetH <= 0) {
+        targetW = 800 * 0.75;
+        targetH = 600 * 0.30;
     }
 
-    QPixmap scaled = m_titlePixmap.scaled(targetSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QSize targetSize(targetW, targetH);
+
+    // 保持比例缩放
+    QPixmap scaled = m_titlePixmap.scaled(
+            targetSize,
+            Qt::KeepAspectRatio,
+            Qt::SmoothTransformation
+    );
+
     titleLabel->setPixmap(scaled);
+
+    // 让 label 始终足够高，避免被挤扁
+    titleLabel->setMinimumHeight(scaled.height());
 }
