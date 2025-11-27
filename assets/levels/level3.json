@@ -45,8 +45,12 @@
       "background": "convexBook",
       "enemies": [
         {
-          "type": "sock_normal",
-          "count": 3
+          "type": "optimization",
+          "count": 2
+        },
+        {
+          "type": "digital_system",
+          "count": 1
         }
       ],
       "hasBoss": false,
@@ -80,8 +84,12 @@
       "background": "convexBook",
       "enemies": [
         {
-          "type": "sock_normal",
-          "count": 7
+          "type": "optimization",
+          "count": 3
+        },
+        {
+          "type": "digital_system",
+          "count": 3
         }
       ],
       "hasBoss": false,
@@ -100,8 +108,12 @@
       "background": "convexBook",
       "enemies": [
         {
-          "type": "sock_normal",
-          "count": 5
+          "type": "optimization",
+          "count": 2
+        },
+        {
+          "type": "digital_system",
+          "count": 2
         }
       ],
       "hasBoss": false,
@@ -120,8 +132,12 @@
       "background": "convexBook",
       "enemies": [
         {
-          "type": "sock_normal",
-          "count": 7
+          "type": "optimization",
+          "count": 3
+        },
+        {
+          "type": "digital_system",
+          "count": 3
         }
       ],
       "hasBoss": false,
