@@ -45,8 +45,16 @@
       "background": "convexBook",
       "enemies": [
         {
-          "type": "yanglin",
+          "type": "probability_theory",
           "count": 1
+        },
+        {
+          "type": "optimization",
+          "count": 2
+        },
+        {
+          "type": "digital_system",
+          "count": 2
         }
       ],
       "hasBoss": false,
@@ -111,11 +119,15 @@
       "enemies": [
         {
           "type": "optimization",
-          "count": 3
+          "count": 2
         },
         {
           "type": "digital_system",
-          "count": 3
+          "count": 2
+        },
+        {
+          "type": "probability_theory",
+          "count": 1
         }
       ],
       "hasBoss": false,

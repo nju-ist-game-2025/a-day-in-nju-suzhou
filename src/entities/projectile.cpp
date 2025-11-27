@@ -2,10 +2,12 @@
 #include <QRandomGenerator>
 #include "enemy.h"
 #include "player.h"
+#include "probabilityenemy.h"
 #include "statuseffect.h"
 
 Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap &pic_bullet, double scale)
-        : mode(_mode), isDestroying(false), m_isPaused(false) {
+    : mode(_mode), isDestroying(false), m_isPaused(false)
+{
     setTransformationMode(Qt::SmoothTransformation);
 
     // 禁用缓存以避免留下轨迹
@@ -17,14 +19,19 @@ Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap &pic_
     hurt = _hurt;
 
     // 检查图片是否有效
-    if (pic_bullet.isNull()) {
+    if (pic_bullet.isNull())
+    {
         qWarning() << "Projectile: pic_bullet is null, using default";
         QPixmap defaultBullet(10, 10);
         defaultBullet.fill(Qt::yellow);
         this->setPixmap(defaultBullet);
-    } else if (scale == 1.0) {
+    }
+    else if (scale == 1.0)
+    {
         this->setPixmap(pic_bullet);
-    } else {
+    }
+    else
+    {
         // 按比例缩放（保持宽高比）
         this->setPixmap(pic_bullet.scaled(
                 pic_bullet.width() * scale,
@@ -47,25 +54,31 @@ Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap &pic_
     crashTimer->start(50);
 }
 
-Projectile::~Projectile() {
+Projectile::~Projectile()
+{
     // 析构函数只负责清理资源
     // 定时器作为子对象会自动删除，但为了确保立即停止，手动处理
-    if (moveTimer) {
+    if (moveTimer)
+    {
         moveTimer->stop();
     }
-    if (crashTimer) {
+    if (crashTimer)
+    {
         crashTimer->stop();
     }
 }
 
-void Projectile::move() {
+void Projectile::move()
+{
     // 如果正在销毁或暂停，不再执行任何操作
-    if (isDestroying || m_isPaused) {
+    if (isDestroying || m_isPaused)
+    {
         return;
     }
 
     // 检查场景是否有效
-    if (!scene()) {
+    if (!scene())
+    {
         destroy();
         return;
     }
@@ -74,16 +87,20 @@ void Projectile::move() {
     double newX = pos().x() + xdir;
     double newY = pos().y() + ydir;
 
-    if (newX < 0 || newX > scene_bound_x || newY < 0 || newY > scene_bound_y) {
+    if (newX < 0 || newX > scene_bound_x || newY < 0 || newY > scene_bound_y)
+    {
         destroy();
         return;
-    } else {
+    }
+    else
+    {
         QPointF dir(xdir, ydir);
         this->setPos(pos() + speed * dir);
     }
 }
 
-void geteffects(Enemy *enemy) {
+void geteffects(Enemy *enemy)
+{
     if (!enemy)
         return;
     if (enemy->getHealth() < 2)
@@ -100,26 +117,34 @@ void geteffects(Enemy *enemy) {
 
     // 依1/3的概率获得效果
     int i = QRandomGenerator::global()->bounded(localEffects.size() * 3);
-    if (i >= 0 && i < localEffects.size() && localEffects[i]) {
+    if (i >= 0 && i < localEffects.size() && localEffects[i])
+    {
         localEffects[i]->applyTo(enemy);
 
         // 清理未使用的效果
-        for (StatusEffect *effect: localEffects) {
-            if (effect != localEffects[i]) {  // 只删除未使用的
+        for (StatusEffect *effect : localEffects)
+        {
+            if (effect != localEffects[i])
+            { // 只删除未使用的
                 effect->deleteLater();
             }
         }
-    } else {
+    }
+    else
+    {
         // 如果没有选中效果，清理所有
-        for (StatusEffect *effect: localEffects) {
+        for (StatusEffect *effect : localEffects)
+        {
             effect->deleteLater();
         }
     }
 }
 
-void Projectile::checkCrash() {
+void Projectile::checkCrash()
+{
     // 如果正在销毁或暂停，不再执行任何操作
-    if (isDestroying || m_isPaused) {
+    if (isDestroying || m_isPaused)
+    {
         return;
     }
 
@@ -134,26 +159,45 @@ void Projectile::checkCrash() {
     if (collisions.isEmpty())
         return;
 
-    if (mode) {
+    if (mode)
+    {
         // 敌人子弹，检测玩家碰撞
-        for (QGraphicsItem *item: collisions) {
-            if (auto player = dynamic_cast<Player *>(item)) {
+        for (QGraphicsItem *item : collisions)
+        {
+            if (auto player = dynamic_cast<Player *>(item))
+            {
                 // 使用像素级碰撞检测
-                if (Entity::pixelCollision(this, player)) {
+                if (Entity::pixelCollision(this, player))
+                {
                     player->takeDamage(hurt);
                     destroy();
                     return;
                 }
             }
         }
-    } else {
+    }
+    else
+    {
         // 玩家子弹，检测敌人碰撞
-        for (QGraphicsItem *item: collisions) {
-            if (auto enemy = dynamic_cast<Enemy *>(item)) {
+        for (QGraphicsItem *item : collisions)
+        {
+            if (auto enemy = dynamic_cast<Enemy *>(item))
+            {
+                // 特殊处理：如果是ProbabilityEnemy且有其他敌人与之接触，则跳过
+                if (auto probEnemy = dynamic_cast<ProbabilityEnemy *>(enemy))
+                {
+                    if (probEnemy->hasContactingEnemies())
+                    {
+                        continue; // 跳过概率论，让子弹继续检测其他敌人
+                    }
+                }
+
                 // 使用像素级碰撞检测
-                if (Entity::pixelCollision(this, enemy)) {
+                if (Entity::pixelCollision(this, enemy))
+                {
                     // 先应用效果，再造成伤害（防止敌人在takeDamage中死亡）
-                    if (enemy && enemy->scene()) {
+                    if (enemy && enemy->scene())
+                    {
                         geteffects(enemy);
                         enemy->takeDamage(static_cast<int>(hurt));
                     }
@@ -165,24 +209,29 @@ void Projectile::checkCrash() {
     }
 }
 
-void Projectile::destroy() {
+void Projectile::destroy()
+{
     // 防止重复调用
-    if (isDestroying) {
+    if (isDestroying)
+    {
         return;
     }
 
     isDestroying = true;
 
     // 停止所有定时器
-    if (moveTimer) {
+    if (moveTimer)
+    {
         moveTimer->stop();
     }
-    if (crashTimer) {
+    if (crashTimer)
+    {
         crashTimer->stop();
     }
 
     // 从场景中移除
-    if (scene()) {
+    if (scene())
+    {
         scene()->removeItem(this);
     }
 
@@ -190,6 +239,7 @@ void Projectile::destroy() {
     deleteLater();
 }
 
-void Projectile::setPaused(bool paused) {
+void Projectile::setPaused(bool paused)
+{
     m_isPaused = paused;
 }

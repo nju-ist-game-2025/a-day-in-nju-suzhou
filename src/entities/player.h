@@ -80,6 +80,12 @@ public:
         if (redHearts + n <= redContainers)
             redHearts += n;
     }
+    
+    // 强制设置当前血量（用于特殊效果）
+    void setCurrentHealth(double health) {
+        redHearts = qBound(0.0, health, static_cast<double>(redContainers));
+        emit healthChanged(redHearts, getMaxHealth());
+    }
 
     void addSoulHearts(int n) {
         if (soulHearts + n <= max_soul)
