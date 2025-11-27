@@ -10,12 +10,14 @@
 
 class Player;
 
-class Enemy : public Entity {
-Q_OBJECT
+class Enemy : public Entity
+{
+    Q_OBJECT
 
 public:
     // 敌人状态枚举
-    enum State {
+    enum State
+    {
         IDLE,   // 空闲/巡逻
         CHASE,  // 追击
         ATTACK, // 攻击
@@ -23,7 +25,9 @@ public:
     };
 
     // 移动模式枚举
-    enum MovementPattern {
+    enum MovementPattern
+    {
+        MOVE_NONE,          // 不自动移动（自定义移动逻辑）
         MOVE_DIRECT,        // 直线追击（默认行为）
         MOVE_ZIGZAG,        // Z字形追击（左右蛇形接近）
         MOVE_CIRCLE,        // 绕圈接近（螺旋式靠近玩家）
@@ -49,7 +53,8 @@ public:
 
     void setAttackCooldown(int ms) { attackCooldown = ms; }
 
-    void setHealth(int hp) {
+    void setHealth(int hp)
+    {
         health = hp;
         maxHealth = hp;
     }
@@ -82,6 +87,8 @@ public:
     void setZigzagAmplitude(double amp) { m_zigzagAmplitude = amp; }
 
     void setCircleRadius(double radius) { m_circleRadius = radius; }
+
+    void setCircleAngle(double angle) { m_circleAngle = angle; }  // 设置绕圈初始角度（弧度）
 
     // 暂停/恢复所有定时器（用于对话期间）
     virtual void pauseTimers();

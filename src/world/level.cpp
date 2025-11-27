@@ -7,6 +7,7 @@
 #include <QPropertyAnimation>
 #include <QRandomGenerator>
 #include <QVariantAnimation>
+#include <QtMath>
 #include "../core/audiomanager.h"
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
@@ -28,6 +29,7 @@
 #include "../entities/walker.h"
 #include "../entities/washmachineboss.h"
 #include "../entities/yanglinenemy.h"
+#include "../entities/zhuhaoenemy.h"
 #include "../items/chest.h"
 #include "../ui/gameview.h"
 #include "../ui/hud.h"
@@ -585,13 +587,7 @@ void Level::showStoryDialog(const QStringList &dialogs, bool isBossDialog, const
             }
         }
         // 暂停所有敌人的AI和攻击
-        for (const QPointer<Enemy> &enemyPtr : m_currentEnemies)
-        {
-            if (enemyPtr)
-            {
-                enemyPtr->pauseTimers();
-            }
-        }
+        pauseAllEnemyTimers();
     }
 
     // 显示第一句对话
@@ -677,19 +673,39 @@ void Level::finishStory()
     // 发送对话结束信号
     emit dialogFinished();
 
+    // 如果是精英房间对话结束
+    if (m_isEliteDialog)
+    {
+        m_isEliteDialog = false;
+
+        if (m_elitePhase2Triggered)
+        {
+            // 第二阶段对话结束，生成朱浩并恢复战斗
+            qDebug() << "精英房间第二阶段对话结束，生成朱浩";
+            spawnZhuhaoEnemy();
+
+            // 恢复所有敌人的定时器
+            resumeAllEnemyTimers();
+        }
+        else
+        {
+            // 第一阶段对话结束，初始化精英房间（生成3个杨霖）
+            qDebug() << "精英房间初始对话结束，初始化房间";
+            if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size())
+            {
+                initCurrentRoom(m_rooms[m_currentRoomIndex]);
+            }
+        }
+        return;
+    }
+
     // 如果是boss对话结束，初始化当前房间
     if (m_isBossDialog)
     {
         m_isBossDialog = false;
 
         // 恢复所有敌人的定时器
-        for (const QPointer<Enemy> &enemyPtr : m_currentEnemies)
-        {
-            if (enemyPtr)
-            {
-                enemyPtr->resumeTimers();
-            }
-        }
+        resumeAllEnemyTimers();
 
         // 检查是否是WashMachineBoss的中途对话（变异阶段）
         if (m_currentWashMachineBoss && m_currentWashMachineBoss->getPhase() >= 2)
@@ -1062,6 +1078,15 @@ void Level::spawnEnemiesInRoom(int roomIndex)
                     Enemy *enemy = createEnemyByType(m_levelNumber, enemyType, enemyPix, enemyScale);
                     enemy->setPos(x, y);
                     enemy->setPlayer(m_player);
+
+                    // 为绕圈移动的敌人（如杨林）设置不同的初始角度，避免重合
+                    // 每只杨林间隔 120度（2π/3弧度）
+                    if (enemyType == "yanglin" && count > 1)
+                    {
+                        double initialAngle = (2.0 * M_PI / count) * i;
+                        enemy->setCircleAngle(initialAngle);
+                        qDebug() << "设置杨林" << i << "初始角度:" << (initialAngle * 180.0 / M_PI) << "度";
+                    }
 
                     // 预加载碰撞掩码（避免运行时生成）
                     enemy->preloadCollisionMask();
@@ -1796,6 +1821,7 @@ bool Level::enterNextRoom()
     // 检测是否首次进入boss房间（使用之前已声明的currentRoomCfg）
     const RoomConfig &newRoomCfg = config.getRoom(m_currentRoomIndex);
     bool isFirstEnterBossRoom = !visited[m_currentRoomIndex] && newRoomCfg.hasBoss;
+    bool isFirstEnterEliteRoom = !visited[m_currentRoomIndex] && newRoomCfg.isEliteRoom;
 
     if (!visited[m_currentRoomIndex])
     {
@@ -1815,8 +1841,19 @@ bool Level::enterNextRoom()
             }
         }
 
+        // 如果是首次进入精英房间且有对话配置，显示对话
+        if (isFirstEnterEliteRoom && !newRoomCfg.eliteDialog.isEmpty())
+        {
+            qDebug() << "首次进入精英房间" << m_currentRoomIndex << "，显示精英房间对话";
+            m_isEliteRoom = true;
+            m_elitePhase2Triggered = false;
+            m_eliteYanglinDeathCount = 0;
+            m_isEliteDialog = true;
+            showStoryDialog(newRoomCfg.eliteDialog, false, newRoomCfg.eliteDialogBackground);
+            // 等待对话结束后再初始化房间
+        }
         // 如果是首次进入boss房间且有对话配置，显示对话
-        if (isFirstEnterBossRoom && !newRoomCfg.bossDialog.isEmpty())
+        else if (isFirstEnterBossRoom && !newRoomCfg.bossDialog.isEmpty())
         {
             qDebug() << "首次进入boss房间" << m_currentRoomIndex << "，显示boss对话";
             // 传递boss对话标志和自定义背景（如果有）
@@ -1996,6 +2033,25 @@ void Level::onEnemyDying(Enemy *enemy)
 
     // 检查是否是Boss死亡
     bool isBoss = dynamic_cast<Boss *>(enemy) != nullptr;
+
+    // 检查是否是精英房间中的杨霖死亡
+    if (m_isEliteRoom && !m_elitePhase2Triggered)
+    {
+        YanglinEnemy *yanglin = dynamic_cast<YanglinEnemy *>(enemy);
+        if (yanglin)
+        {
+            m_eliteYanglinDeathCount++;
+            qDebug() << "精英房间杨霖死亡，当前死亡数:" << m_eliteYanglinDeathCount;
+
+            // 第一个杨霖死亡时触发第二阶段
+            if (m_eliteYanglinDeathCount == 1)
+            {
+                qDebug() << "触发精英房间第二阶段";
+                // 延迟一小段时间再触发第二阶段对话
+                QTimer::singleShot(1000, this, &Level::checkEliteRoomPhase2);
+            }
+        }
+    }
 
     // 使用 QPointer 包装目标并用 removeAll 安全移除
     QPointer<Enemy> target(enemy);
@@ -2828,6 +2884,30 @@ void Level::setPaused(bool paused)
     qDebug() << "Level暂停状态:" << (paused ? "已暂停" : "已恢复");
 }
 
+// ==================== 辅助方法 ====================
+
+void Level::pauseAllEnemyTimers()
+{
+    for (const QPointer<Enemy> &enemyPtr : m_currentEnemies)
+    {
+        if (enemyPtr)
+        {
+            enemyPtr->pauseTimers();
+        }
+    }
+}
+
+void Level::resumeAllEnemyTimers()
+{
+    for (const QPointer<Enemy> &enemyPtr : m_currentEnemies)
+    {
+        if (enemyPtr)
+        {
+            enemyPtr->resumeTimers();
+        }
+    }
+}
+
 // ==================== WashMachineBoss 相关方法 ====================
 
 void Level::connectWashMachineBossSignals(WashMachineBoss *boss)
@@ -3185,13 +3265,7 @@ void Level::onTeacherBossRequestDialog(const QStringList &dialogs, const QString
     qDebug() << "[Level] TeacherBoss请求显示对话";
 
     // 暂停所有敌人的定时器
-    for (const QPointer<Enemy> &enemyPtr : m_currentEnemies)
-    {
-        if (enemyPtr)
-        {
-            enemyPtr->pauseTimers();
-        }
-    }
+    pauseAllEnemyTimers();
 
     // 显示Boss对话
     showStoryDialog(dialogs, true, background);
@@ -3207,4 +3281,102 @@ void Level::onTeacherBossRequestTransitionText(const QString &text)
 {
     qDebug() << "[Level] TeacherBoss请求显示文字:" << text;
     showPhaseTransitionText(text);
+}
+
+// ========== 精英房间相关函数 ==========
+
+void Level::checkEliteRoomPhase2()
+{
+    if (!m_isEliteRoom || m_elitePhase2Triggered)
+        return;
+
+    qDebug() << "准备触发精英房间第二阶段";
+    m_elitePhase2Triggered = true;
+
+    // 暂停所有敌人的定时器
+    pauseAllEnemyTimers();
+
+    // 获取第二阶段对话配置
+    LevelConfig config;
+    if (!config.loadFromFile(m_levelNumber))
+    {
+        qWarning() << "无法加载关卡配置";
+        startElitePhase2();
+        return;
+    }
+
+    const RoomConfig &roomCfg = config.getRoom(m_currentRoomIndex);
+
+    if (roomCfg.elitePhase2Dialog.isEmpty())
+    {
+        qDebug() << "没有第二阶段对话，直接开始第二阶段";
+        startElitePhase2();
+        return;
+    }
+
+    // 显示第二阶段对话
+    m_isEliteDialog = true;
+    showStoryDialog(roomCfg.elitePhase2Dialog, false, roomCfg.elitePhase2DialogBackground);
+}
+
+void Level::startElitePhase2()
+{
+    qDebug() << "开始精英房间第二阶段";
+
+    // 生成朱浩
+    spawnZhuhaoEnemy();
+
+    // 恢复所有敌人的定时器
+    resumeAllEnemyTimers();
+}
+
+void Level::spawnZhuhaoEnemy()
+{
+    qDebug() << "生成朱浩敌人";
+
+    if (!m_scene || !m_player)
+    {
+        qWarning() << "无法生成朱浩：场景或玩家为空";
+        return;
+    }
+
+    // 加载朱浩图片
+    QPixmap zhuhaoPic("assets/enemy/level_3/zhuhao.png");
+    if (zhuhaoPic.isNull())
+    {
+        qWarning() << "无法加载朱浩图片";
+        return;
+    }
+
+    // 创建朱浩敌人 - 使用较小的缩放比例避免卡在地图外
+    ZhuhaoEnemy *zhuhao = new ZhuhaoEnemy(zhuhaoPic, 0.08);
+    zhuhao->setPlayer(m_player);
+
+    // 添加到场景
+    m_scene->addItem(zhuhao);
+
+    // 初始化在随机边缘位置
+    zhuhao->initializeAtRandomEdge();
+
+    // 添加到敌人列表
+    QPointer<Enemy> zhuhaoPtr(zhuhao);
+    m_currentEnemies.append(zhuhaoPtr);
+
+    // 添加到当前房间的敌人列表
+    if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size())
+    {
+        Room *currentRoom = m_rooms[m_currentRoomIndex];
+        if (currentRoom)
+        {
+            currentRoom->currentEnemies.append(zhuhaoPtr);
+        }
+    }
+
+    // 连接死亡信号
+    connect(zhuhao, &Enemy::dying, this, &Level::onEnemyDying);
+
+    // 保存引用
+    m_zhuhaoEnemy = zhuhao;
+
+    qDebug() << "朱浩已生成，位置:" << zhuhao->pos();
 }

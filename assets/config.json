@@ -46,7 +46,8 @@
             "sock_shooter": 50,
             "pants": 55,
             "walker": 45,
-            "yanglin": 200
+            "yanglin": 200,
+            "zhuhao": 30
         },
         "bosses": {
             "default": 150,
@@ -58,7 +59,8 @@
             "default": 50,
             "player": 50,
             "sock_shooter": 25,
-            "boss_washmachine": 30
+            "boss_washmachine": 30,
+            "zhuhao": 80
         }
     },
     "game": {

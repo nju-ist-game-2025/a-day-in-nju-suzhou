@@ -99,6 +99,8 @@ set(ENTITY_SOURCES
         src/entities/digitalsystemenemy.h
         src/entities/yanglinenemy.cpp
         src/entities/yanglinenemy.h
+        src/entities/zhuhaoenemy.cpp
+        src/entities/zhuhaoenemy.h
 )
 
 set(WORLD_SOURCES
