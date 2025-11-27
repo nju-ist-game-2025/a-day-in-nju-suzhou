@@ -674,19 +674,17 @@ void Player::placeBomb() {
     if (bombs <= 0)
         return;
     auto posi = this->pos();
-    QTimer::singleShot(500, this, [this, posi]() {
-        foreach (QGraphicsItem *item, scene()->items()) {
-            if (auto it = dynamic_cast<Enemy *>(item)) {
-                if (abs(it->pos().x() - posi.x()) > bomb_r ||
-                    abs(it->pos().y() - posi.y()) > bomb_r)
-                    continue;
-                else{
-                    it->takeDamage(bombHurt);
+    QTimer::singleShot(2000, this, [this, posi]() {
+                foreach (QGraphicsItem *item, scene()->items()) {
+                if (auto it = dynamic_cast<Enemy *>(item)) {
+                    if (abs(it->pos().x() - posi.x()) > bomb_r ||
+                        abs(it->pos().y() - posi.y()) > bomb_r)
+                        continue;
+                    else
+                        it->takeDamage(bombHurt);
                 }
             }
-        }
     });
-    bombs--;
 }
 
 void Player::focusOutEvent(QFocusEvent *event) {
