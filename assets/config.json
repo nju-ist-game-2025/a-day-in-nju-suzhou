@@ -4,6 +4,7 @@
     },
     "assets": {
         "background_main": "assets/background/main.png",
+        "background_codex": "assets/background/codex.png",
         "background_select_character": "assets/background/select_character.png",
         "bed": "assets/background/bed.png",
         "convexBook": "assets/background/convexBook.png",
