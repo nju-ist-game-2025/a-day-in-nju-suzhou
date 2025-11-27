@@ -185,6 +185,51 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
         if (!entry.weakness.isEmpty()) {
             addInfoSection("💔", "弱点", entry.weakness);
         }
+
+        // 显示Boss各阶段图片
+        if (!entry.phaseImages.isEmpty()) {
+            QLabel* phaseTitle = new QLabel("🎭 形态一览", contentWidget);
+            phaseTitle->setFont(labelFont);
+            phaseTitle->setStyleSheet(labelStyle);
+            contentLayout->addWidget(phaseTitle);
+
+            QHBoxLayout* phaseLayout = new QHBoxLayout();
+            phaseLayout->setSpacing(15);
+            phaseLayout->setContentsMargins(16, 6, 0, 12);
+
+            for (const PhaseImage& phase : entry.phaseImages) {
+                QVBoxLayout* phaseItemLayout = new QVBoxLayout();
+                phaseItemLayout->setSpacing(5);
+                phaseItemLayout->setAlignment(Qt::AlignCenter);
+
+                QLabel* phaseImageLabel = new QLabel(contentWidget);
+                phaseImageLabel->setFixedSize(70, 70);
+                phaseImageLabel->setAlignment(Qt::AlignCenter);
+                phaseImageLabel->setStyleSheet("background-color: rgba(255, 255, 255, 200); border: 1px solid rgba(100, 149, 237, 150); border-radius: 8px;");
+                QPixmap phasePix(phase.imagePath);
+                if (!phasePix.isNull()) {
+                    phasePix = phasePix.scaled(60, 60, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                    phaseImageLabel->setPixmap(phasePix);
+                }
+
+                QLabel* phaseNameLabel = new QLabel(phase.phaseName, contentWidget);
+                phaseNameLabel->setAlignment(Qt::AlignCenter);
+                QFont phaseFont;
+                phaseFont.setFamily("Microsoft YaHei");
+                phaseFont.setPointSize(9);
+                phaseNameLabel->setFont(phaseFont);
+                phaseNameLabel->setStyleSheet("color: #4a6fa5;");
+
+                phaseItemLayout->addWidget(phaseImageLabel);
+                phaseItemLayout->addWidget(phaseNameLabel);
+                phaseLayout->addLayout(phaseItemLayout);
+            }
+            phaseLayout->addStretch();
+
+            QWidget* phaseContainer = new QWidget(contentWidget);
+            phaseContainer->setLayout(phaseLayout);
+            contentLayout->addWidget(phaseContainer);
+        }
     }
 
     // 背景故事（所有条目都有）
@@ -382,6 +427,9 @@ void Codex::loadBossData() {
     nightmare.weakness = "炸弹闹钟可对其造成50点伤害";
     nightmare.backstory = "梦魇讨厌清晨，恨到它会在你睡得正香时把你从美梦中拽出来。它不在乎你有没有睡够，不在乎你是否还想再躺五分钟。它只知道，是时候起床了。\n\n其实呢，梦魇一直暗暗地渴望着你能早点入睡——这样它就能更早地来折磨你了。";
     nightmare.isCharacter = false;
+    nightmare.phaseImages = {
+        {"assets/boss/Nightmare/Nightmare.png", "一阶段"},
+        {"assets/boss/Nightmare/Nightmare2.png", "二阶段"}};
     m_bossEntries.append(nightmare);
 
     // 洗衣机Boss
@@ -395,6 +443,10 @@ void Codex::loadBossData() {
     washmachine.weakness = "变异前的吸收阶段完全无敌，需要等待变异完成";
     washmachine.backstory = "洗衣机情不自禁地转动着滚筒。是什么节奏呢？嗨，是同学们塞进来的臭袜子散发的独特韵律，这种频率的震动，只有洗衣机才能感受到。\n\n它曾经只是一台普通的公共洗衣机，直到有一天，一个同学往里面塞了三天没洗的袜子和一周没换的内裤。从那以后，洗衣机就变了。";
     washmachine.isCharacter = false;
+    washmachine.phaseImages = {
+        {"assets/boss/WashMachine/WashMachineNormally.png", "普通"},
+        {"assets/boss/WashMachine/WashMachineAngrily.png", "愤怒"},
+        {"assets/boss/WashMachine/WashMachineMutated.png", "变异"}};
     m_bossEntries.append(washmachine);
 
     // 奶牛张Boss
@@ -408,6 +460,10 @@ void Codex::loadBossData() {
     teacher.weakness = "弹幕服从正态分布，站在边缘位置可以降低命中概率";
     teacher.backstory = "奶牛张很凶悍，他是在概率论的海洋中成长的。他不在乎任何人的看法，无论是学霸还是学渣，他发出的考卷，是为了让所有人知道什么叫做正态分布。\n\n其实呢，奶牛张一直暗暗地希望有人能理解他的极大似然估计。他即将调往北京，对此表示喜忧参半。";
     teacher.isCharacter = false;
+    teacher.phaseImages = {
+        {"assets/boss/Teacher/cow.png", "授课"},
+        {"assets/boss/Teacher/cowAngry.png", "期中考试"},
+        {"assets/boss/Teacher/cowFinal.png", "方差爆炸"}};
     m_bossEntries.append(teacher);
 }
 
@@ -495,7 +551,7 @@ void Codex::loadEnemyData() {
     digitalSystem.skills = "【成长】随时间逐渐变大，体型和伤害同步增加";
     digitalSystem.traits = "绕圈移动模式，初始较小但会不断成长";
     digitalSystem.weakness = "尽早击杀，避免它成长到难以对付的程度";
-    digitalSystem.backstory = "数字系统是概率论课本里逃出来的一道习题。它不断地成长，就像你对它的恐惧一样。\n\n据说只要你看懂了它，它就会消失。可惜没人看懂过。";
+    digitalSystem.backstory = "数字系统是从《数字系统设计基础》这门课里跑出来的。它不断地成长，就像你对它的恐惧一样。\n\n据说只要你看懂了它，它就会消失。可惜没人看懂过。";
     digitalSystem.isCharacter = false;
     m_enemyEntries.append(digitalSystem);
 
@@ -564,7 +620,7 @@ void Codex::loadUsagiData() {
     usagi.imagePath = "assets/usagi/usagi.png";
     usagi.health = -1;
     usagi.isCharacter = true;
-    usagi.backstory = "乌萨奇是一只神秘的兔子，它会在每关通关后从天而降，为勇敢的玩家送上奖励。没人知道它从哪里来，也没人知道它为什么要帮助玩家。\n\n其实乌萨奇是程设课老师的微信头像。是的，你没有看错。这只可爱的兔子每天都在老师的头像里，看着每一个提交作业的学生。\n\n老师的微信签名是：\"很外向，说悄悄话都要用音响\"。乌萨奇觉得这很有道理。\n\n它喜欢说\"哇哦\"和\"～\"，喜欢给人惊喜，喜欢看到玩家打败Boss时的喜悦表情。它相信，每一个勇敢面对挑战的人，都值得被奖励。";
+    usagi.backstory = "乌萨奇总是在Boss倒下的那一刻从天而降。没人知道她是怎么算准时机的，大概是因为她一直在某个地方默默注视着每一个挑战者。\n\n她喜欢说\"哇哦\"，喜欢用\"～\"结尾，喜欢计算那些不可能的概率。她说通关概率只有0.01%，但她相信每个站在她面前的人都是那个0.01%。\n\n据说乌萨奇很外向，连说悄悄话都要用音响。没人知道这是不是真的，因为没人听过她小声说话。\n\n每次她消失之前，都会留下两个宝箱。有时候她还会叮嘱你好好爱护公共设施——虽然你刚刚把一台洗衣机打爆了。";
     m_usagiEntries.append(usagi);
 }
 

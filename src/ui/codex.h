@@ -13,17 +13,24 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+// Boss阶段图片信息
+struct PhaseImage {
+    QString imagePath;  // 图片路径
+    QString phaseName;  // 阶段名称
+};
+
 // 图鉴条目数据结构
 struct CodexEntry {
-    QString name;          // 名称
-    QString imagePath;     // 图片路径
-    int health;            // 血量（-1表示无血量显示，如玩家）
-    QString attackMethod;  // 攻击方式
-    QString skills;        // 技能
-    QString traits;        // 特性
-    QString weakness;      // 弱点
-    QString backstory;     // 背景故事
-    bool isCharacter;      // 是否为玩家/NPC（只显示背景故事）
+    QString name;                   // 名称
+    QString imagePath;              // 图片路径
+    int health;                     // 血量（-1表示无血量显示，如玩家）
+    QString attackMethod;           // 攻击方式
+    QString skills;                 // 技能
+    QString traits;                 // 特性
+    QString weakness;               // 弱点
+    QString backstory;              // 背景故事
+    bool isCharacter;               // 是否为玩家/NPC（只显示背景故事）
+    QList<PhaseImage> phaseImages;  // Boss各阶段图片（可选）
 };
 
 // 图鉴条目卡片组件
