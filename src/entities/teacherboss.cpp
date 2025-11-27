@@ -21,7 +21,7 @@ TeacherBoss::TeacherBoss(const QPixmap &pic, double scale)
           m_isTransitioning(false),
           m_waitingForDialog(false),
           m_isDefeated(false),
-          m_firstDialogShown(true),  // JSON的bossDialog已经显示过了
+          m_firstDialogShown(false),  // 初始化为未播放，等待Level通知
           m_isFlyingOut(false),
           m_isFlyingIn(false),
           m_flyTimer(nullptr),

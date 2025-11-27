@@ -783,20 +783,25 @@ void Level::finishStory() {
             // 不需要initCurrentRoom，只需通知Boss继续战斗
             qDebug() << "TeacherBoss阶段转换对话结束，继续战斗";
             m_currentTeacherBoss->onDialogFinished();
+        } else if (m_currentTeacherBoss && m_currentTeacherBoss->getPhase() == 1) {
+            // TeacherBoss初始对话结束（第一阶段）
+            // Boss已经在房间中创建，不需要重新initCurrentRoom
+            // 直接通知Boss开始战斗（Boss会设置正确的战斗背景）
+            qDebug() << "TeacherBoss初始对话结束，通知Boss开始第一阶段战斗";
+            m_currentTeacherBoss->onDialogFinished();
         } else {
-            // 初始Boss对话结束，或WashMachineBoss第一轮对话结束
+            // WashMachineBoss或其他Boss的初始对话结束
             // 需要初始化房间（创建Boss和敌人）
             if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size()) {
                 qDebug() << "Boss对话结束，初始化boss房间" << m_currentRoomIndex;
                 initCurrentRoom(m_rooms[m_currentRoomIndex]);
             }
             // 在房间初始化后再通知Boss（这样文字会显示在最顶层）
-            if (m_currentWashMachineBoss) {
-                m_currentWashMachineBoss->onDialogFinished();
-            }
-            // TeacherBoss初始对话结束，通知Boss开始战斗
             if (m_currentTeacherBoss) {
+                qDebug() << "TeacherBoss实例创建完成，通知其进入战斗";
                 m_currentTeacherBoss->onDialogFinished();
+            } else if (m_currentWashMachineBoss) {
+                m_currentWashMachineBoss->onDialogFinished();
             }
         }
     } else {
@@ -1368,6 +1373,12 @@ Boss *Level::createBossByLevel(int levelNumber, const QPixmap &pic, double scale
 
 void Level::spawnDoors(const RoomConfig &roomCfg) {
     try {
+        // 加载关卡配置以检查目标房间是否是boss房间
+        LevelConfig config;
+        if (!config.loadFromFile(m_levelNumber)) {
+            qWarning() << "无法加载关卡配置，跳过boss门检查";
+        }
+        
         // 检查是否已有该房间的门对象（复用逻辑）
         if (m_roomDoors.contains(m_currentRoomIndex)) {
             // 复用已存在的门对象
@@ -1410,7 +1421,9 @@ void Level::spawnDoors(const RoomConfig &roomCfg) {
         // 上下门：120x80，左右门：80x120
 
         if (roomCfg.doorUp >= 0) {
-            Door *door = new Door(Door::Up);
+            // 检查目标房间是否是boss房间
+            bool isBossDoor = config.getRoom(roomCfg.doorUp).hasBoss;
+            Door *door = new Door(Door::Up, isBossDoor);
             // 上门：水平居中在顶部 (800-120)/2 = 340
             door->setPos(340, 0);
             m_scene->addItem(door);
@@ -1423,7 +1436,9 @@ void Level::spawnDoors(const RoomConfig &roomCfg) {
             }
         }
         if (roomCfg.doorDown >= 0) {
-            Door *door = new Door(Door::Down);
+            // 检查目标房间是否是boss房间
+            bool isBossDoor = config.getRoom(roomCfg.doorDown).hasBoss;
+            Door *door = new Door(Door::Down, isBossDoor);
             // 下门：水平居中在底部 (600-80) = 520
             door->setPos(340, 520);
             m_scene->addItem(door);
@@ -1435,7 +1450,9 @@ void Level::spawnDoors(const RoomConfig &roomCfg) {
             }
         }
         if (roomCfg.doorLeft >= 0) {
-            Door *door = new Door(Door::Left);
+            // 检查目标房间是否是boss房间
+            bool isBossDoor = config.getRoom(roomCfg.doorLeft).hasBoss;
+            Door *door = new Door(Door::Left, isBossDoor);
             // 左门：垂直居中在左侧 (600-120)/2 = 240
             door->setPos(0, 240);
             m_scene->addItem(door);
@@ -1447,7 +1464,9 @@ void Level::spawnDoors(const RoomConfig &roomCfg) {
             }
         }
         if (roomCfg.doorRight >= 0) {
-            Door *door = new Door(Door::Right);
+            // 检查目标房间是否是boss房间
+            bool isBossDoor = config.getRoom(roomCfg.doorRight).hasBoss;
+            Door *door = new Door(Door::Right, isBossDoor);
             // 右门：垂直居中在右侧 800-80 = 720
             door->setPos(720, 240);
             m_scene->addItem(door);

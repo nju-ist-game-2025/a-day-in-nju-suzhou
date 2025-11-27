@@ -3,8 +3,8 @@
 #include "../core/configmanager.h"
 #include <QDebug>
 
-Door::Door(Direction dir, QGraphicsItem *parent)
-        : QGraphicsPixmapItem(parent), m_direction(dir), m_state(Closed), m_currentFrame(0) {
+Door::Door(Direction dir, bool isBossDoor, QGraphicsItem *parent)
+        : QGraphicsPixmapItem(parent), m_direction(dir), m_state(Closed), m_isBossDoor(isBossDoor), m_currentFrame(0) {
     loadImages();
     setPixmap(m_closedImage);
     setZValue(50); // 确保门在其他物体之上
@@ -57,7 +57,13 @@ void Door::loadImages() {
         QString closedPath = basePath + QString("door_%1_closed.png").arg(dirName);
         QPixmap originalClosed = ResourceFactory::loadImage(closedPath);
 
-        QString openPath = basePath + QString("door_%1_open.png").arg(dirName);
+        // 根据是否是boss门选择打开状态的图片
+        QString openPath;
+        if (m_isBossDoor) {
+            openPath = basePath + QString("door_%1_open_boss.png").arg(dirName);
+        } else {
+            openPath = basePath + QString("door_%1_open.png").arg(dirName);
+        }
         QPixmap originalOpen = ResourceFactory::loadImage(openPath);
 
         QString halfPath = basePath + QString("door_%1_openhalf.png").arg(dirName);
@@ -91,7 +97,8 @@ void Door::loadImages() {
         m_animationFrames.append(m_openImage);   // 第4帧：打开
         m_animationFrames.append(m_openImage);   // 第5帧：打开（停留）
 
-        qDebug() << "门图片加载完成:" << dirName << "方向，缩放至" << targetWidth << "x" << targetHeight;
+        qDebug() << "门图片加载完成:" << dirName << "方向，缩放至" << targetWidth << "x" << targetHeight 
+                 << (m_isBossDoor ? "（Boss门）" : "");
     }
     catch (const QString &error) {
         qWarning() << "加载门图片失败:" << error;
@@ -99,7 +106,7 @@ void Door::loadImages() {
         m_closedImage = QPixmap(80, 80);
         m_closedImage.fill(Qt::darkRed);
         m_openImage = QPixmap(80, 80);
-        m_openImage.fill(Qt::darkGreen);
+        m_openImage.fill(m_isBossDoor ? Qt::darkMagenta : Qt::darkGreen);
 
         // 创建简单的动画帧
         for (int i = 0; i < 5; i++) {

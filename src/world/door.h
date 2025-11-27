@@ -23,7 +23,7 @@ public:
         Right
     };
 
-    Door(Direction dir, QGraphicsItem *parent = nullptr);
+    Door(Direction dir, bool isBossDoor = false, QGraphicsItem *parent = nullptr);
 
     ~Door();
 
@@ -35,6 +35,8 @@ public:
     DoorState state() const { return m_state; }
 
     Direction direction() const { return m_direction; } // 获取门的方向
+    
+    bool isBossDoor() const { return m_isBossDoor; } // 是否是通往boss房的门
 
 private:
     void loadImages();
@@ -43,6 +45,7 @@ private:
 
     Direction m_direction;
     DoorState m_state;
+    bool m_isBossDoor;  // 是否是通往boss房间的门
 
     QPixmap m_closedImage;
     QPixmap m_openImage;
