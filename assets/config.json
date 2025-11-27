@@ -19,9 +19,6 @@
         "chest": "assets/chest/chest.png",
         "explosion": "assets/explosion/"
     },
-    "washmachine_boss": {
-        "initial_socks_on_angry": 6
-    },
     "sizes": {
         "player": 60,
         "enemy": 40,

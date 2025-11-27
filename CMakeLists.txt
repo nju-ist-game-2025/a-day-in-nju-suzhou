@@ -91,6 +91,12 @@ set(ENTITY_SOURCES
         src/entities/walker.h
         src/entities/usagi.cpp
         src/entities/usagi.h
+        src/entities/scalingenemy.cpp
+        src/entities/scalingenemy.h
+        src/entities/optimizationenemy.cpp
+        src/entities/optimizationenemy.h
+        src/entities/digitalsystemenemy.cpp
+        src/entities/digitalsystemenemy.h
 )
 
 set(WORLD_SOURCES
