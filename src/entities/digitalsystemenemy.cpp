@@ -2,8 +2,7 @@
 #include <QDebug>
 
 DigitalSystemEnemy::DigitalSystemEnemy(const QPixmap &pic, double scale)
-    : ScalingEnemy(pic, scale)
-{
+        : ScalingEnemy(pic, scale) {
     // DigitalSystem敌人的特定参数（可以根据需要调整）
     setHealth(25);
     setContactDamage(3);

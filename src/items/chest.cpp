@@ -9,19 +9,15 @@
 // ==================== Chest 基类实现 ====================
 
 Chest::Chest(Player *pl, ChestType type, const QPixmap &pic_chest, double scale)
-    : m_chestType(type), m_isOpened(false), m_player(pl), m_hintText(nullptr), m_hintTimer(nullptr)
-{
-    if (scale == 1.0)
-    {
+        : m_chestType(type), m_isOpened(false), m_player(pl), m_hintText(nullptr), m_hintTimer(nullptr) {
+    if (scale == 1.0) {
         this->setPixmap(pic_chest);
-    }
-    else
-    {
+    } else {
         this->setPixmap(pic_chest.scaled(
-            pic_chest.width() * scale,
-            pic_chest.height() * scale,
-            Qt::KeepAspectRatio,
-            Qt::SmoothTransformation));
+                pic_chest.width() * scale,
+                pic_chest.height() * scale,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation));
     }
 
     // 创建提示文字定时器
@@ -35,27 +31,22 @@ Chest::Chest(Player *pl, ChestType type, const QPixmap &pic_chest, double scale)
     m_checkOpenTimer->start(16);
 }
 
-Chest::~Chest()
-{
-    if (m_checkOpenTimer)
-    {
+Chest::~Chest() {
+    if (m_checkOpenTimer) {
         m_checkOpenTimer->stop();
         disconnect(m_checkOpenTimer, nullptr, this, nullptr);
     }
-    if (m_hintTimer)
-    {
+    if (m_hintTimer) {
         m_hintTimer->stop();
     }
     hideHint();
 }
 
-void Chest::initItems()
-{
+void Chest::initItems() {
     // 基类不初始化物品，由子类实现
 }
 
-void Chest::showHint(const QString &text)
-{
+void Chest::showHint(const QString &text) {
     if (!scene())
         return;
 
@@ -85,12 +76,9 @@ void Chest::showHint(const QString &text)
     m_hintTimer->start(3000);
 }
 
-void Chest::hideHint()
-{
-    if (m_hintText)
-    {
-        if (m_hintText->scene())
-        {
+void Chest::hideHint() {
+    if (m_hintText) {
+        if (m_hintText->scene()) {
             m_hintText->scene()->removeItem(m_hintText);
         }
         delete m_hintText;
@@ -98,38 +86,32 @@ void Chest::hideHint()
     }
 }
 
-void Chest::tryOpen()
-{
+void Chest::tryOpen() {
     // 如果已经打开过，不再处理
-    if (m_isOpened)
-    {
+    if (m_isOpened) {
         return;
     }
 
-    if (!scene() || !m_player)
-    {
+    if (!scene() || !m_player) {
         return;
     }
 
     // 检查玩家是否在范围内并按下空格键
     if (m_player->isKeyPressed(Qt::Key_Space) &&
         abs(m_player->pos().x() - this->pos().x()) <= open_r &&
-        abs(m_player->pos().y() - this->pos().y()) <= open_r)
-    {
+        abs(m_player->pos().y() - this->pos().y()) <= open_r) {
         doOpen();
     }
 }
 
-void Chest::doOpen()
-{
+void Chest::doOpen() {
     // 标记为已打开
     m_isOpened = true;
 
     emit opened(this);
 
     // 立即停止并断开定时器，防止重复触发
-    if (m_checkOpenTimer)
-    {
+    if (m_checkOpenTimer) {
         m_checkOpenTimer->stop();
         disconnect(m_checkOpenTimer, nullptr, this, nullptr);
     }
@@ -142,15 +124,13 @@ void Chest::doOpen()
     QPointer<Player> playerPtr = m_player;
 
     // 随机获得一个物品
-    if (!m_items.isEmpty() && playerPtr)
-    {
+    if (!m_items.isEmpty() && playerPtr) {
         int i = QRandomGenerator::global()->bounded(m_items.size());
         m_items[i]->onPickup(playerPtr.data());
     }
 
     // 应用额外效果
-    if (playerPtr)
-    {
+    if (playerPtr) {
         bonusEffects();
     }
 
@@ -158,8 +138,7 @@ void Chest::doOpen()
     hideHint();
 
     // 从场景移除
-    if (scene())
-    {
+    if (scene()) {
         scene()->removeItem(this);
     }
 
@@ -167,11 +146,9 @@ void Chest::doOpen()
     deleteLater();
 }
 
-void Chest::bonusEffects()
-{
+void Chest::bonusEffects() {
     // 检查player是否仍然有效
-    if (!m_player || !m_player->scene())
-    {
+    if (!m_player || !m_player->scene()) {
         return;
     }
 
@@ -197,26 +174,19 @@ void Chest::bonusEffects()
 
     // 以1/3的概率获得额外增益效果
     int i = QRandomGenerator::global()->bounded(effectstoPlayer.size() * 3);
-    if (i >= 0 && i < effectstoPlayer.size() && effectstoPlayer[i])
-    {
+    if (i >= 0 && i < effectstoPlayer.size() && effectstoPlayer[i]) {
         // 应用前再次检查player
-        if (m_player)
-        {
+        if (m_player) {
             effectstoPlayer[i]->applyTo(m_player.data());
         }
-        for (StatusEffect *effect : effectstoPlayer)
-        {
-            if (effect != effectstoPlayer[i])
-            { // 只删除未使用的
+        for (StatusEffect *effect: effectstoPlayer) {
+            if (effect != effectstoPlayer[i]) { // 只删除未使用的
                 effect->deleteLater();
             }
         }
-    }
-    else
-    {
+    } else {
         // 如果没有选中任何效果，清理所有效果
-        for (StatusEffect *effect : effectstoPlayer)
-        {
+        for (StatusEffect *effect: effectstoPlayer) {
             effect->deleteLater();
         }
     }
@@ -225,13 +195,11 @@ void Chest::bonusEffects()
 // ==================== NormalChest 普通宝箱实现 ====================
 
 NormalChest::NormalChest(Player *pl, const QPixmap &pic_chest, double scale)
-    : Chest(pl, ChestType::Normal, pic_chest, scale)
-{
+        : Chest(pl, ChestType::Normal, pic_chest, scale) {
     initItems();
 }
 
-void NormalChest::initItems()
-{
+void NormalChest::initItems() {
     m_items.clear();
 
     // 普通宝箱物品
@@ -256,13 +224,11 @@ void NormalChest::initItems()
 // ==================== LockedChest 高级宝箱实现 ====================
 
 LockedChest::LockedChest(Player *pl, const QPixmap &pic_chest, double scale)
-    : Chest(pl, ChestType::Locked, pic_chest, scale)
-{
+        : Chest(pl, ChestType::Locked, pic_chest, scale) {
     initItems();
 }
 
-void LockedChest::initItems()
-{
+void LockedChest::initItems() {
     m_items.clear();
 
     // 高级宝箱奖励提高
@@ -280,33 +246,26 @@ void LockedChest::initItems()
     m_items.push_back(brim);
 }
 
-void LockedChest::tryOpen()
-{
+void LockedChest::tryOpen() {
     // 如果已经打开过，不再处理
-    if (m_isOpened)
-    {
+    if (m_isOpened) {
         return;
     }
 
-    if (!scene() || !m_player)
-    {
+    if (!scene() || !m_player) {
         return;
     }
 
     // 检查玩家是否在范围内并按下空格键
     if (m_player->isKeyPressed(Qt::Key_Space) &&
         abs(m_player->pos().x() - this->pos().x()) <= open_r &&
-        abs(m_player->pos().y() - this->pos().y()) <= open_r)
-    {
+        abs(m_player->pos().y() - this->pos().y()) <= open_r) {
 
         // 检查是否有钥匙
-        if (m_player->getKeys() > 0)
-        {
+        if (m_player->getKeys() > 0) {
             m_player->addKeys(-1); // 消耗一把钥匙
             doOpen();
-        }
-        else
-        {
+        } else {
             // 没有钥匙，显示提示
             showHint("你需要1把钥匙来打开它！\n钥匙可以在探索过程中获取");
         }
@@ -316,13 +275,11 @@ void LockedChest::tryOpen()
 // ==================== BossChest Boss特供宝箱实现 ====================
 
 BossChest::BossChest(Player *pl, const QPixmap &pic_chest, double scale)
-    : Chest(pl, ChestType::Boss, pic_chest, scale)
-{
+        : Chest(pl, ChestType::Boss, pic_chest, scale) {
     initItems();
 }
 
-void BossChest::initItems()
-{
+void BossChest::initItems() {
     m_items.clear();
 
     // Boss宝箱包含普通宝箱内容
@@ -344,16 +301,14 @@ void BossChest::initItems()
     m_items.push_back(key2);
 }
 
-void BossChest::doOpen()
-{
+void BossChest::doOpen() {
     // 标记为已打开
     m_isOpened = true;
 
     emit opened(this);
 
     // 立即停止并断开定时器，防止重复触发
-    if (m_checkOpenTimer)
-    {
+    if (m_checkOpenTimer) {
         m_checkOpenTimer->stop();
         disconnect(m_checkOpenTimer, nullptr, this, nullptr);
     }
@@ -365,29 +320,25 @@ void BossChest::doOpen()
     QPointer<Player> playerPtr = m_player;
 
     // 随机获得一个物品
-    if (!m_items.isEmpty() && playerPtr)
-    {
+    if (!m_items.isEmpty() && playerPtr) {
         int i = QRandomGenerator::global()->bounded(m_items.size());
         m_items[i]->onPickup(playerPtr.data());
     }
 
     // Boss宝箱必定额外给予3点血量
-    if (playerPtr)
-    {
+    if (playerPtr) {
         playerPtr->addRedHearts(3);
         qDebug() << "Boss宝箱额外给予3点血量";
 
         // 显示提示
-        if (scene())
-        {
+        if (scene()) {
             Item tempItem("", "");
             tempItem.showFloatText(scene(), "❤️ Boss宝箱额外 +3 血量", playerPtr->pos(), Qt::green);
         }
     }
 
     // 应用额外效果
-    if (playerPtr)
-    {
+    if (playerPtr) {
         bonusEffects();
     }
 
@@ -395,8 +346,7 @@ void BossChest::doOpen()
     hideHint();
 
     // 从场景移除
-    if (scene())
-    {
+    if (scene()) {
         scene()->removeItem(this);
     }
 

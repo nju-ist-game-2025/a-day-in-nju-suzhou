@@ -12,12 +12,12 @@
  * 3. 碰撞判定范围随大小变化
  * 4. 攻击玩家后有50%概率触发昏迷效果（与PillowEnemy相同）
  */
-class ScalingEnemy : public Enemy
-{
-    Q_OBJECT
+class ScalingEnemy : public Enemy {
+Q_OBJECT
 
 public:
     explicit ScalingEnemy(const QPixmap &pic, double scale = 1.0);
+
     ~ScalingEnemy() override;
 
     // 接触玩家时50%概率触发昏睡效果
@@ -25,6 +25,7 @@ public:
 
     // 暂停/恢复定时器
     void pauseTimers() override;
+
     void resumeTimers() override;
 
     // 覆写受伤方法，确保闪烁效果正确
@@ -32,17 +33,21 @@ public:
 
     // 获取碰撞边界（考虑缩放）
     QRectF boundingRect() const override;
+
     QPainterPath shape() const override;
 
     // 获取缩放参数（供子类使用）
     double getBaseScale() const { return m_baseScale; }
+
     double getCurrentScale() const { return m_currentScale; }
+
     double getTotalScale() const { return m_baseScale * m_currentScale; }
 
 protected:
     void attackPlayer() override;
 
 private slots:
+
     void updateScaling();  // 更新缩放大小
     void endFlashEffect(); // 结束闪烁效果
 

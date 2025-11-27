@@ -10,14 +10,12 @@
 
 class Player;
 
-class Enemy : public Entity
-{
-    Q_OBJECT
+class Enemy : public Entity {
+Q_OBJECT
 
 public:
     // 敌人状态枚举
-    enum State
-    {
+    enum State {
         IDLE,   // 空闲/巡逻
         CHASE,  // 追击
         ATTACK, // 攻击
@@ -25,8 +23,7 @@ public:
     };
 
     // 移动模式枚举
-    enum MovementPattern
-    {
+    enum MovementPattern {
         MOVE_NONE,          // 不自动移动（自定义移动逻辑）
         MOVE_DIRECT,        // 直线追击（默认行为）
         MOVE_ZIGZAG,        // Z字形追击（左右蛇形接近）
@@ -53,8 +50,7 @@ public:
 
     void setAttackCooldown(int ms) { attackCooldown = ms; }
 
-    void setHealth(int hp)
-    {
+    void setHealth(int hp) {
         health = hp;
         maxHealth = hp;
     }

@@ -18,10 +18,11 @@ class Player;
  * - 飞出场景后消失
  */
 class ExamPaper : public QObject, public QGraphicsPixmapItem {
-    Q_OBJECT
+Q_OBJECT
 
-   public:
-    ExamPaper(QPointF startPos, QPointF direction, const QPixmap& pic, Player* player);
+public:
+    ExamPaper(QPointF startPos, QPointF direction, const QPixmap &pic, Player *player);
+
     ~ExamPaper() override;
 
     // 设置飞行速度
@@ -35,18 +36,22 @@ class ExamPaper : public QObject, public QGraphicsPixmapItem {
 
     // 暂停控制
     void setPaused(bool paused);
+
     bool isPaused() const { return m_isPaused; }
 
-   private slots:
+private slots:
+
     void onMoveTimer();
 
-   private:
+private:
     void checkCollision();
+
     void applyStunEffect();
+
     void destroy();
 
     QPointer<Player> m_player;
-    QTimer* m_moveTimer;
+    QTimer *m_moveTimer;
 
     QPointF m_direction;     // 移动方向（归一化）
     double m_speed;          // 移动速度

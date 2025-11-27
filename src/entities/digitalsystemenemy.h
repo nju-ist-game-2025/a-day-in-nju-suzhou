@@ -11,12 +11,12 @@
  * 2. 大小伸缩变化
  * 3. 50%概率触发昏睡效果
  */
-class DigitalSystemEnemy : public ScalingEnemy
-{
-    Q_OBJECT
+class DigitalSystemEnemy : public ScalingEnemy {
+Q_OBJECT
 
 public:
     explicit DigitalSystemEnemy(const QPixmap &pic, double scale = 1.0);
+
     ~DigitalSystemEnemy() override = default;
 };
 

@@ -11,12 +11,12 @@
  * 2. 大小伸缩变化
  * 3. 50%概率触发昏睡效果
  */
-class OptimizationEnemy : public ScalingEnemy
-{
-    Q_OBJECT
+class OptimizationEnemy : public ScalingEnemy {
+Q_OBJECT
 
 public:
     explicit OptimizationEnemy(const QPixmap &pic, double scale = 1.0);
+
     ~OptimizationEnemy() override = default;
 };
 

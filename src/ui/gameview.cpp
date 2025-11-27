@@ -9,18 +9,17 @@
 #include <QPushButton>
 #include <QRandomGenerator>
 #include <QResizeEvent>
-#include <QShowEvent>
 #include <QSizePolicy>
 #include <QVBoxLayout>
 #include "../core/GameWindow.cpp"
 #include "../core/audiomanager.h"
-#include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 #include "explosion.h"
 #include "level.h"
 #include "pausemenu.h"
 
-GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr), level(nullptr), m_pauseMenu(nullptr), m_isPaused(false), m_playerCharacterPath("assets/player/player.png") {
+GameView::GameView(QWidget *parent) : QWidget(parent), player(nullptr), level(nullptr), m_pauseMenu(nullptr),
+                                      m_isPaused(false), m_playerCharacterPath("assets/player/player.png") {
     // 维持基础可玩尺寸，同时允许继续放大
     setMinimumSize(scene_bound_x, scene_bound_y);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -50,7 +49,7 @@ GameView::GameView(QWidget* parent) : QWidget(parent), player(nullptr), level(nu
     scene->setBackgroundBrush(Qt::NoBrush);
 
     // 设置布局
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(view);
 
@@ -67,7 +66,7 @@ GameView::~GameView() {
     }
 }
 
-void GameView::setPlayerCharacter(const QString& characterPath) {
+void GameView::setPlayerCharacter(const QString &characterPath) {
     m_playerCharacterPath = characterPath;
 }
 
@@ -137,7 +136,8 @@ void GameView::initGame() {
         QString characterPath = configCharacterPath.isEmpty() ? m_playerCharacterPath : configCharacterPath;
 
         if (!characterPath.isEmpty() && QFile::exists(characterPath)) {
-            playerPixmap = QPixmap(characterPath).scaled(playerSize, playerSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            playerPixmap = QPixmap(characterPath).scaled(playerSize, playerSize, Qt::KeepAspectRatio,
+                                                         Qt::SmoothTransformation);
         } else {
             playerPixmap = ResourceFactory::createPlayerImage(playerSize);
         }
@@ -230,7 +230,7 @@ void GameView::initGame() {
 
         // 确保初始化后视图立即拉伸到当前窗口大小
         adjustViewToWindow();
-    } catch (const QString& error) {
+    } catch (const QString &error) {
         QMessageBox::critical(this, "资源加载失败", error);
         emit backToMenu();
     }
@@ -268,7 +268,7 @@ void GameView::onLevelCompleted() {
         return;
     isLevelTransition = true;
 
-    QGraphicsTextItem* levelTextItem = new QGraphicsTextItem(QString("关卡完成！准备进入下一关..."));
+    QGraphicsTextItem *levelTextItem = new QGraphicsTextItem(QString("关卡完成！准备进入下一关..."));
     levelTextItem->setDefaultTextColor(Qt::black);
     levelTextItem->setFont(QFont("Arial", 20, QFont::Bold));
     levelTextItem->setPos(200, 200);
@@ -286,14 +286,124 @@ void GameView::onLevelCompleted() {
     QTimer::singleShot(2000, this, &GameView::advanceToNextLevel);
 }
 
+void GameView::showVictoryUI()
+{
+    QRectF rect = scene->sceneRect();
+    int W = rect.width();
+    int H = rect.height();
+
+    // ====== 半透明遮罩 ======
+    auto *overlay = new QGraphicsRectItem(0, 0, W, H);
+    overlay->setBrush(QColor(0, 0, 0, 160));
+    overlay->setPen(Qt::NoPen);
+    overlay->setZValue(30000);
+    scene->addItem(overlay);
+
+    // ====== 金色背景板 ======
+    int bgW = 420;
+    int bgH = 300;
+    int bgX = (W - bgW) / 2;
+    int bgY = (H - bgH) / 2;
+
+    auto *bg = new QGraphicsRectItem(bgX, bgY, bgW, bgH, overlay);
+    bg->setBrush(QColor(60, 45, 10, 220));  // 金棕色
+    bg->setPen(QPen(QColor(255, 215, 0), 4)); // 金色边框
+
+
+    // ====== 金色标题 ======
+    QGraphicsTextItem *title = new QGraphicsTextItem("🎉 恭喜通关！🎉", overlay);
+    QFont titleFont("Microsoft YaHei", 28, QFont::Bold);
+    title->setFont(titleFont);
+    title->setDefaultTextColor(QColor(255, 230, 150));  // 柔金色
+
+    qreal tW = title->boundingRect().width();
+    title->setPos((W - tW) / 2, bgY + 25);
+
+    // ====== 统一的金色按钮样式 ======
+    QString goldButtonStyle =
+            "QPushButton {"
+            "   background-color: qlineargradient("
+            "       x1:0, y1:0, x2:0, y2:1,"
+            "       stop:0 #FFD700, stop:1 #E6BE8A"
+            "   );"
+            "   color: #4a3500;"
+            "   border: 2px solid #cfa300;"
+            "   border-radius: 10px;"
+            "   padding: 8px;"
+            "   font-family: 'Microsoft YaHei';"
+            "   font-size: 16px;"
+            "   font-weight: bold;"
+            "   letter-spacing: 2px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient("
+            "       x1:0, y1:0, x2:0, y2:1,"
+            "       stop:0 #FFE066, stop:1 #F1C27D"
+            "   );"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: qlineargradient("
+            "       x1:0, y1:0, x2:0, y2:1,"
+            "       stop:0 #E6BE8A, stop:1 #C9A368"
+            "   );"
+            "}";
+
+    int btnW = 240;
+    int btnH = 48;
+    int btnX = (W - btnW) / 2;
+    int btnY = bgY + 110;
+    int spacing = 60;
+
+    // ====== 返回主菜单 ======
+    QPushButton *menuBtn = new QPushButton("返回主菜单");
+    menuBtn->setFixedSize(btnW, btnH);
+    menuBtn->setStyleSheet(goldButtonStyle);
+
+    auto *menuProxy = new QGraphicsProxyWidget(overlay);
+    menuProxy->setWidget(menuBtn);
+    menuProxy->setPos(btnX, btnY);
+
+    // ====== 继续挑战（可选） ======
+    QPushButton *againBtn = new QPushButton("再次挑战");
+    againBtn->setFixedSize(btnW, btnH);
+    againBtn->setStyleSheet(goldButtonStyle);
+
+    auto *againProxy = new QGraphicsProxyWidget(overlay);
+    againProxy->setWidget(againBtn);
+    againProxy->setPos(btnX, btnY + spacing);
+
+    // ====== 退出游戏 ======
+    QPushButton *quitBtn = new QPushButton("退出游戏");
+    quitBtn->setFixedSize(btnW, btnH);
+    quitBtn->setStyleSheet(goldButtonStyle);
+
+    auto *quitProxy = new QGraphicsProxyWidget(overlay);
+    quitProxy->setWidget(quitBtn);
+    quitProxy->setPos(btnX, btnY + spacing * 2);
+
+    // ====== 信号连接 ======
+    connect(menuBtn, &QPushButton::clicked, this, [this, overlay]() {
+        overlay->hide();
+        emit backToMenu();
+    });
+
+    connect(againBtn, &QPushButton::clicked, this, [this, overlay]() {
+        overlay->hide();
+        emit requestRestart();
+    });
+
+    connect(quitBtn, &QPushButton::clicked, this, []() {
+        QApplication::quit();
+    });
+}
+
 void GameView::advanceToNextLevel() {
     currentLevel++;
 
     // 检查是否所有关卡都已完成
     if (currentLevel > 3) {
         // 游戏通关
-        QMessageBox::information(this, "恭喜", "你已通关所有关卡！");
-        emit backToMenu();
+        showVictoryUI();
         return;
     }
 
@@ -331,7 +441,7 @@ void GameView::advanceToNextLevel() {
 }
 
 void GameView::initAudio() {
-    AudioManager& audio = AudioManager::instance();
+    AudioManager &audio = AudioManager::instance();
 
     // 预加载音效
     audio.preloadSound("player_shoot", "assets/sounds/shoot.wav");
@@ -348,7 +458,7 @@ void GameView::initAudio() {
     qDebug() << "音频系统初始化完成";
 }
 
-void GameView::mousePressEvent(QMouseEvent* event) {
+void GameView::mousePressEvent(QMouseEvent *event) {
     // 剧情模式下，任何鼠标点击都继续对话
     if (level && m_isInStoryMode) {
         level->nextDialog();
@@ -357,7 +467,7 @@ void GameView::mousePressEvent(QMouseEvent* event) {
     }
 }
 
-void GameView::keyPressEvent(QKeyEvent* event) {
+void GameView::keyPressEvent(QKeyEvent *event) {
     if (!event)
         return;
 
@@ -392,7 +502,7 @@ void GameView::keyPressEvent(QKeyEvent* event) {
     }
     // 同时传递给当前房间（用于触发切换检测）
     if (level) {
-        Room* r = level->currentRoom();
+        Room *r = level->currentRoom();
         if (r)
             QCoreApplication::sendEvent(r, event);
     }
@@ -400,7 +510,7 @@ void GameView::keyPressEvent(QKeyEvent* event) {
     QWidget::keyPressEvent(event);
 }
 
-void GameView::keyReleaseEvent(QKeyEvent* event) {
+void GameView::keyReleaseEvent(QKeyEvent *event) {
     if (!event)
         return;
 
@@ -410,7 +520,7 @@ void GameView::keyReleaseEvent(QKeyEvent* event) {
     }
     // 同时传递给当前房间，更新按键释放状态
     if (level) {
-        Room* r = level->currentRoom();
+        Room *r = level->currentRoom();
         if (r)
             QCoreApplication::sendEvent(r, event);
     }
@@ -418,7 +528,7 @@ void GameView::keyReleaseEvent(QKeyEvent* event) {
     QWidget::keyReleaseEvent(event);
 }
 
-void GameView::applyCharacterAbility(Player* player, const QString& characterPath) {
+void GameView::applyCharacterAbility(Player *player, const QString &characterPath) {
     if (!player)
         return;
 
@@ -447,7 +557,7 @@ void GameView::applyCharacterAbility(Player* player, const QString& characterPat
     }
 }
 
-QString GameView::resolveCharacterKey(const QString& characterPath) const {
+QString GameView::resolveCharacterKey(const QString &characterPath) const {
     if (characterPath.isEmpty())
         return QString();
 
@@ -487,40 +597,143 @@ void GameView::handlePlayerDeath() {
 
     // 使用 QTimer::singleShot 延迟显示对话框
     QTimer::singleShot(100, this, [this]() {
-        // 创建自定义对话框
-        QMessageBox msgBox(this);
-        msgBox.setWindowTitle("游戏结束");
-        msgBox.setText("你已死亡！");
-        msgBox.setIcon(QMessageBox::Information);
 
-        // 添加三个按钮
-        QPushButton* retryButton = msgBox.addButton("再试一次", QMessageBox::ActionRole);
-        QPushButton* menuButton = msgBox.addButton("返回主菜单", QMessageBox::ActionRole);
-        QPushButton* quitButton = msgBox.addButton("退出游戏", QMessageBox::ActionRole);
+        QRectF rect = scene->sceneRect();
+        int sceneW = rect.width();
+        int sceneH = rect.height();
 
-        msgBox.exec();
-
-        // 根据用户选择执行相应操作
-        if (msgBox.clickedButton() == retryButton) {
-            // 请求上层窗口处理重试（避免在 GameView 内部直接重入）
-            emit requestRestart();
-        } else if (msgBox.clickedButton() == menuButton) {
-            // 返回主菜单
-            emit backToMenu();
-        } else if (msgBox.clickedButton() == quitButton) {
-            // 退出游戏
-            QApplication::quit();
+        // ====== 半透明遮罩 ======
+        if (!m_deathOverlay) {
+            m_deathOverlay = new QGraphicsRectItem(0, 0, sceneW, sceneH);
+            m_deathOverlay->setBrush(QBrush(QColor(0, 0, 0, 150)));
+            m_deathOverlay->setPen(Qt::NoPen);
+            m_deathOverlay->setZValue(20000);
+            scene->addItem(m_deathOverlay);
+        } else {
+            m_deathOverlay->setRect(0, 0, sceneW, sceneH);
+            m_deathOverlay->show();
         }
+
+        // ====== 中心背景板 ======
+        int bgWidth = 300;
+        int bgHeight = 280;
+        int bgX = (sceneW - bgWidth) / 2;
+        int bgY = (sceneH - bgHeight) / 2;
+
+        auto *bg = new QGraphicsRectItem(bgX, bgY, bgWidth, bgHeight, m_deathOverlay);
+        bg->setBrush(QBrush(QColor(50, 50, 50, 230)));
+        bg->setPen(QPen(QColor(100, 100, 100), 3));
+
+        // ====== 标题 ======
+        QGraphicsTextItem *title = new QGraphicsTextItem("你死了", m_deathOverlay);
+        QFont titleFont("Microsoft YaHei", 24, QFont::Bold);
+        title->setFont(titleFont);
+        title->setDefaultTextColor(Qt::white);
+
+        qreal titleW = title->boundingRect().width();
+        title->setPos((sceneW - titleW) / 2, bgY + 20);
+
+        // ====== 统一按钮样式（渐变 + 圆角 + 粗体） ======
+        QString retryButtonStyle =
+                "QPushButton {"
+                "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4CAF50, stop:1 #388E3C);"
+                "   color: white;"
+                "   border: 2px solid #2E7D32;"
+                "   border-radius: 8px;"
+                "   padding: 8px;"
+                "   font-family: 'Microsoft YaHei';"
+                "   font-size: 14px;"
+                "   font-weight: bold;"
+                "}"
+                "QPushButton:hover {"
+                "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #66BB6A, stop:1 #43A047);"
+                "}"
+                "QPushButton:pressed {"
+                "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #388E3C, stop:1 #2E7D32);"
+                "}";
+
+        QString menuButtonStyle =
+                "QPushButton {"
+                "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2196F3, stop:1 #1976D2);"
+                "   color: white;"
+                "   border: 2px solid #1565C0;"
+                "   border-radius: 8px;"
+                "   padding: 8px;"
+                "   font-family: 'Microsoft YaHei';"
+                "   font-size: 14px;"
+                "   font-weight: bold;"
+                "}"
+                "QPushButton:hover {"
+                "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #42A5F5, stop:1 #1E88E5);"
+                "}"
+                "QPushButton:pressed {"
+                "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1976D2, stop:1 #1565C0);"
+                "}";
+
+        QString quitButtonStyle =
+                "QPushButton {"
+                "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f44336, stop:1 #d32f2f);"
+                "   color: white;"
+                "   border: 2px solid #c62828;"
+                "   border-radius: 8px;"
+                "   padding: 8px;"
+                "   font-family: 'Microsoft YaHei';"
+                "   font-size: 14px;"
+                "   font-weight: bold;"
+                "}"
+                "QPushButton:hover {"
+                "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ef5350, stop:1 #e53935);"
+                "}"
+                "QPushButton:pressed {"
+                "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d32f2f, stop:1 #c62828);"
+                "}";
+
+        // ====== 按钮布局 ======
+        int buttonW = 200;
+        int buttonH = 45;
+        int buttonX = (sceneW - buttonW) / 2;
+        int buttonStartY = bgY + 80;
+        int spacing = 55;
+
+        // 再试一次
+        m_retryButton = new QPushButton("再试一次");
+        m_retryButton->setFixedSize(buttonW, buttonH);
+        m_retryButton->setStyleSheet(retryButtonStyle);
+        m_retryProxy = new QGraphicsProxyWidget(m_deathOverlay);
+        m_retryProxy->setWidget(m_retryButton);
+        m_retryProxy->setPos(buttonX, buttonStartY);
+
+        // 返回主菜单
+        m_menuButton2 = new QPushButton("返回主菜单");
+        m_menuButton2->setFixedSize(buttonW, buttonH);
+        m_menuButton2->setStyleSheet(menuButtonStyle);
+        m_menuProxy2 = new QGraphicsProxyWidget(m_deathOverlay);
+        m_menuProxy2->setWidget(m_menuButton2);
+        m_menuProxy2->setPos(buttonX, buttonStartY + spacing);
+
+        // 退出游戏
+        m_quitButton2 = new QPushButton("退出游戏");
+        m_quitButton2->setFixedSize(buttonW, buttonH);
+        m_quitButton2->setStyleSheet(quitButtonStyle);
+        m_quitProxy2 = new QGraphicsProxyWidget(m_deathOverlay);
+        m_quitProxy2->setWidget(m_quitButton2);
+        m_quitProxy2->setPos(buttonX, buttonStartY + spacing * 2);
+
+        // 信号连接
+        connect(m_retryButton, &QPushButton::clicked, this, [this]() {
+            m_deathOverlay->hide();
+            emit requestRestart();
+        });
+
+        connect(m_menuButton2, &QPushButton::clicked, this, [this]() {
+            m_deathOverlay->hide();
+            emit backToMenu();
+        });
+
+        connect(m_quitButton2, &QPushButton::clicked, this, []() {
+            QApplication::quit();
+        });
     });
-}
-
-void GameView::restartGame() {
-    // 重新初始化游戏场景
-    initGame();
-}
-
-void GameView::quitGame() {
-    QApplication::quit();
 }
 
 void GameView::onEnemiesCleared(int roomIndex, bool up, bool down, bool left, bool right) {
@@ -540,7 +753,7 @@ void GameView::onEnemiesCleared(int roomIndex, bool up, bool down, bool left, bo
         text += QString("右侧 ");
     if (up || down || left || right)
         text += QString("房间的门已打开");
-    QGraphicsTextItem* hint = new QGraphicsTextItem(text);
+    QGraphicsTextItem *hint = new QGraphicsTextItem(text);
     hint->setDefaultTextColor(Qt::red);
     hint->setFont(QFont("Arial", 16, QFont::Bold));
     hint->setPos(150, 250);
@@ -561,7 +774,7 @@ void GameView::onBossDoorsOpened() {
 
     // 在战斗房间文案下一行显示boss门开启提示（深紫色）
     QString text = "所有普通房间已肃清！boss房间开启，祝你好运";
-    QGraphicsTextItem* hint = new QGraphicsTextItem(text);
+    QGraphicsTextItem *hint = new QGraphicsTextItem(text);
     hint->setDefaultTextColor(QColor(75, 0, 130));  // 深紫色
     hint->setFont(QFont("Arial", 16, QFont::Bold));
     hint->setPos(150, 280);  // 在战斗文案（y=250）下方30像素
@@ -644,12 +857,12 @@ void GameView::resumeGame() {
     setFocus();
 }
 
-void GameView::showEvent(QShowEvent* event) {
+void GameView::showEvent(QShowEvent *event) {
     QWidget::showEvent(event);
     adjustViewToWindow();
 }
 
-void GameView::resizeEvent(QResizeEvent* event) {
+void GameView::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
     adjustViewToWindow();
 }

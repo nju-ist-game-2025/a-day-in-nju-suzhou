@@ -9,17 +9,17 @@
 #include "../ui/explosion.h"
 #include "player.h"
 
-YanglinEnemy::YanglinEnemy(const QPixmap& pic, double scale)
-    : ScalingEnemy(pic, scale),
-      m_isSpinning(false),
-      m_spinningCooldownTimer(nullptr),
-      m_spinningUpdateTimer(nullptr),
-      m_spinningDurationTimer(nullptr),
-      m_firstSpinningTimer(nullptr),
-      m_rotationAngle(0.0),
-      m_originalSpeed(2.0),
-      m_isReturningToNormal(false),
-      m_lastSpinningDamageTime(0) {
+YanglinEnemy::YanglinEnemy(const QPixmap &pic, double scale)
+        : ScalingEnemy(pic, scale),
+          m_isSpinning(false),
+          m_spinningCooldownTimer(nullptr),
+          m_spinningUpdateTimer(nullptr),
+          m_spinningDurationTimer(nullptr),
+          m_firstSpinningTimer(nullptr),
+          m_rotationAngle(0.0),
+          m_originalSpeed(2.0),
+          m_isReturningToNormal(false),
+          m_lastSpinningDamageTime(0) {
     // 杨林属性接近Boss一阶段 - 直接设置成员变量
     health = 200;  // 高血量
     maxHealth = 200;

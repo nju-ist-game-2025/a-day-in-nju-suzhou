@@ -7,15 +7,15 @@
 #include <QtMath>
 #include "player.h"
 
-PantsEnemy::PantsEnemy(const QPixmap& pic, double scale)
-    : Enemy(pic, scale),
-      m_isSpinning(false),
-      m_spinningCooldownTimer(nullptr),
-      m_spinningUpdateTimer(nullptr),
-      m_spinningDurationTimer(nullptr),
-      m_spinningCircle(nullptr),
-      m_currentFrameIndex(0),
-      m_lastSpinningDamageTime(0) {
+PantsEnemy::PantsEnemy(const QPixmap &pic, double scale)
+        : Enemy(pic, scale),
+          m_isSpinning(false),
+          m_spinningCooldownTimer(nullptr),
+          m_spinningUpdateTimer(nullptr),
+          m_spinningDurationTimer(nullptr),
+          m_spinningCircle(nullptr),
+          m_currentFrameIndex(0),
+          m_lastSpinningDamageTime(0) {
     // 设置基础属性
     setHealth(20);            // 生命值
     setContactDamage(2);      // 普通接触伤害
@@ -133,8 +133,8 @@ void PantsEnemy::startSpinning() {
     // 创建旋转伤害圆（浅灰色填充）
     double circleRadius = SPINNING_CIRCLE_RADIUS;
     m_spinningCircle = new QGraphicsEllipseItem(
-        -circleRadius, -circleRadius,
-        circleRadius * 2, circleRadius * 2);
+            -circleRadius, -circleRadius,
+            circleRadius * 2, circleRadius * 2);
 
     // 设置浅灰色半透明填充
     QColor fillColor(180, 180, 180, 120);  // 浅灰色，半透明
@@ -237,7 +237,7 @@ void PantsEnemy::checkSpinningDamage() {
     }
 }
 
-void PantsEnemy::onContactWithPlayer(Player* p) {
+void PantsEnemy::onContactWithPlayer(Player *p) {
     Q_UNUSED(p);
     // 普通接触伤害由基类处理，这里不需要额外效果
     // 旋转伤害由 checkSpinningDamage() 单独处理

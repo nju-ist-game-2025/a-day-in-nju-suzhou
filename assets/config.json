@@ -1,73 +1,73 @@
 {
-    "developer_mode": {
-        "enabled": true
+  "developer_mode": {
+    "enabled": true
+  },
+  "assets": {
+    "background_main": "assets/background/main.png",
+    "background_codex": "assets/background/codex.png",
+    "background_select_character": "assets/background/select_character.png",
+    "bed": "assets/background/bed.png",
+    "convexBook": "assets/background/convexBook.png",
+    "cloudDream": "assets/background/cloudDream.png",
+    "startRoom": "assets/background/startRoom.png",
+    "classRoom": "assets/background/classRoom.png",
+    "map2": "assets/background/map2.png",
+    "map1": "assets/background/startRoom.png",
+    "nightmare1_map": "assets/background/nightmare1_map.png",
+    "nightmare2_map": "assets/background/nightmare2_map.png",
+    "player": "assets/player/HighGracePeople.png",
+    "bullet": "assets/items/bullet.png",
+    "enemy": "assets/enemy/enemy.png",
+    "boss": "assets/boss/WashMachine/WashMachineAngrily.png",
+    "title": "assets/background/title.png",
+    "chest": "assets/chest/chest.png",
+    "explosion": "assets/explosion/"
+  },
+  "sizes": {
+    "player": 60,
+    "enemy": 40,
+    "boss": 150,
+    "bullet": 50,
+    "chest": 60,
+    "players": {
+      "default": 60,
+      "HighGracePeople": 60,
+      "beautifulGirl": 60,
+      "njuFish": 60,
+      "quanfuxia": 60
     },
-    "assets": {
-        "background_main": "assets/background/main.png",
-        "background_codex": "assets/background/codex.png",
-        "background_select_character": "assets/background/select_character.png",
-        "bed": "assets/background/bed.png",
-        "convexBook": "assets/background/convexBook.png",
-        "cloudDream": "assets/background/cloudDream.png",
-        "startRoom": "assets/background/startRoom.png",
-        "classRoom": "assets/background/classRoom.png",
-        "map2": "assets/background/map2.png",
-        "map1": "assets/background/startRoom.png",
-        "nightmare1_map": "assets/background/nightmare1_map.png",
-        "nightmare2_map": "assets/background/nightmare2_map.png",
-        "player": "assets/player/HighGracePeople.png",
-        "bullet": "assets/items/bullet.png",
-        "enemy": "assets/enemy/enemy.png",
-        "boss": "assets/boss/WashMachine/WashMachineAngrily.png",
-        "title": "assets/background/title.png",
-        "chest": "assets/chest/chest.png",
-        "explosion": "assets/explosion/"
+    "enemies": {
+      "default": 50,
+      "clock_normal": 50,
+      "clock_boom": 50,
+      "pillow": 60,
+      "sock_normal": 50,
+      "sock_angrily": 60,
+      "sock_shooter": 50,
+      "pants": 55,
+      "walker": 45,
+      "yanglin": 200,
+      "zhuhao": 30
     },
-    "sizes": {
-        "player": 60,
-        "enemy": 40,
-        "boss": 150,
-        "bullet": 50,
-        "chest": 60,
-        "players": {
-            "default": 60,
-            "HighGracePeople": 60,
-            "beautifulGirl": 60,
-            "njuFish": 60,
-            "quanfuxia": 60
-        },
-        "enemies": {
-            "default": 50,
-            "clock_normal": 50,
-            "clock_boom": 50,
-            "pillow": 60,
-            "sock_normal": 50,
-            "sock_angrily": 60,
-            "sock_shooter": 50,
-            "pants": 55,
-            "walker": 45,
-            "yanglin": 200,
-            "zhuhao": 30
-        },
-        "bosses": {
-            "default": 150,
-            "nightmare": 160,
-            "nightmare2": 180,
-            "washmachine": 160
-        },
-        "bullets": {
-            "default": 50,
-            "player": 50,
-            "sock_shooter": 25,
-            "boss_washmachine": 30,
-            "zhuhao": 80
-        }
+    "bosses": {
+      "default": 150,
+      "nightmare": 160,
+      "nightmare2": 180,
+      "washmachine": 160
     },
-    "game": {
-        "scene_width": 800,
-        "scene_height": 600,
-        "player_speed": 4.0,
-        "enemy_speed": 2.0,
-        "bullet_speed": 9.0
+    "bullets": {
+      "default": 50,
+      "player": 50,
+      "sock_shooter": 25,
+      "boss_washmachine": 30,
+      "zhuhao": 80
     }
+  },
+  "game": {
+    "scene_width": 800,
+    "scene_height": 600,
+    "player_speed": 4.0,
+    "enemy_speed": 2.0,
+    "bullet_speed": 9.0
+  }
 }

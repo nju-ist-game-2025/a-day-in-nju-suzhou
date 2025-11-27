@@ -16,7 +16,7 @@ class Player;
  * - 倒计时结束后爆炸，对范围内玩家造成1点伤害，敌人造成3点伤害
  */
 class ClockBoom : public Enemy {
-    Q_OBJECT
+Q_OBJECT
 
 public:
     explicit ClockBoom(const QPixmap &normalPic, const QPixmap &redPic, double scale = 1.0);
@@ -53,7 +53,8 @@ private:
 
 private
     slots:
-            void onCollisionCheck();
+
+    void onCollisionCheck();
 
     void onBlinkTimeout();
 

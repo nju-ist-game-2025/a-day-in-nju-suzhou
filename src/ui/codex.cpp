@@ -10,12 +10,12 @@
 
 // ==================== CodexCard 实现 ====================
 
-CodexCard::CodexCard(const CodexEntry& entry, QWidget* parent)
-    : QWidget(parent), m_entry(entry) {
+CodexCard::CodexCard(const CodexEntry &entry, QWidget *parent)
+        : QWidget(parent), m_entry(entry) {
     setFixedSize(120, 150);
     setCursor(Qt::PointingHandCursor);
 
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(5, 5, 5, 5);
     layout->setSpacing(5);
     layout->setAlignment(Qt::AlignCenter);
@@ -33,7 +33,8 @@ CodexCard::CodexCard(const CodexEntry& entry, QWidget* parent)
         m_imageLabel->setPixmap(pixmap);
     } else {
         m_imageLabel->setText("?");
-        m_imageLabel->setStyleSheet("background-color: rgba(220,220,220,220); border-radius: 10px; font-size: 24px; color: #333;");
+        m_imageLabel->setStyleSheet(
+                "background-color: rgba(220,220,220,220); border-radius: 10px; font-size: 24px; color: #333;");
     }
 
     // 名称标签
@@ -52,67 +53,69 @@ CodexCard::CodexCard(const CodexEntry& entry, QWidget* parent)
 
     // 默认样式 - 蓝色主题
     setStyleSheet(
-        "CodexCard {"
-        "   background-color: rgba(100, 149, 237, 220);"
-        "   border: 2px solid rgba(70, 130, 220, 255);"
-        "   border-radius: 15px;"
-        "}");
+            "CodexCard {"
+            "   background-color: rgba(100, 149, 237, 220);"
+            "   border: 2px solid rgba(70, 130, 220, 255);"
+            "   border-radius: 15px;"
+            "}");
 }
 
-void CodexCard::mousePressEvent(QMouseEvent* event) {
+void CodexCard::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         emit clicked(m_entry);
     }
     QWidget::mousePressEvent(event);
 }
 
-void CodexCard::enterEvent(QEnterEvent* event) {
+void CodexCard::enterEvent(QEnterEvent *event) {
     setStyleSheet(
-        "CodexCard {"
-        "   background-color: rgba(65, 105, 225, 240);"
-        "   border: 2px solid rgba(30, 90, 200, 255);"
-        "   border-radius: 15px;"
-        "}");
+            "CodexCard {"
+            "   background-color: rgba(65, 105, 225, 240);"
+            "   border: 2px solid rgba(30, 90, 200, 255);"
+            "   border-radius: 15px;"
+            "}");
     QWidget::enterEvent(event);
 }
 
-void CodexCard::leaveEvent(QEvent* event) {
+void CodexCard::leaveEvent(QEvent *event) {
     setStyleSheet(
-        "CodexCard {"
-        "   background-color: rgba(100, 149, 237, 220);"
-        "   border: 2px solid rgba(70, 130, 220, 255);"
-        "   border-radius: 15px;"
-        "}");
+            "CodexCard {"
+            "   background-color: rgba(100, 149, 237, 220);"
+            "   border: 2px solid rgba(70, 130, 220, 255);"
+            "   border-radius: 15px;"
+            "}");
     QWidget::leaveEvent(event);
 }
 
 // ==================== CodexDetailDialog 实现 ====================
 
-CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
-    : QDialog(parent) {
+CodexDetailDialog::CodexDetailDialog(const CodexEntry &entry, QWidget *parent)
+        : QDialog(parent) {
     setWindowTitle(entry.name);
     setMinimumSize(500, 400);
     setMaximumSize(600, 600);
-    setStyleSheet("QDialog { background-color: rgba(230, 240, 255, 255); border: 2px solid rgba(100, 149, 237, 200); border-radius: 10px; }");
+    setStyleSheet(
+            "QDialog { background-color: rgba(230, 240, 255, 255); border: 2px solid rgba(100, 149, 237, 200); border-radius: 10px; }");
 
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(20, 20, 20, 20);
     mainLayout->setSpacing(15);
 
     // 顶部：图片和名称
-    QHBoxLayout* headerLayout = new QHBoxLayout();
+    QHBoxLayout *headerLayout = new QHBoxLayout();
 
-    QLabel* imageLabel = new QLabel(this);
+    QLabel *imageLabel = new QLabel(this);
     imageLabel->setFixedSize(100, 100);
     imageLabel->setAlignment(Qt::AlignCenter);
-    imageLabel->setStyleSheet("background-color: rgba(255, 255, 255, 220); border: 2px solid rgba(100, 149, 237, 200); border-radius: 15px;");
+    imageLabel->setStyleSheet(
+            "background-color: rgba(255, 255, 255, 220); border: 2px solid rgba(100, 149, 237, 200); border-radius: 15px;");
     QPixmap pixmap(entry.imagePath);
     if (!pixmap.isNull()) {
         pixmap = pixmap.scaled(90, 90, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         imageLabel->setPixmap(pixmap);
     }
 
-    QLabel* nameLabel = new QLabel(entry.name, this);
+    QLabel *nameLabel = new QLabel(entry.name, this);
     QFont nameFont;
     nameFont.setFamily("Microsoft YaHei");
     nameFont.setPointSize(24);
@@ -128,21 +131,21 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
     mainLayout->addLayout(headerLayout);
 
     // 分隔线
-    QFrame* line = new QFrame(this);
+    QFrame *line = new QFrame(this);
     line->setFrameShape(QFrame::HLine);
     line->setStyleSheet("background-color: rgba(100, 149, 237, 150);");
     mainLayout->addWidget(line);
 
     // 详情内容
-    QScrollArea* scrollArea = new QScrollArea(this);
+    QScrollArea *scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
     scrollArea->setStyleSheet(
-        "QScrollArea { background: transparent; border: none; }"
-        "QScrollBar:vertical { background: rgba(100, 149, 237, 50); width: 10px; border-radius: 5px; }"
-        "QScrollBar::handle:vertical { background: rgba(70, 130, 220, 150); border-radius: 5px; }");
+            "QScrollArea { background: transparent; border: none; }"
+            "QScrollBar:vertical { background: rgba(100, 149, 237, 50); width: 10px; border-radius: 5px; }"
+            "QScrollBar::handle:vertical { background: rgba(70, 130, 220, 150); border-radius: 5px; }");
 
-    QWidget* contentWidget = new QWidget();
-    QVBoxLayout* contentLayout = new QVBoxLayout(contentWidget);
+    QWidget *contentWidget = new QWidget();
+    QVBoxLayout *contentLayout = new QVBoxLayout(contentWidget);
     contentLayout->setSpacing(6);
 
     QFont labelFont;
@@ -155,13 +158,13 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
     QString valueStyle = "color: #2c3e50; padding: 6px 0px 12px 16px;";
 
     // 辅助lambda：创建一个属性组（标题+内容）
-    auto addInfoSection = [&](const QString& icon, const QString& title, const QString& value) {
-        QLabel* titleLabel = new QLabel(icon + " " + title, contentWidget);
+    auto addInfoSection = [&](const QString &icon, const QString &title, const QString &value) {
+        QLabel *titleLabel = new QLabel(icon + " " + title, contentWidget);
         titleLabel->setFont(labelFont);
         titleLabel->setStyleSheet(labelStyle);
         contentLayout->addWidget(titleLabel);
 
-        QLabel* valueLabel = new QLabel(value, contentWidget);
+        QLabel *valueLabel = new QLabel(value, contentWidget);
         valueLabel->setFont(labelFont);
         valueLabel->setStyleSheet(valueStyle);
         valueLabel->setWordWrap(true);
@@ -240,7 +243,7 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
     mainLayout->addWidget(scrollArea);
 
     // 关闭按钮
-    QPushButton* closeBtn = new QPushButton("关闭", this);
+    QPushButton *closeBtn = new QPushButton("关闭", this);
     closeBtn->setFixedSize(120, 40);
     QFont btnFont;
     btnFont.setFamily("Microsoft YaHei");
@@ -248,15 +251,15 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
     btnFont.setBold(true);
     closeBtn->setFont(btnFont);
     closeBtn->setStyleSheet(
-        "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4a90d9, stop:1 #2980b9);"
-        "   color: white;"
-        "   border: 2px solid #2471a3;"
-        "   border-radius: 10px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #5dade2, stop:1 #4a90d9);"
-        "}");
+            "QPushButton {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4a90d9, stop:1 #2980b9);"
+            "   color: white;"
+            "   border: 2px solid #2471a3;"
+            "   border-radius: 10px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #5dade2, stop:1 #4a90d9);"
+            "}");
     connect(closeBtn, &QPushButton::clicked, this, &QDialog::accept);
 
     mainLayout->addWidget(closeBtn, 0, Qt::AlignCenter);
@@ -264,7 +267,7 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
 
 // ==================== Codex 主类实现 ====================
 
-Codex::Codex(QWidget* parent) : QWidget(parent) {
+Codex::Codex(QWidget *parent) : QWidget(parent) {
     setupUI();
     loadBossData();
     loadEnemyData();
@@ -281,12 +284,12 @@ Codex::Codex(QWidget* parent) : QWidget(parent) {
 void Codex::setupUI() {
     setMinimumSize(800, 600);
 
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(20, 20, 20, 20);
     mainLayout->setSpacing(20);
 
     // 标题
-    QLabel* titleLabel = new QLabel("游戏图鉴", this);
+    QLabel *titleLabel = new QLabel("游戏图鉴", this);
     QFont titleFont;
     titleFont.setFamily("Microsoft YaHei");
     titleFont.setPointSize(28);
@@ -298,29 +301,29 @@ void Codex::setupUI() {
     // 标签页组件
     tabWidget = new QTabWidget(this);
     tabWidget->setStyleSheet(
-        "QTabWidget::pane {"
-        "   border: 2px solid rgba(100, 149, 237, 200);"
-        "   border-radius: 10px;"
-        "   background-color: rgba(255, 255, 255, 230);"
-        "}"
-        "QTabBar::tab {"
-        "   background: rgba(180, 200, 230, 220);"
-        "   color: #1a1a1a;"
-        "   padding: 10px 25px;"
-        "   margin-right: 5px;"
-        "   border-top-left-radius: 10px;"
-        "   border-top-right-radius: 10px;"
-        "   font-family: 'Microsoft YaHei';"
-        "   font-size: 14px;"
-        "   font-weight: bold;"
-        "}"
-        "QTabBar::tab:selected {"
-        "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4a90d9, stop:1 #2980b9);"
-        "   color: white;"
-        "}"
-        "QTabBar::tab:hover:!selected {"
-        "   background: rgba(150, 180, 220, 240);"
-        "}");
+            "QTabWidget::pane {"
+            "   border: 2px solid rgba(100, 149, 237, 200);"
+            "   border-radius: 10px;"
+            "   background-color: rgba(255, 255, 255, 230);"
+            "}"
+            "QTabBar::tab {"
+            "   background: rgba(180, 200, 230, 220);"
+            "   color: #1a1a1a;"
+            "   padding: 10px 25px;"
+            "   margin-right: 5px;"
+            "   border-top-left-radius: 10px;"
+            "   border-top-right-radius: 10px;"
+            "   font-family: 'Microsoft YaHei';"
+            "   font-size: 14px;"
+            "   font-weight: bold;"
+            "}"
+            "QTabBar::tab:selected {"
+            "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4a90d9, stop:1 #2980b9);"
+            "   color: white;"
+            "}"
+            "QTabBar::tab:hover:!selected {"
+            "   background: rgba(150, 180, 220, 240);"
+            "}");
 
     // 返回按钮
     backButton = new QPushButton("返回主菜单", this);
@@ -331,18 +334,18 @@ void Codex::setupUI() {
     btnFont.setBold(true);
     backButton->setFont(btnFont);
     backButton->setStyleSheet(
-        "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #e67e22, stop:1 #d35400);"
-        "   color: white;"
-        "   border: 2px solid #a04000;"
-        "   border-radius: 10px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f39c12, stop:1 #e67e22);"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d35400, stop:1 #a04000);"
-        "}");
+            "QPushButton {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #e67e22, stop:1 #d35400);"
+            "   color: white;"
+            "   border: 2px solid #a04000;"
+            "   border-radius: 10px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f39c12, stop:1 #e67e22);"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d35400, stop:1 #a04000);"
+            "}");
 
     mainLayout->addWidget(titleLabel);
     mainLayout->addWidget(tabWidget);
@@ -358,24 +361,24 @@ void Codex::setupUI() {
         palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
         setAutoFillBackground(true);
         setPalette(palette);
-    } catch (const QString&) {
+    } catch (const QString &) {
         setStyleSheet("background-color: #2c3e50;");
     }
 }
 
-QWidget* Codex::createCategoryPage(const QList<CodexEntry>& entries) {
-    QScrollArea* scrollArea = new QScrollArea();
+QWidget *Codex::createCategoryPage(const QList<CodexEntry> &entries) {
+    QScrollArea *scrollArea = new QScrollArea();
     scrollArea->setWidgetResizable(true);
     scrollArea->setStyleSheet(
-        "QScrollArea { background: transparent; border: none; }"
-        "QScrollBar:vertical { background: rgba(100, 149, 237, 80); width: 12px; border-radius: 6px; }"
-        "QScrollBar::handle:vertical { background: rgba(70, 130, 220, 180); border-radius: 6px; min-height: 30px; }"
-        "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }");
+            "QScrollArea { background: transparent; border: none; }"
+            "QScrollBar:vertical { background: rgba(100, 149, 237, 80); width: 12px; border-radius: 6px; }"
+            "QScrollBar::handle:vertical { background: rgba(70, 130, 220, 180); border-radius: 6px; min-height: 30px; }"
+            "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }");
 
-    QWidget* contentWidget = new QWidget();
+    QWidget *contentWidget = new QWidget();
     contentWidget->setStyleSheet("background: transparent;");
 
-    QGridLayout* gridLayout = new QGridLayout(contentWidget);
+    QGridLayout *gridLayout = new QGridLayout(contentWidget);
     gridLayout->setContentsMargins(30, 30, 30, 30);
     gridLayout->setHorizontalSpacing(25);
     gridLayout->setVerticalSpacing(25);
@@ -384,8 +387,8 @@ QWidget* Codex::createCategoryPage(const QList<CodexEntry>& entries) {
     int row = 0;
     int maxCols = 5;  // 每行最多5个卡片
 
-    for (const CodexEntry& entry : entries) {
-        CodexCard* card = new CodexCard(entry, contentWidget);
+    for (const CodexEntry &entry: entries) {
+        CodexCard *card = new CodexCard(entry, contentWidget);
         connect(card, &CodexCard::clicked, this, &Codex::showEntryDetail);
         gridLayout->addWidget(card, row, col, Qt::AlignLeft | Qt::AlignTop);
 
@@ -410,7 +413,7 @@ QWidget* Codex::createCategoryPage(const QList<CodexEntry>& entries) {
     return scrollArea;
 }
 
-void Codex::showEntryDetail(const CodexEntry& entry) {
+void Codex::showEntryDetail(const CodexEntry &entry) {
     CodexDetailDialog dialog(entry, this);
     dialog.exec();
 }
@@ -628,18 +631,18 @@ void Codex::returnToMenu() {
     emit backToMenu();
 }
 
-void Codex::resizeEvent(QResizeEvent* event) {
+void Codex::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
 
     // 更新背景图片
     try {
         // 图鉴页面专用背景
         QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage(
-            "background_codex", event->size().width(), event->size().height());
+                "background_codex", event->size().width(), event->size().height());
         QPalette palette;
         palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
         setPalette(palette);
-    } catch (const QString&) {
+    } catch (const QString &) {
         // 保持默认背景
     }
 

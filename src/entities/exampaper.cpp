@@ -7,19 +7,19 @@
 #include "entity.h"
 #include "player.h"
 
-ExamPaper::ExamPaper(QPointF startPos, QPointF direction, const QPixmap& pic, Player* player)
-    : QObject(),
-      QGraphicsPixmapItem(),
-      m_player(player),
-      m_moveTimer(nullptr),
-      m_direction(direction),
-      m_speed(6.0),  // 飞行速度
-      m_rotation(0.0),
-      m_rotationSpeed(15.0),  // 每帧旋转15度
-      m_damage(1),            // 1点伤害
-      m_stunDuration(2000),   // 2秒晕厥
-      m_isPaused(false),
-      m_isDestroying(false) {
+ExamPaper::ExamPaper(QPointF startPos, QPointF direction, const QPixmap &pic, Player *player)
+        : QObject(),
+          QGraphicsPixmapItem(),
+          m_player(player),
+          m_moveTimer(nullptr),
+          m_direction(direction),
+          m_speed(6.0),  // 飞行速度
+          m_rotation(0.0),
+          m_rotationSpeed(15.0),  // 每帧旋转15度
+          m_damage(1),            // 1点伤害
+          m_stunDuration(2000),   // 2秒晕厥
+          m_isPaused(false),
+          m_isDestroying(false) {
     // 设置图片
     if (!pic.isNull()) {
         setPixmap(pic);
@@ -111,7 +111,7 @@ void ExamPaper::applyStunEffect() {
     m_player->setEffectCooldown(true);
 
     // 显示"晕厥"文字提示
-    QGraphicsTextItem* stunText = new QGraphicsTextItem("晕厥!");
+    QGraphicsTextItem *stunText = new QGraphicsTextItem("晕厥!");
     QFont font;
     font.setPointSize(16);
     font.setBold(true);
@@ -126,7 +126,7 @@ void ExamPaper::applyStunEffect() {
 
     // 保存玩家指针（用于lambda）
     QPointer<Player> playerPtr = m_player;
-    QGraphicsScene* currentScene = scene();
+    QGraphicsScene *currentScene = scene();
 
     // 晕厥结束后恢复移动
     QTimer::singleShot(m_stunDuration, [playerPtr, stunText, currentScene]() {
