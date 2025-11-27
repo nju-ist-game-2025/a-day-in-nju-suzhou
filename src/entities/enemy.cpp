@@ -8,32 +8,32 @@
 #include "../ui/explosion.h"
 #include "player.h"
 
-Enemy::Enemy(const QPixmap &pic, double scale)
-        : Entity(nullptr),
-          currentState(WANDER),
-          player(nullptr),
-          health(10),
-          maxHealth(10),
-          contactDamage(1),
-          visionRange(250.0),
-          attackRange(40.0),
-          attackCooldown(1000),
-          lastAttackTime(0),
-          wanderCooldown(0),
-          m_movePattern(MOVE_DIRECT),
-          m_zigzagPhase(0.0),
-          m_zigzagAmplitude(80.0),
-          m_circleAngle(0.0),
-          m_circleRadius(100.0),
-          m_isDashing(false),
-          m_dashChargeCounter(0),
-          m_dashChargeMs(1500),
-          m_dashSpeed(4.0),
-          m_dashDuration(0),
-          m_preferredDistance(150.0),
-          m_diagonalDirection(1),
-          m_isSummoned(false),
-          m_isPaused(false) {
+Enemy::Enemy(const QPixmap& pic, double scale)
+    : Entity(nullptr),
+      currentState(WANDER),
+      player(nullptr),
+      health(10),
+      maxHealth(10),
+      contactDamage(1),
+      visionRange(250.0),
+      attackRange(40.0),
+      attackCooldown(1000),
+      lastAttackTime(0),
+      wanderCooldown(0),
+      m_movePattern(MOVE_DIRECT),
+      m_zigzagPhase(0.0),
+      m_zigzagAmplitude(80.0),
+      m_circleAngle(0.0),
+      m_circleRadius(100.0),
+      m_isDashing(false),
+      m_dashChargeCounter(0),
+      m_dashChargeMs(1500),
+      m_dashSpeed(4.0),
+      m_dashDuration(0),
+      m_preferredDistance(150.0),
+      m_diagonalDirection(1),
+      m_isSummoned(false),
+      m_isPaused(false) {
     // 设置图像
     setPixmap(pic.scaled(pic.width() * scale, pic.height() * scale,
                          Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -105,12 +105,12 @@ void Enemy::getEffects() {
     // 3: shootSpeedEffect (slow fire)
 
     int type = QRandomGenerator::global()->bounded(4);
-    StatusEffect *effect = nullptr;
+    StatusEffect* effect = nullptr;
 
     switch (type) {
         case 0: {
             // 防止中毒效果在delete后施加
-            int duration = (3 > player->getCurrentHealth() * 2 ? (int) player->getCurrentHealth() : 3);
+            int duration = (3 > player->getCurrentHealth() * 2 ? (int)player->getCurrentHealth() : 3);
             effect = new PoisonEffect(player, duration, 1);
             break;
         }
@@ -167,7 +167,7 @@ void Enemy::updateAI() {
             break;
 
         case CHASE:
-            executeMovement(); // 使用配置的移动模式
+            executeMovement();  // 使用配置的移动模式
             break;
 
         case ATTACK:
@@ -252,7 +252,7 @@ void Enemy::wander() {
     // 到达漫游点或需要新目标
     if (dist < 20 || wanderCooldown <= 0) {
         wanderTarget = getRandomWanderPoint();
-        wanderCooldown = 60; // 约3秒后重新选择目标
+        wanderCooldown = 60;  // 约3秒后重新选择目标
     } else {
         wanderCooldown--;
 
@@ -300,15 +300,10 @@ void Enemy::attackPlayer() {
     if (m_isPaused)
         return;
 
-    // 近战攻击：检测碰撞
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item: collisions) {
-        Player *p = dynamic_cast<Player *>(item);
-        if (p) {
-            p->takeDamage(contactDamage);
-            // 基类不再有特殊效果，子类可以重写此方法添加特殊效果
-            break;
-        }
+    // 近战攻击：使用像素级碰撞检测
+    if (Entity::pixelCollision(this, player)) {
+        player->takeDamage(contactDamage);
+        // 基类不再有特殊效果，子类可以重写此方法添加特殊效果
     }
 }
 
@@ -340,7 +335,7 @@ void Enemy::move() {
 
 void Enemy::takeDamage(int damage) {
     flash();
-    int realDamage = qMax(1, damage); // 每次至少1点伤害
+    int realDamage = qMax(1, damage);  // 每次至少1点伤害
     health -= realDamage;
     if (health <= 0) {
         // 立即停止所有定时器，防止死亡后仍在运行AI
@@ -359,8 +354,8 @@ void Enemy::takeDamage(int damage) {
         qDebug() << "敌人死亡音效已触发";
 
         // 创建爆炸动画
-        Explosion *explosion = new Explosion();
-        explosion->setPos(this->pos()); // 在敌人位置创建爆炸
+        Explosion* explosion = new Explosion();
+        explosion->setPos(this->pos());  // 在敌人位置创建爆炸
         if (scene()) {
             scene()->addItem(explosion);
             explosion->startAnimation();
@@ -368,7 +363,7 @@ void Enemy::takeDamage(int damage) {
         }
 
         qDebug() << "Enemy::takeDamage - 敌人死亡，发出dying信号";
-        emit dying(this); // 在删除之前发出信号
+        emit dying(this);  // 在删除之前发出信号
 
         if (scene()) {
             scene()->removeItem(this);
@@ -428,12 +423,12 @@ void Enemy::moveZigzag() {
         double perpY = dirX;
 
         // 使用正弦函数产生Z字形偏移
-        m_zigzagPhase += 0.2; // 控制摆动频率
+        m_zigzagPhase += 0.2;  // 控制摆动频率
         if (m_zigzagPhase > 2 * M_PI)
             m_zigzagPhase -= 2 * M_PI;
 
         // 偏移量使用固定的振幅比例
-        double zigzagOffset = qSin(m_zigzagPhase) * 0.8; // 0.8是侧向移动的强度
+        double zigzagOffset = qSin(m_zigzagPhase) * 0.8;  // 0.8是侧向移动的强度
 
         // 组合主方向和侧向偏移
         // 主方向占比0.6，侧向占比根据正弦波动
@@ -475,7 +470,7 @@ void Enemy::moveCircle() {
         m_circleAngle -= 2 * M_PI;
 
     // 计算目标点：在玩家周围的圆上，但半径逐渐减小
-    double targetRadius = qMax(attackRange, dist * 0.8); // 逐渐靠近
+    double targetRadius = qMax(attackRange, dist * 0.8);  // 逐渐靠近
     double targetX = playerPos.x() + targetRadius * qCos(m_circleAngle);
     double targetY = playerPos.y() + targetRadius * qSin(m_circleAngle);
 
@@ -512,7 +507,7 @@ void Enemy::moveDash() {
 
     if (!m_isDashing) {
         // 蓄力阶段
-        m_dashChargeCounter += 100; // AI更新间隔约100ms
+        m_dashChargeCounter += 100;  // AI更新间隔约100ms
 
         // 蓄力时缓慢追踪玩家（而不是完全停止）
         if (dist > 0.1) {
@@ -524,8 +519,8 @@ void Enemy::moveDash() {
         if (m_dashChargeCounter >= m_dashChargeMs) {
             // 蓄力完成，开始冲刺
             m_isDashing = true;
-            m_dashTarget = playerPos; // 锁定冲刺目标
-            m_dashDuration = 30;      // 冲刺持续帧数
+            m_dashTarget = playerPos;  // 锁定冲刺目标
+            m_dashDuration = 30;       // 冲刺持续帧数
             m_dashChargeCounter = 0;
         }
     } else {
@@ -591,9 +586,9 @@ void Enemy::moveKeepDistance() {
         return;
     }
 
-    double moveSpeed = 4.0;   // 移动速度（较平滑）
-    double tolerance = 30.0;  // X轴距离容差
-    double yTolerance = 20.0; // Y轴对齐容差
+    double moveSpeed = 4.0;    // 移动速度（较平滑）
+    double tolerance = 30.0;   // X轴距离容差
+    double yTolerance = 20.0;  // Y轴对齐容差
 
     // ========== X方向：保持水平距离 ==========
     double absDx = qAbs(dx);
@@ -652,7 +647,7 @@ void Enemy::moveDiagonal() {
 
     // 斜向移动：45度角接近玩家
     // 主方向分量 + 侧向分量，形成斜向移动
-    double diagonalRatio = 0.7; // 侧向移动比例
+    double diagonalRatio = 0.7;  // 侧向移动比例
 
     double finalDirX = dirX + perpX * diagonalRatio * m_diagonalDirection;
     double finalDirY = dirY + perpY * diagonalRatio * m_diagonalDirection;

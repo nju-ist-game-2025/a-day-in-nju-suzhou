@@ -188,8 +188,11 @@ void TeacherBoss::takeDamage(int damage) {
     // 触发闪烁效果
     flash();
 
-    // 计算实际伤害
+    // 计算实际伤害（确保至少为1，防止低伤害被缩放为0）
     int realDamage = static_cast<int>(damage * damageScale);
+    if (damage > 0 && realDamage < 1) {
+        realDamage = 1;
+    }
 
     // 计算阶段临界血量
     int phase2Threshold = static_cast<int>(maxHealth * 0.6);  // 60% - 进入期中考试阶段

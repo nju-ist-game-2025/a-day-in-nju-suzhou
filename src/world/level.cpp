@@ -871,6 +871,10 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
                     ClockBoom* boom = new ClockBoom(boomNormalPic, boomNormalPic, 1.0);
                     boom->setPos(x, y);
                     boom->setPlayer(m_player);
+
+                    // 预加载碰撞掩码
+                    boom->preloadCollisionMask();
+
                     m_scene->addItem(boom);
 
                     QPointer<Enemy> eptr(boom);
@@ -900,6 +904,10 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
                     Enemy* enemy = createEnemyByType(m_levelNumber, enemyType, enemyPix, 1.0);
                     enemy->setPos(x, y);
                     enemy->setPlayer(m_player);
+
+                    // 预加载碰撞掩码（避免运行时生成）
+                    enemy->preloadCollisionMask();
+
                     m_scene->addItem(enemy);
 
                     // 使用 QPointer 存储
@@ -938,6 +946,10 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
             Boss* boss = createBossByLevel(m_levelNumber, bossPix, 1.0);
             boss->setPos(x, y);
             boss->setPlayer(m_player);
+
+            // 预加载碰撞掩码（避免运行时生成）
+            boss->preloadCollisionMask();
+
             m_scene->addItem(boss);
 
             // 使用 QPointer<Enemy> 存储，兼容 Qt5 和 Qt6
@@ -2216,6 +2228,9 @@ void Level::spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemies) {
                 boom->setPlayer(m_player);
                 boom->setIsSummoned(true);  // 标记为召唤的敌人，不触发bonus
 
+                // 预加载碰撞掩码
+                boom->preloadCollisionMask();
+
                 // 暂停敌人的AI和移动（等待1秒）
                 boom->pauseTimers();
 
@@ -2244,6 +2259,9 @@ void Level::spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemies) {
                 enemy->setPlayer(m_player);
                 enemy->setIsSummoned(true);  // 标记为召唤的敌人，不触发bonus
 
+                // 预加载碰撞掩码
+                enemy->preloadCollisionMask();
+
                 // 暂停敌人的AI和移动（等待1秒）
                 enemy->pauseTimers();
 
@@ -2271,6 +2289,9 @@ void Level::spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemies) {
                 enemy->setPos(x, y);
                 enemy->setPlayer(m_player);
                 enemy->setIsSummoned(true);  // 标记为召唤的敌人，不触发bonus
+
+                // 预加载碰撞掩码
+                enemy->preloadCollisionMask();
 
                 // 暂停敌人的AI和移动（等待1秒）
                 enemy->pauseTimers();

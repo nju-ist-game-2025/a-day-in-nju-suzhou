@@ -7,19 +7,19 @@
 #include <QTimer>
 #include "player.h"
 
-PillowEnemy::PillowEnemy(const QPixmap &pic, double scale)
-        : Enemy(pic, scale) {
+PillowEnemy::PillowEnemy(const QPixmap& pic, double scale)
+    : Enemy(pic, scale) {
     // 设置移动模式为绕圈移动
     setMovementPattern(MOVE_CIRCLE);
 
     // 设置绕圈半径和速度等参数
-    setCircleRadius(200.0); // 绕圈半径
-    setSpeed(3.0);          // 移动速度
-    setHealth(20);          // 生命值
-    setContactDamage(2);    // 接触伤害
+    setCircleRadius(200.0);  // 绕圈半径
+    setSpeed(3.0);           // 移动速度
+    setHealth(20);           // 生命值
+    setContactDamage(2);     // 接触伤害
 }
 
-void PillowEnemy::onContactWithPlayer(Player *p) {
+void PillowEnemy::onContactWithPlayer(Player* p) {
     Q_UNUSED(p);
     // 接触时100%触发昏睡效果
     applySleepEffect();
@@ -33,18 +33,12 @@ void PillowEnemy::attackPlayer() {
     if (m_isPaused)
         return;
 
-    // 近战攻击：检测碰撞
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item: collisions) {
-        Player *p = dynamic_cast<Player *>(item);
-        if (p) {
-            p->takeDamage(contactDamage);
+    // 近战攻击：使用像素级碰撞检测
+    if (Entity::pixelCollision(this, player)) {
+        player->takeDamage(contactDamage);
 
-            // 100%概率触发昏睡效果（枕头必定让人昏睡）
-            applySleepEffect();
-
-            break;
-        }
+        // 100%概率触发昏睡效果（枕头必定让人昏睡）
+        applySleepEffect();
     }
 }
 
@@ -66,12 +60,12 @@ void PillowEnemy::applySleepEffect() {
     player->setEffectCooldown(true);
 
     // 显示"昏睡ZZZ"文字提示
-    QGraphicsTextItem *sleepText = new QGraphicsTextItem("昏睡ZZZ");
+    QGraphicsTextItem* sleepText = new QGraphicsTextItem("昏睡ZZZ");
     QFont font;
     font.setPointSize(16);
     font.setBold(true);
     sleepText->setFont(font);
-    sleepText->setDefaultTextColor(QColor(128, 128, 128)); // 灰色
+    sleepText->setDefaultTextColor(QColor(128, 128, 128));  // 灰色
     sleepText->setPos(player->pos().x(), player->pos().y() - 40);
     sleepText->setZValue(200);
     scene()->addItem(sleepText);
