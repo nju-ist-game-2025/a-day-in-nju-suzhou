@@ -118,7 +118,7 @@ Player::Player(const QPixmap& pic_player, double scale)
     shootTimer = new QTimer(this);
     connect(shootTimer, &QTimer::timeout, this, &Player::checkShoot);
     shootTimer->start(16);  // 每16ms检测一次
-    // 大招初始即可使用
+    // 增伤技能初始即可使用
     m_lastUltimateTime = QDateTime::currentMSecsSinceEpoch() - m_ultimateCooldownMs;
 
     // 初始无敌时间，防止刚进入游戏时被判定碰撞闪烁
@@ -139,7 +139,7 @@ void Player::keyPressEvent(QKeyEvent* event) {
     }
 
     if (event->key() == Qt::Key_E) {
-        placeBomb();
+        activateUltimate();
         event->accept();
         return;
     }
@@ -216,8 +216,8 @@ void Player::shoot(int key) {
 
     // 播放射击音效
     AudioManager::instance().playSound("player_shoot");
-    // 计算子弹发射位置（从角色中心发射）
-    QPointF bulletPos = this->pos() + QPointF(pixmap().width() / 2 - 7.5, pixmap().height() / 2 - 7.5);
+    // 计算子弹发射位置
+    QPointF bulletPos = this->pos() + QPointF(pixmap().width() / 2 - 7.5, pixmap().height() / 2 - 30);
     // if(shootType == 0) //改变为发射激光模式，需要ui的图片实现
     auto* bullet = new Projectile(0, bulletHurt, bulletPos, pic_bullet);  // 使用可配置的玩家子弹伤害
     bullet->setSpeed(shootSpeed);
@@ -428,10 +428,19 @@ void Player::activateUltimate() {
         return;
 
     m_ultimateOriginalBulletHurt = bulletHurt;
-    m_ultimateOriginalSpeed = speed;
+    m_originalBulletPic = pic_bullet;  // 保存原始子弹图片
 
+    // 伤害变为2倍
     bulletHurt = qMax(1, bulletHurt * 2);
-    speed = m_ultimateOriginalSpeed * m_ultimateSpeedMultiplier;
+
+    // 子弹变大1.5倍
+    if (!pic_bullet.isNull()) {
+        pic_bullet = pic_bullet.scaled(
+            pic_bullet.width() * m_bulletScaleMultiplier,
+            pic_bullet.height() * m_bulletScaleMultiplier,
+            Qt::KeepAspectRatio,
+            Qt::SmoothTransformation);
+    }
 
     m_isUltimateActive = true;
     m_lastUltimateTime = now;
@@ -454,10 +463,13 @@ void Player::endUltimate() {
     if (m_ultimateTimer)
         m_ultimateTimer->stop();
 
+    // 恢复原始伤害
     if (m_ultimateOriginalBulletHurt > 0)
         bulletHurt = m_ultimateOriginalBulletHurt;
-    if (m_ultimateOriginalSpeed > 0.0)
-        speed = m_ultimateOriginalSpeed;
+
+    // 恢复原始子弹图片
+    if (!m_originalBulletPic.isNull())
+        pic_bullet = m_originalBulletPic;
 }
 
 int Player::getUltimateRemainingMs() const {

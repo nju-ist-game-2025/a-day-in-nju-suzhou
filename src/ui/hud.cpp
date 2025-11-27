@@ -144,7 +144,7 @@ void HUD::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidg
     paintKey(painter);
     paintSoul(painter);
     paintBlack(painter);
-    paintBomb(painter);
+    // paintBomb(painter);  // 已移除炸弹功能
     paintTeleportCooldown(painter);
     paintUltimateStatus(painter);
     paintMinimap(painter);
@@ -152,7 +152,7 @@ void HUD::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidg
 
 void HUD::paintKey(QPainter* painter) {
     const int textAreaWidth = 150;  // 文字区域宽度
-    const int Y = 30;               // 血条Y坐标
+    const int Y = 10;               // 原炸弹位置
     const int Height = 25;          // 血条高度
     QFont font = painter->font();
     painter->setPen(Qt::darkYellow);
@@ -269,7 +269,7 @@ void HUD::paintUltimateStatus(QPainter* painter) {
     font.setBold(true);
     painter->setFont(font);
     painter->setPen(Qt::white);
-    painter->drawText(boxRect.adjusted(0, 8, 0, -36), Qt::AlignCenter, QStringLiteral("E 大招(伤害增加)"));
+    painter->drawText(boxRect.adjusted(0, 8, 0, -36), Qt::AlignCenter, QStringLiteral("E 增伤(2倍伤害)"));
 
     QString stateText;
     if (player->isUltimateActive()) {

@@ -260,8 +260,8 @@ void Usagi::spawnRewardChests() {
             item = new BulletSpeedUpItem("子弹速度提升", reward.value);
         } else if (reward.type == "red_heart") {
             item = new RedHeartContainerItem("红心容器", static_cast<int>(reward.value));
-        } else if (reward.type == "bomb") {
-            item = new BombItem("炸弹", static_cast<int>(reward.value));
+            // } else if (reward.type == "bomb") {  // 已移除炸弹
+            //     item = new BombItem("炸弹", static_cast<int>(reward.value));
         } else if (reward.type == "key") {
             item = new KeyItem("钥匙", static_cast<int>(reward.value));
         } else if (reward.type == "brimstone") {
