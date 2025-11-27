@@ -5,22 +5,31 @@
 #include <QElapsedTimer>
 
 HUD::HUD(Player *pl, QGraphicsItem *parent)
-    : QGraphicsItem(parent), currentHealth(3.0f), maxHealth(3.0f), isFlashing(false), isScreenFlashing(false),
-      flashCount(0), currentRoomIndex(0)
+        : QGraphicsItem(parent), currentHealth(3.0f), maxHealth(3.0f),
+          isFlashing(false), isScreenFlashing(false), flashCount(0), currentRoomIndex(0)
 {
     player = pl;
+
     flashTimer = new QTimer(this);
     connect(flashTimer, &QTimer::timeout, this, &HUD::endDamageFlash);
 
     screenFlashTimer = new QTimer(this);
     screenFlashTimer->setSingleShot(true);
-    connect(screenFlashTimer, &QTimer::timeout, this, [this]()
-            {
+    connect(screenFlashTimer, &QTimer::timeout, this, [this]() {
         isScreenFlashing = false;
-        update(); });
+        update();
+    });
 
+    // ***** 60 FPS HUD刷新定时器 *****
+    auto *hudTimer = new QTimer();
+    hudTimer->setInterval(16);
+    connect(hudTimer, &QTimer::timeout, [this]() {
+        this->update();   // 直接调用 HUD 的 update()
+    });
+    hudTimer->start();
     setPos(0, 0);
 }
+
 
 void HUD::setMapLayout(const QVector<RoomNode> &nodes)
 {
@@ -151,6 +160,7 @@ void HUD::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidg
     paintSoul(painter);
     paintBlack(painter);
     paintTeleportCooldown(painter);
+    paintUltimateStatus(painter);
     paintMinimap(painter);
 }
 
@@ -202,7 +212,7 @@ void HUD::paintTeleportCooldown(QPainter *painter)
     if (!player)
         return;
 
-    const QRectF gaugeRect(450, 5, 70, 70);
+    const QRectF gaugeRect(560, 510, 70, 70);
     painter->setBrush(QColor(10, 20, 30, 160));
     painter->setPen(QPen(QColor(70, 120, 200), 2));
     painter->drawEllipse(gaugeRect);
@@ -235,6 +245,61 @@ void HUD::paintTeleportCooldown(QPainter *painter)
     font.setBold(false);
     painter->setFont(font);
     painter->drawText(gaugeRect.adjusted(0, 62, 0, 0), Qt::AlignHCenter | Qt::AlignTop, "");
+}
+
+void HUD::paintUltimateStatus(QPainter *painter)
+{
+    if (!player)
+        return;
+
+    const QRectF boxRect(640, 510, 140, 70);
+    painter->setBrush(QColor(40, 20, 5, 160));
+    painter->setPen(QPen(QColor(255, 140, 60), 2));
+    painter->drawRoundedRect(boxRect, 8, 8);
+
+    QRectF barRect = boxRect.adjusted(10, 42, -10, -12);
+    painter->setBrush(QColor(90, 40, 20, 180));
+    painter->setPen(Qt::NoPen);
+    painter->drawRect(barRect);
+
+    double ratio = player->isUltimateActive() ? player->getUltimateActiveRatio() : player->getUltimateReadyRatio();
+    ratio = qBound(0.0, ratio, 1.0);
+    QRectF fillRect = barRect;
+    fillRect.setWidth(barRect.width() * ratio);
+    painter->setBrush(QColor(255, 180, 60, 220));
+    painter->drawRect(fillRect);
+
+    painter->setPen(QPen(QColor(255, 180, 60), 1));
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRect(barRect);
+
+    QFont font = painter->font();
+    font.setPointSize(10);
+    font.setBold(true);
+    painter->setFont(font);
+    painter->setPen(Qt::white);
+    painter->drawText(boxRect.adjusted(0, 8, 0, -36), Qt::AlignCenter, QStringLiteral("E 大招(伤害增加)"));
+
+    QString stateText;
+    if (player->isUltimateActive())
+    {
+        double seconds = player->getUltimateActiveRemainingMs() / 1000.0;
+        stateText = QString("剩余 %1s").arg(seconds, 0, 'f', 1);
+    }
+    else if (player->isUltimateReady())
+    {
+        stateText = QStringLiteral("READY");
+    }
+    else
+    {
+        double seconds = player->getUltimateRemainingMs() / 1000.0;
+        stateText = QString("冷却 %1s").arg(seconds, 0, 'f', 1);
+    }
+
+    font.setPointSize(9);
+    font.setBold(false);
+    painter->setFont(font);
+    painter->drawText(boxRect.adjusted(0, 28, 0, -10), Qt::AlignCenter, stateText);
 }
 
 void HUD::paintEffects(QPainter *painter, const QString &text, int count, double duration, QColor color)
@@ -409,11 +474,11 @@ void HUD::updateMinimap(int currentRoom, const QVector<int> & /*roomLayout*/)
     currentRoomIndex = currentRoom;
 
     // Update visited status
-    for (int i = 0; i < mapNodes.size(); ++i)
+    for (auto & mapNode : mapNodes)
     {
-        if (mapNodes[i].id == currentRoom)
+        if (mapNode.id == currentRoom)
         {
-            mapNodes[i].visited = true;
+            mapNode.visited = true;
             break;
         }
     }

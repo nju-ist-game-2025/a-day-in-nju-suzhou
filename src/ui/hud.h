@@ -29,6 +29,9 @@ public:
 
     void paintTeleportCooldown(QPainter *painter);
 
+    void paintUltimateStatus(QPainter *painter);
+
+
     struct RoomNode
     {
         int id;
