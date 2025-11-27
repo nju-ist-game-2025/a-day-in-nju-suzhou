@@ -41,7 +41,8 @@
             "sock_angrily": 60,
             "sock_shooter": 50,
             "pants": 55,
-            "walker": 45
+            "walker": 45,
+            "yanglin": 200
         },
         "bosses": {
             "default": 150,

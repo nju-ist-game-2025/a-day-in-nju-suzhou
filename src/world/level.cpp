@@ -18,6 +18,7 @@
 #include "../entities/nightmareboss.h"
 #include "../entities/optimizationenemy.h"
 #include "../entities/pantsenemy.h"
+#include "../entities/yanglinenemy.h"
 #include "../entities/pillowenemy.h"
 #include "../entities/player.h"
 #include "../entities/projectile.h"
@@ -1269,6 +1270,10 @@ Enemy *Level::createEnemyByType(int levelNumber, const QString &enemyType, const
         else if (enemyType == "digital_system")
         {
             return new DigitalSystemEnemy(pic, scale);
+        }
+        else if (enemyType == "yanglin")
+        {
+            return new YanglinEnemy(pic, scale);
         }
     }
 

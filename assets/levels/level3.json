@@ -45,11 +45,7 @@
       "background": "convexBook",
       "enemies": [
         {
-          "type": "optimization",
-          "count": 2
-        },
-        {
-          "type": "digital_system",
+          "type": "yanglin",
           "count": 1
         }
       ],

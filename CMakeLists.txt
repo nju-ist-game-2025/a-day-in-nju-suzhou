@@ -97,6 +97,8 @@ set(ENTITY_SOURCES
         src/entities/optimizationenemy.h
         src/entities/digitalsystemenemy.cpp
         src/entities/digitalsystemenemy.h
+        src/entities/yanglinenemy.cpp
+        src/entities/yanglinenemy.h
 )
 
 set(WORLD_SOURCES
