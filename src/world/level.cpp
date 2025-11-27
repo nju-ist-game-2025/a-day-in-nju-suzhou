@@ -1704,12 +1704,10 @@ void Level::onEnemyDying(Enemy* enemy) {
             } });
     }
 
-    // 如果死亡的是NightmareBoss，恢复原始背景（3秒渐变）
+    // 如果死亡的是NightmareBoss，切换到map1背景（3秒渐变）
     if (dynamic_cast<NightmareBoss*>(enemy)) {
-        // 如果有原始路径则恢复，否则不处理
-        if (!m_originalBackgroundPath.isEmpty()) {
-            fadeBackgroundTo(m_originalBackgroundPath, 3000);
-        }
+        // 梦魇完全死亡，背景变为map1
+        fadeBackgroundTo(QString("assets/background/startRoom.png"), 3000);
     }
 
     for (Room* r : m_rooms) {
