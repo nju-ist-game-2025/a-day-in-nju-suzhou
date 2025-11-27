@@ -59,6 +59,16 @@ set(ENTITY_SOURCES
         src/entities/nightmareboss.h
         src/entities/washmachineboss.cpp
         src/entities/washmachineboss.h
+        src/entities/teacherboss.cpp
+        src/entities/teacherboss.h
+        src/entities/invigilator.cpp
+        src/entities/invigilator.h
+        src/entities/chalkbeam.cpp
+        src/entities/chalkbeam.h
+        src/entities/exampaper.cpp
+        src/entities/exampaper.h
+        src/entities/mletrap.cpp
+        src/entities/mletrap.h
         src/entities/clockenemy.cpp
         src/entities/clockenemy.h
         src/entities/clockboom.cpp

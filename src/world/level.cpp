@@ -21,6 +21,7 @@
 #include "../entities/projectile.h"
 #include "../entities/sockenemy.h"
 #include "../entities/sockshooter.h"
+#include "../entities/teacherboss.h"
 #include "../entities/usagi.h"
 #include "../entities/walker.h"
 #include "../entities/washmachineboss.h"
@@ -331,6 +332,7 @@ void Level::showStoryDialog(const QStringList& dialogs, bool isBossDialog, const
     m_currentDialogIndex = 0;
     m_isBossDialog = isBossDialog;
     m_isStoryFinished = false;
+    m_isTeacherBossInitialDialog = false;  // 重置标记
 
     // 发送对话开始信号
     emit dialogStarted();
@@ -372,6 +374,78 @@ void Level::showStoryDialog(const QStringList& dialogs, bool isBossDialog, const
         m_dialogBox->setPos(0, 0);
         m_dialogBox->setZValue(10000);
         m_scene->addItem(m_dialogBox);
+
+        // 第三关Boss初始对话：添加cow入场飞行动画
+        if (m_levelNumber == 3 && isBossDialog && !m_currentTeacherBoss) {
+            m_isTeacherBossInitialDialog = true;
+
+            // 加载cow图片
+            QStringList cowPaths = {
+                "assets/boss/Teacher/cow.png",
+                "../assets/boss/Teacher/cow.png",
+                "../../our_game/assets/boss/Teacher/cow.png"};
+
+            QPixmap cowPixmap;
+            for (const QString& path : cowPaths) {
+                if (QFile::exists(path)) {
+                    cowPixmap = QPixmap(path);
+                    break;
+                }
+            }
+
+            if (!cowPixmap.isNull()) {
+                // 缩放cow图片（放大）
+                cowPixmap = cowPixmap.scaled(180, 180, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                m_dialogBossSprite = new QGraphicsPixmapItem(cowPixmap);
+                m_dialogBossSprite->setPos(-200, 180);  // 从屏幕左侧外开始
+                m_dialogBossSprite->setZValue(10001);   // 在背景之上
+                m_scene->addItem(m_dialogBossSprite);
+
+                // 创建飞入动画：从左侧飞到中间偏左
+                m_dialogBossFlyAnimation = new QPropertyAnimation(this);
+                m_dialogBossFlyAnimation->setTargetObject(nullptr);
+                m_dialogBossFlyAnimation->setDuration(2000);
+                m_dialogBossFlyAnimation->setStartValue(QPointF(-200, 180));
+                m_dialogBossFlyAnimation->setEndValue(QPointF(250, 180));  // 飞到更靠左位置
+                m_dialogBossFlyAnimation->setEasingCurve(QEasingCurve::OutCubic);
+
+                // 使用QVariantAnimation来更新位置
+                connect(m_dialogBossFlyAnimation, &QPropertyAnimation::valueChanged, this, [this](const QVariant& value) {
+                    if (m_dialogBossSprite) {
+                        m_dialogBossSprite->setPos(value.toPointF());
+                    }
+                });
+
+                m_dialogBossFlyAnimation->start();
+                qDebug() << "[Level] TeacherBoss初始对话：cow入场动画开始";
+            }
+        }
+        // 第三关Boss二三阶段对话或击败后对话：让cow直接出现在中间
+        else if (m_levelNumber == 3 && isBossDialog && m_currentTeacherBoss) {
+            // 击败后用cowFinal.png，其他阶段都用cow.png
+            QString cowImageName = m_bossDefeated ? "cowFinal.png" : "cow.png";
+            QStringList cowPaths = {
+                "assets/boss/Teacher/" + cowImageName,
+                "../assets/boss/Teacher/" + cowImageName,
+                "../../our_game/assets/boss/Teacher/" + cowImageName};
+
+            QPixmap cowPixmap;
+            for (const QString& path : cowPaths) {
+                if (QFile::exists(path)) {
+                    cowPixmap = QPixmap(path);
+                    break;
+                }
+            }
+
+            if (!cowPixmap.isNull()) {
+                cowPixmap = cowPixmap.scaled(180, 180, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                m_dialogBossSprite = new QGraphicsPixmapItem(cowPixmap);
+                m_dialogBossSprite->setPos(250, 180);  // 直接出现在更靠左位置
+                m_dialogBossSprite->setZValue(10001);
+                m_scene->addItem(m_dialogBossSprite);
+                qDebug() << "[Level] TeacherBoss阶段" << m_currentTeacherBoss->getPhase() << "对话：cow直接出现";
+            }
+        }
     } else {
         // 透明背景模式：不创建背景图片，m_dialogBox 保持 nullptr
         m_dialogBox = nullptr;
@@ -495,6 +569,19 @@ void Level::finishStory() {
         m_skipHint = nullptr;
     }
 
+    // 清理对话期间的Boss角色图片（入场动画）
+    if (m_dialogBossFlyAnimation) {
+        m_dialogBossFlyAnimation->stop();
+        delete m_dialogBossFlyAnimation;
+        m_dialogBossFlyAnimation = nullptr;
+    }
+    if (m_dialogBossSprite) {
+        m_scene->removeItem(m_dialogBossSprite);
+        delete m_dialogBossSprite;
+        m_dialogBossSprite = nullptr;
+    }
+    m_isTeacherBossInitialDialog = false;
+
     m_isStoryFinished = true;
 
     // 发送对话结束信号
@@ -553,8 +640,14 @@ void Level::finishStory() {
             m_absorbAngles.clear();
 
             m_currentWashMachineBoss->onDialogFinished();
+        } else if (m_currentTeacherBoss && m_currentTeacherBoss->getPhase() >= 2) {
+            // TeacherBoss的阶段转换对话（第二阶段或第三阶段）
+            // 不需要initCurrentRoom，只需通知Boss继续战斗
+            qDebug() << "TeacherBoss阶段转换对话结束，继续战斗";
+            m_currentTeacherBoss->onDialogFinished();
         } else {
-            // 其他boss对话结束，或WashMachineBoss第一轮对话结束
+            // 初始Boss对话结束，或WashMachineBoss第一轮对话结束
+            // 需要初始化房间（创建Boss和敌人）
             if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size()) {
                 qDebug() << "Boss对话结束，初始化boss房间" << m_currentRoomIndex;
                 initCurrentRoom(m_rooms[m_currentRoomIndex]);
@@ -563,6 +656,7 @@ void Level::finishStory() {
             if (m_currentWashMachineBoss) {
                 m_currentWashMachineBoss->onDialogFinished();
             }
+            // TeacherBoss在构造函数中已经自动启动了第一阶段技能
         }
     } else {
         // 关卡开始对话结束
@@ -1028,14 +1122,14 @@ Boss* Level::createBossByLevel(int levelNumber, const QPixmap& pic, double scale
         }
 
         case 3: {
-            // 第三关：WashMachine Boss
-            qDebug() << "创建WashMachine Boss（第三关）";
-            WashMachineBoss* washMachineBoss = new WashMachineBoss(pic, scale);
+            // 第三关：Teacher Boss（奶牛张）
+            qDebug() << "创建Teacher Boss（第三关）";
+            TeacherBoss* teacherBoss = new TeacherBoss(pic, scale);
 
-            // 连接WashMachine Boss的特殊信号
-            connectWashMachineBossSignals(washMachineBoss);
+            // 连接Teacher Boss的特殊信号
+            connectTeacherBossSignals(teacherBoss);
 
-            boss = washMachineBoss;
+            boss = teacherBoss;
             break;
         }
 
@@ -2524,4 +2618,58 @@ void Level::onUsagiRewardCompleted() {
 
     m_rewardSequenceActive = false;
     m_usagi = nullptr;
+}
+
+// ==================== TeacherBoss 相关方法 ====================
+
+void Level::connectTeacherBossSignals(TeacherBoss* boss) {
+    if (!boss)
+        return;
+
+    m_currentTeacherBoss = boss;
+
+    // 连接请求对话信号
+    connect(boss, &TeacherBoss::requestShowDialog,
+            this, &Level::onTeacherBossRequestDialog);
+
+    // 连接请求背景切换信号
+    connect(boss, &TeacherBoss::requestChangeBackground,
+            this, &Level::onTeacherBossRequestChangeBackground);
+
+    // 连接请求显示文字提示信号
+    connect(boss, &TeacherBoss::requestShowTransitionText,
+            this, &Level::onTeacherBossRequestTransitionText);
+
+    // 连接召唤敌人信号
+    connect(boss, &TeacherBoss::requestSpawnEnemies,
+            this, &Level::spawnEnemiesForBoss);
+
+    // 设置场景引用
+    boss->setScene(m_scene);
+
+    qDebug() << "[Level] TeacherBoss信号已连接";
+}
+
+void Level::onTeacherBossRequestDialog(const QStringList& dialogs, const QString& background) {
+    qDebug() << "[Level] TeacherBoss请求显示对话";
+
+    // 暂停所有敌人的定时器
+    for (const QPointer<Enemy>& enemyPtr : m_currentEnemies) {
+        if (enemyPtr) {
+            enemyPtr->pauseTimers();
+        }
+    }
+
+    // 显示Boss对话
+    showStoryDialog(dialogs, true, background);
+}
+
+void Level::onTeacherBossRequestChangeBackground(const QString& backgroundPath) {
+    qDebug() << "[Level] TeacherBoss请求切换背景:" << backgroundPath;
+    changeBackground(backgroundPath);
+}
+
+void Level::onTeacherBossRequestTransitionText(const QString& text) {
+    qDebug() << "[Level] TeacherBoss请求显示文字:" << text;
+    showPhaseTransitionText(text);
 }
