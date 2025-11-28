@@ -28,18 +28,17 @@ DroppedItemType DroppedItemFactory::getRandomItemType(ItemDropPool pool) {
 
 QVector<QPair<DroppedItemType, int>> DroppedItemFactory::getNormalChestPool() {
     // 普通宝箱可以掉落：key, red_heart, shield, movement_speed_boost, damage_boost
-    // 权重分配：红心30%, 钥匙20%, 护盾20%, 移速15%, 伤害15%
     return {
         {DroppedItemType::RED_HEART, 30},
-        {DroppedItemType::KEY, 20},
-        {DroppedItemType::SHIELD, 20},
-        {DroppedItemType::MOVEMENT_SPEED, 15},
-        {DroppedItemType::DAMAGE_BOOST, 15}};
+        {DroppedItemType::KEY, 12},
+        {DroppedItemType::SHIELD, 22},
+        {DroppedItemType::MOVEMENT_SPEED, 18},
+        {DroppedItemType::DAMAGE_BOOST, 18}};
 }
 
 QVector<QPair<DroppedItemType, int>> DroppedItemFactory::getLockedChestPool() {
     // 需要钥匙的宝箱可以掉落：blood_bag, frost_slowdown, fire_rate_boost
-    // 权重分配：血袋35%, 冰霜减速35%, 射速提升30%
+    // 权重分配：血袋35%, 冰霜减速35%, 射速提升30%（稀有道具，概率较低）
     return {
         {DroppedItemType::BLOOD_BAG, 35},
         {DroppedItemType::FROST_SLOWDOWN, 35},
@@ -47,17 +46,16 @@ QVector<QPair<DroppedItemType, int>> DroppedItemFactory::getLockedChestPool() {
 }
 
 QVector<QPair<DroppedItemType, int>> DroppedItemFactory::getEnemyDropPool() {
-    // 敌人掉落物品池（包含所有非黑心的物品）
+    // 敌人掉落物品池（包含所有非黑心的物品，攻速提升移至锁住宝箱）
     // 红心概率最高，其他较为均衡
     return {
-        {DroppedItemType::RED_HEART, 35},
+        {DroppedItemType::RED_HEART, 30},
         {DroppedItemType::KEY, 10},
-        {DroppedItemType::SHIELD, 10},
-        {DroppedItemType::MOVEMENT_SPEED, 10},
-        {DroppedItemType::DAMAGE_BOOST, 10},
-        {DroppedItemType::BLOOD_BAG, 8},
-        {DroppedItemType::FROST_SLOWDOWN, 10},
-        {DroppedItemType::FIRE_RATE_BOOST, 7}};
+        {DroppedItemType::SHIELD, 14},
+        {DroppedItemType::MOVEMENT_SPEED, 12},
+        {DroppedItemType::DAMAGE_BOOST, 12},
+        {DroppedItemType::BLOOD_BAG, 12},
+        {DroppedItemType::FROST_SLOWDOWN, 10}};
 }
 
 DroppedItemType DroppedItemFactory::selectByWeight(const QVector<QPair<DroppedItemType, int>>& pool) {

@@ -50,7 +50,7 @@
             "description": "提高射击速度（冷却时间除以倍率）",
             "effect": {
                 "type": "fire_rate",
-                "multiplier": 1.5,
+                "multiplier": 1.3,
                 "maxMultiplier": 6.0,
                 "baseCooldown": 150
             },
@@ -63,8 +63,11 @@
             "description": "增加寒冰子弹概率",
             "effect": {
                 "type": "frost_chance",
-                "value": 20,
-                "maxValue": 60
+                "value": 15,
+                "maxValue": 60,
+                "slowFactor": 0.7,
+                "slowDuration": 2.0,
+                "maxSlowStacks": 2
             },
             "pickupText": "❄️ 寒冰概率 +{value}%",
             "pickupTextMax": "❄️ 寒冰子弹概率已达最高",

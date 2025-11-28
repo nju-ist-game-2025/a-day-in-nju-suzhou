@@ -14,6 +14,7 @@
 #include "mletrap.h"
 #include "player.h"
 #include "projectile.h"
+#include "xukeenemy.h"
 
 TeacherBoss::TeacherBoss(const QPixmap& pic, double scale)
     : Boss(pic, scale),
@@ -33,7 +34,8 @@ TeacherBoss::TeacherBoss(const QPixmap& pic, double scale)
       m_summonInvigilatorTimer(nullptr),
       m_failWarningTimer(nullptr),
       m_formulaBombTimer(nullptr),
-      m_splitBulletTimer(nullptr) {
+      m_splitBulletTimer(nullptr),
+      m_summonXukeTimer(nullptr) {
     // 从配置文件读取奶牛张Boss的一阶段属性
     ConfigManager& config = ConfigManager::instance();
     setHealth(config.getBossInt("teacher", "phase1", "health", 500));
@@ -99,6 +101,10 @@ TeacherBoss::~TeacherBoss() {
     if (m_splitBulletTimer) {
         m_splitBulletTimer->stop();
         delete m_splitBulletTimer;
+    }
+    if (m_summonXukeTimer) {
+        m_summonXukeTimer->stop();
+        delete m_summonXukeTimer;
     }
     if (m_flyTimer) {
         m_flyTimer->stop();
@@ -263,7 +269,7 @@ void TeacherBoss::enterPhase2() {
     setMovementPattern(MOVE_DASH);
     setVisionRange(config.getBossDouble("teacher", "phase2", "vision_range", 10000));
     setDashChargeTime(config.getBossInt("teacher", "phase2", "dash_charge_time", 800));
-    setDashSpeed(config.getBossDouble("teacher", "phase2", "dash_speed", 6.0));
+    setDashSpeed(config.getBossDouble("teacher", "phase2", "dash_speed", 8.0));  // 增加冲撞速度
     setContactDamage(config.getBossInt("teacher", "phase2", "contact_damage", 4));
 
     // 暂停并显示对话，开始背景是teacher1_dia
@@ -482,19 +488,19 @@ void TeacherBoss::attackPlayer() {
 void TeacherBoss::startPhase1Skills() {
     qDebug() << "[TeacherBoss] 启动第一阶段技能";
 
-    // 正态分布弹幕 - 每4秒
+    // 正态分布弹幕 - 每2.5秒（增加频率）
     if (!m_normalBarrageTimer) {
         m_normalBarrageTimer = new QTimer(this);
         connect(m_normalBarrageTimer, &QTimer::timeout, this, &TeacherBoss::fireNormalDistributionBarrage);
     }
-    m_normalBarrageTimer->start(4000);
+    m_normalBarrageTimer->start(2500);
 
-    // 随机点名 - 每8秒
+    // 随机点名 - 每5秒（增加频率）
     if (!m_rollCallTimer) {
         m_rollCallTimer = new QTimer(this);
         connect(m_rollCallTimer, &QTimer::timeout, this, &TeacherBoss::performRollCall);
     }
-    m_rollCallTimer->start(8000);
+    m_rollCallTimer->start(5000);
 }
 
 void TeacherBoss::stopPhase1Skills() {
@@ -575,21 +581,44 @@ void TeacherBoss::performRollCall() {
     if (!m_scene || !player || m_isPaused)
         return;
 
-    // 同时生成3个红圈，增加难度
+    // 同时生成5个红圈，增加难度
     QPointF playerPos = player->pos();
-    int beamCount = 3;
+    int beamCount = 5;
+    double minDistance = 80.0;  // 粉笔圈之间的最小距离
+    int maxAttempts = 20;       // 每个圈的最大尝试次数
+
+    QVector<QPointF> beamPositions;  // 存储已生成的粉笔圈位置
 
     for (int i = 0; i < beamCount; ++i) {
-        // 在玩家附近随机位置生成
-        QPointF offset(
-            QRandomGenerator::global()->bounded(-80, 80),
-            QRandomGenerator::global()->bounded(-80, 80));
-        QPointF beamPos = playerPos + offset;
+        QPointF beamPos;
+        bool validPosition = false;
 
-        // 限制在场景内
-        beamPos.setX(qBound(50.0, beamPos.x(), 750.0));
-        beamPos.setY(qBound(50.0, beamPos.y(), 550.0));
+        for (int attempt = 0; attempt < maxAttempts && !validPosition; ++attempt) {
+            // 在玩家附近随机位置生成（扩大范围以便更容易找到不重叠的位置）
+            QPointF offset(
+                QRandomGenerator::global()->bounded(-200, 200),
+                QRandomGenerator::global()->bounded(-200, 200));
+            beamPos = playerPos + offset;
 
+            // 限制在场景内
+            beamPos.setX(qBound(50.0, beamPos.x(), 750.0));
+            beamPos.setY(qBound(50.0, beamPos.y(), 550.0));
+
+            // 检查与已有粉笔圈的距离
+            validPosition = true;
+            for (const QPointF& existingPos : beamPositions) {
+                double dx = beamPos.x() - existingPos.x();
+                double dy = beamPos.y() - existingPos.y();
+                double distance = qSqrt(dx * dx + dy * dy);
+                if (distance < minDistance) {
+                    validPosition = false;
+                    break;
+                }
+            }
+        }
+
+        // 记录位置并创建粉笔圈
+        beamPositions.append(beamPos);
         ChalkBeam* beam = new ChalkBeam(beamPos, m_chalkBeamPixmap, m_scene);
         m_scene->addItem(beam);
         beam->startWarning();
@@ -610,19 +639,19 @@ void TeacherBoss::startPhase2Skills() {
     }
     m_examPaperTimer->start(5000);
 
-    // 极大似然估计陷阱 - 每10秒
+    // 极大似然估计陷阱 - 每7秒（增加频率）
     if (!m_mleTrapTimer) {
         m_mleTrapTimer = new QTimer(this);
         connect(m_mleTrapTimer, &QTimer::timeout, this, &TeacherBoss::placeMleTrap);
     }
-    m_mleTrapTimer->start(10000);
+    m_mleTrapTimer->start(7000);
 
-    // 召唤监考员 - 每15秒
+    // 召唤监考员 - 每10秒（增加频率）
     if (!m_summonInvigilatorTimer) {
         m_summonInvigilatorTimer = new QTimer(this);
         connect(m_summonInvigilatorTimer, &QTimer::timeout, this, &TeacherBoss::summonInvigilator);
     }
-    m_summonInvigilatorTimer->start(15000);
+    m_summonInvigilatorTimer->start(10000);
 }
 
 void TeacherBoss::stopPhase2Skills() {
@@ -762,26 +791,34 @@ void TeacherBoss::startPhase3Skills() {
     setSpeed(3.0);
     setContactDamage(5);
 
-    // 挂科警告 - 每6秒
+    // 挂科警告 - 每3秒（增加频率，更难躲避）
     if (!m_failWarningTimer) {
         m_failWarningTimer = new QTimer(this);
         connect(m_failWarningTimer, &QTimer::timeout, this, &TeacherBoss::performFailWarning);
     }
-    m_failWarningTimer->start(6000);
+    m_failWarningTimer->start(3000);
 
-    // 公式轰炸 - 每4秒
+    // 公式轰炸 - 每2.5秒（增加频率）
     if (!m_formulaBombTimer) {
         m_formulaBombTimer = new QTimer(this);
         connect(m_formulaBombTimer, &QTimer::timeout, this, &TeacherBoss::fireFormulaBomb);
     }
-    m_formulaBombTimer->start(4000);
+    m_formulaBombTimer->start(2500);
 
-    // 喜忧参半分裂弹 - 每8秒
+    // 喜忧参半分裂弹 - 每5秒（增加频率）
     if (!m_splitBulletTimer) {
         m_splitBulletTimer = new QTimer(this);
         connect(m_splitBulletTimer, &QTimer::timeout, this, &TeacherBoss::fireSplitBullet);
     }
-    m_splitBulletTimer->start(8000);
+    m_splitBulletTimer->start(5000);
+
+    // 召唤xuke - 每10秒
+    int xukeInterval = ConfigManager::instance().getBossInt("teacher", "phase3", "summon_xuke_interval", 10000);
+    if (!m_summonXukeTimer) {
+        m_summonXukeTimer = new QTimer(this);
+        connect(m_summonXukeTimer, &QTimer::timeout, this, &TeacherBoss::summonXuke);
+    }
+    m_summonXukeTimer->start(xukeInterval);
 }
 
 void TeacherBoss::stopPhase3Skills() {
@@ -791,21 +828,62 @@ void TeacherBoss::stopPhase3Skills() {
         m_formulaBombTimer->stop();
     if (m_splitBulletTimer)
         m_splitBulletTimer->stop();
+    if (m_summonXukeTimer)
+        m_summonXukeTimer->stop();
 }
 
 void TeacherBoss::performFailWarning() {
     if (!m_scene || !player || m_isPaused)
         return;
 
-    // 复用随机点名机制，但缩短警告时间
+    // 第三阶段：生成多个粉笔陷阱，更难躲避
     QPointF playerPos = player->pos();
+    int beamCount = ConfigManager::instance().getBossInt("teacher", "phase3", "fail_warning_count", 4);
+    int warningTime = ConfigManager::instance().getBossInt("teacher", "phase3", "fail_warning_time", 1000);
 
-    ChalkBeam* beam = new ChalkBeam(playerPos, m_chalkBeamPixmap, m_scene);
-    beam->setWarningTime(1000);  // 1秒警告时间
-    m_scene->addItem(beam);
-    beam->startWarning();
+    // 存储已生成的红圈位置，确保不重合
+    QVector<QPointF> beamPositions;
+    const double minDistance = 80.0;  // 红圈之间的最小距离
+    const int maxAttempts = 20;       // 每个红圈最多尝试次数
 
-    qDebug() << "[TeacherBoss] 挂科警告！";
+    for (int i = 0; i < beamCount; ++i) {
+        QPointF beamPos;
+        bool validPosition = false;
+
+        for (int attempt = 0; attempt < maxAttempts && !validPosition; ++attempt) {
+            // 在玩家附近随机位置生成（扩大范围）
+            QPointF offset(
+                QRandomGenerator::global()->bounded(-200, 200),
+                QRandomGenerator::global()->bounded(-200, 200));
+            beamPos = playerPos + offset;
+
+            // 限制在场景内
+            beamPos.setX(qBound(50.0, beamPos.x(), 750.0));
+            beamPos.setY(qBound(50.0, beamPos.y(), 550.0));
+
+            // 检查与已有红圈的距离
+            validPosition = true;
+            for (const QPointF& existingPos : beamPositions) {
+                double dx = beamPos.x() - existingPos.x();
+                double dy = beamPos.y() - existingPos.y();
+                double distance = qSqrt(dx * dx + dy * dy);
+                if (distance < minDistance) {
+                    validPosition = false;
+                    break;
+                }
+            }
+        }
+
+        // 记录位置并生成红圈
+        beamPositions.append(beamPos);
+
+        ChalkBeam* beam = new ChalkBeam(beamPos, m_chalkBeamPixmap, m_scene);
+        beam->setWarningTime(warningTime);  // 使用配置的警告时间
+        m_scene->addItem(beam);
+        beam->startWarning();
+    }
+
+    qDebug() << "[TeacherBoss] 挂科警告！生成" << beamCount << "个粉笔陷阱，警告时间:" << warningTime << "ms";
 }
 
 void TeacherBoss::fireFormulaBomb() {
@@ -951,6 +1029,57 @@ void TeacherBoss::fireSplitBullet() {
     qDebug() << "[TeacherBoss] 喜忧参半！发射分裂弹，分裂距离:" << splitDistance;
 }
 
+void TeacherBoss::summonXuke() {
+    if (!m_scene || !player || m_isPaused)
+        return;
+
+    // 加载xuke图片
+    int xukeSize = ConfigManager::instance().getEntitySize("enemies", "xuke");
+    if (xukeSize <= 0)
+        xukeSize = 80;
+
+    QStringList possiblePaths = {
+        "assets/enemy/level_3/",
+        "../assets/enemy/level_3/",
+        "../../our_game/assets/enemy/level_3/"};
+
+    QPixmap xukePix;
+    for (const QString& basePath : possiblePaths) {
+        if (QFile::exists(basePath + "xuke.png")) {
+            xukePix = QPixmap(basePath + "xuke.png");
+            break;
+        }
+    }
+
+    if (xukePix.isNull()) {
+        xukePix = QPixmap(xukeSize, xukeSize);
+        xukePix.fill(Qt::darkGray);
+    } else {
+        xukePix = xukePix.scaled(xukeSize, xukeSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+
+    // 在Boss附近生成xuke
+    QPointF spawnPos = pos() + QPointF(
+                                   QRandomGenerator::global()->bounded(-80, 80),
+                                   QRandomGenerator::global()->bounded(-80, 80));
+
+    // 限制在场景内
+    spawnPos.setX(qBound(50.0, spawnPos.x(), 750.0));
+    spawnPos.setY(qBound(50.0, spawnPos.y(), 550.0));
+
+    XukeEnemy* xuke = new XukeEnemy(xukePix, 1.0);
+    xuke->setPos(spawnPos);
+    xuke->setPlayer(player);
+    xuke->setIsSummoned(true);  // 标记为召唤的敌人
+    xuke->preloadCollisionMask();
+    m_scene->addItem(xuke);
+
+    // 通知Level追踪这个敌人
+    emit enemySpawned(xuke);
+
+    qDebug() << "[TeacherBoss] 召唤沙鹰狙神！位置:" << spawnPos;
+}
+
 // ==================== 暂停控制 ====================
 
 void TeacherBoss::pauseTimers() {
@@ -972,6 +1101,8 @@ void TeacherBoss::pauseTimers() {
         m_formulaBombTimer->stop();
     if (m_splitBulletTimer)
         m_splitBulletTimer->stop();
+    if (m_summonXukeTimer)
+        m_summonXukeTimer->stop();
 }
 
 void TeacherBoss::resumeTimers() {
@@ -997,6 +1128,8 @@ void TeacherBoss::resumeTimers() {
             m_formulaBombTimer->start();
         if (m_splitBulletTimer)
             m_splitBulletTimer->start();
+        if (m_summonXukeTimer)
+            m_summonXukeTimer->start();
     }
 }
 

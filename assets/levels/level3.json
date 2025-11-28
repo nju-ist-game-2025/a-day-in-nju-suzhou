@@ -153,6 +153,10 @@
         {
           "type": "digital_system",
           "count": 2
+        },
+        {
+          "type": "yanglin",
+          "count": 1
         }
       ],
       "hasBoss": false,
@@ -177,6 +181,10 @@
         {
           "type": "digital_system",
           "count": 3
+        },
+        {
+          "type": "xuke",
+          "count": 1
         }
       ],
       "hasBoss": false,

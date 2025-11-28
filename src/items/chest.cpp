@@ -49,7 +49,7 @@ void Chest::initItems() {
     // 基类不初始化物品，由子类实现
 }
 
-void Chest::showHint(const QString& text) {
+void Chest::showHint(const QString& text, const QColor& color) {
     if (!scene())
         return;
 
@@ -64,7 +64,7 @@ void Chest::showHint(const QString& text) {
     font.setPointSize(12);
     font.setBold(true);
     m_hintText->setFont(font);
-    m_hintText->setDefaultTextColor(Qt::yellow);
+    m_hintText->setDefaultTextColor(color);
 
     // 设置位置在宝箱上方
     qreal textWidth = m_hintText->boundingRect().width();
@@ -288,8 +288,8 @@ void LockedChest::tryOpen() {
             m_player->addKeys(-1);  // 消耗一把钥匙
             doOpen();
         } else {
-            // 没有钥匙，显示提示
-            showHint("你需要1把钥匙来打开它！\n钥匙可以在探索过程中获取");
+            // 没有钥匙，显示提示（黑色文字）
+            showHint("你需要1把钥匙来打开它！\n钥匙可以在探索过程中获取", Qt::black);
         }
     }
 }

@@ -28,6 +28,11 @@ struct ItemEffectData {
     int getCurrentHealthBonus() const { return effectParams.value("currentHealthBonus").toInt(0); }
     int getBaseCooldown() const { return effectParams.value("baseCooldown").toInt(150); }
     int getHealPerHeart() const { return effectParams.value("healPerHeart").toInt(6); }
+
+    // 寒冰效果参数
+    double getSlowFactor() const { return effectParams.value("slowFactor").toDouble(0.7); }
+    double getSlowDuration() const { return effectParams.value("slowDuration").toDouble(2.0); }
+    int getMaxSlowStacks() const { return effectParams.value("maxSlowStacks").toInt(2); }
 };
 
 /**

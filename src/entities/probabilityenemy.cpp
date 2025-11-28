@@ -25,11 +25,9 @@ HealTextController::~HealTextController() {
     if (m_updateTimer) {
         m_updateTimer->stop();
     }
-    // 确保文字被移除
-    if (m_textItem) {
-        if (m_textItem->scene()) {
-            m_textItem->scene()->removeItem(m_textItem);
-        }
+    // 确保文字被移除（只有当它仍在场景中时才删除）
+    if (m_textItem && m_textItem->scene()) {
+        m_textItem->scene()->removeItem(m_textItem);
         delete m_textItem;
         m_textItem = nullptr;
     }
@@ -45,10 +43,9 @@ void HealTextController::cleanup() {
     if (m_updateTimer) {
         m_updateTimer->stop();
     }
-    if (m_textItem) {
-        if (m_textItem->scene()) {
-            m_textItem->scene()->removeItem(m_textItem);
-        }
+    // 只有当它仍在场景中时才删除
+    if (m_textItem && m_textItem->scene()) {
+        m_textItem->scene()->removeItem(m_textItem);
         delete m_textItem;
         m_textItem = nullptr;
     }
@@ -462,12 +459,19 @@ void ProbabilityEnemy::showExplosionText() {
 
     scene()->addItem(textItem);
 
-    // 3秒后删除文字
-    QTimer::singleShot(3000, textItem, [textItem]() {
-        if (textItem && textItem->scene()) {
-            textItem->scene()->removeItem(textItem);
+    // 使用 QPointer 保护指针
+    QPointer<QGraphicsTextItem> textPtr(textItem);
+    QPointer<QGraphicsScene> scenePtr(scene());
+
+    // 3秒后删除文字，使用 scenePtr 作为上下文对象（因为this在爆炸后会被删除）
+    QTimer::singleShot(3000, scenePtr.data(), [textPtr, scenePtr]() {
+        if (textPtr) {
+            if (scenePtr && textPtr->scene() == scenePtr) {
+                scenePtr->removeItem(textPtr.data());
+            }
+            delete textPtr.data();
         }
-        delete textItem; });
+    });
 }
 
 void ProbabilityEnemy::pauseTimers() {

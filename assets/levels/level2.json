@@ -251,7 +251,7 @@
         "black_heart",
         "blood_bag",
         "fire_rate_boost",
-        "shield"
+        "damage_boost"
       ],
       "hasChest": true,
       "isChestLocked": false,

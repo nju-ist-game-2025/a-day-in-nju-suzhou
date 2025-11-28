@@ -78,41 +78,44 @@ void ClockEnemy::applyScareEffect() {
     // 应用惊吓效果：移动速度增加、受伤提升150%
     player->setScared(true);
 
-    // 使用QPointer保护player指针
+    // 使用QPointer保护player指针和scareText指针
     QPointer<Player> playerPtr = player;
+    QPointer<QGraphicsTextItem> scareTextPtr = scareText;
 
     // 创建文字跟随定时器，让文字跟随玩家移动
-    QTimer* followTimer = new QTimer();
-    QObject::connect(followTimer, &QTimer::timeout, [playerPtr, scareText]() {
-        if (playerPtr && scareText && scareText->scene()) {
-            scareText->setPos(playerPtr->pos().x(), playerPtr->pos().y() - 40);
+    // 以player为父对象，确保player销毁时定时器也被销毁
+    QTimer* followTimer = new QTimer(player);
+    QObject::connect(followTimer, &QTimer::timeout, [playerPtr, scareTextPtr]() {
+        if (playerPtr && scareTextPtr && scareTextPtr->scene()) {
+            scareTextPtr->setPos(playerPtr->pos().x(), playerPtr->pos().y() - 40);
         }
     });
     followTimer->start(16);  // 每16ms更新位置
 
     // 3秒后恢复正常并删除文字
-    QTimer::singleShot(3000, [playerPtr, scareText, followTimer]() {
+    // 使用player作为上下文对象，确保player销毁时回调不会执行
+    QTimer::singleShot(3000, player, [playerPtr, scareTextPtr, followTimer]() {
         // 停止跟随定时器
         if (followTimer) {
             followTimer->stop();
-            delete followTimer;
+            followTimer->deleteLater();
         }
 
         if (playerPtr) {
             playerPtr->setScared(false);
             qDebug() << "惊吓效果结束，玩家恢复正常，3秒后可再次触发";
-            // 效果结束后3秒再解除冷却
-            QTimer::singleShot(3000, [playerPtr]() {
+            // 效果结束后3秒再解除冷却，同样使用player作为上下文
+            QTimer::singleShot(3000, playerPtr.data(), [playerPtr]() {
                 if (playerPtr) {
                     playerPtr->setEffectCooldown(false);
                 }
             });
         }
-        if (scareText) {
-            if (scareText->scene()) {
-                scareText->scene()->removeItem(scareText);
+        if (scareTextPtr) {
+            if (scareTextPtr->scene()) {
+                scareTextPtr->scene()->removeItem(scareTextPtr);
             }
-            delete scareText;
+            delete scareTextPtr;
         }
     });
 }

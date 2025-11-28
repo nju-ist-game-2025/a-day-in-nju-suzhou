@@ -126,19 +126,6 @@ public:
     }
 };
 
-// 炸弹 - 已移除
-//  class BombItem : public Item {
-//      int count;//数量
-//  public:
-//      BombItem(const QString &name, int count)
-//              : Item(name, "获得炸弹"), count(count) {}
-//
-//      void onPickup(Player *player) override {
-//          player->addBombs(count);
-//          showFloatText(player->scene(), QString("💣") + this->getDescription(), player->pos());
-//      }
-//  };
-
 // 钥匙
 class KeyItem : public Item {
     int count;  // 数量

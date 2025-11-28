@@ -77,26 +77,28 @@ void PillowEnemy::applySleepEffect() {
     // 禁用玩家移动
     player->setCanMove(false);
 
-    // 使用QPointer保护player指针，确保即使PillowEnemy被删除也能恢复玩家移动
+    // 使用QPointer保护player指针和sleepText指针，确保即使PillowEnemy被删除也能恢复玩家移动
     QPointer<Player> playerPtr = player;
+    QPointer<QGraphicsTextItem> sleepTextPtr = sleepText;
 
-    // 1.5秒后恢复移动并删除文字（不再依赖this指针）
-    QTimer::singleShot(1500, [playerPtr, sleepText]() {
+    // 1.5秒后恢复移动并删除文字
+    // 使用player作为上下文对象，确保player销毁时回调不会执行
+    QTimer::singleShot(1500, player, [playerPtr, sleepTextPtr]() {
         if (playerPtr) {
             playerPtr->setCanMove(true);
             qDebug() << "昏睡效果结束，玩家恢复移动，3秒后可再次触发";
-            // 效果结束后3秒再解除冷却
-            QTimer::singleShot(3000, [playerPtr]() {
+            // 效果结束后3秒再解除冷却，同样使用player作为上下文
+            QTimer::singleShot(3000, playerPtr.data(), [playerPtr]() {
                 if (playerPtr) {
                     playerPtr->setEffectCooldown(false);
                 }
             });
         }
-        if (sleepText) {
-            if (sleepText->scene()) {
-                sleepText->scene()->removeItem(sleepText);
+        if (sleepTextPtr) {
+            if (sleepTextPtr->scene()) {
+                sleepTextPtr->scene()->removeItem(sleepTextPtr);
             }
-            delete sleepText;
+            delete sleepTextPtr;
         }
     });
 }

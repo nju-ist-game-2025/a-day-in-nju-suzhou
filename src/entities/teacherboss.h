@@ -8,8 +8,8 @@
 #include <QVector>
 #include "boss.h"
 
+class Enemy;
 class Invigilator;
-
 class Player;
 
 /**
@@ -21,10 +21,10 @@ class Player;
  * 3. 调离阶段 (30%~0%血量): 高速移动 + 挂科警告 + 环形弹幕 + 分裂弹
  */
 class TeacherBoss : public Boss {
-Q_OBJECT
+    Q_OBJECT
 
-public:
-    explicit TeacherBoss(const QPixmap &pic, double scale = 1.5);
+   public:
+    explicit TeacherBoss(const QPixmap& pic, double scale = 1.5);
 
     ~TeacherBoss() override;
 
@@ -43,27 +43,30 @@ public:
     int getPhase() const { return m_phase; }
 
     // 设置场景（用于生成投射物）
-    void setScene(QGraphicsScene *scene) { m_scene = scene; }
+    void setScene(QGraphicsScene* scene) { m_scene = scene; }
 
-signals:
+   signals:
 
     // 请求Level执行操作
-    void requestSpawnEnemies(const QVector<QPair<QString, int>> &enemies);
+    void requestSpawnEnemies(const QVector<QPair<QString, int>>& enemies);
 
-    void requestShowDialog(const QStringList &dialogs, const QString &background);
+    // 通知Level有新敌人被直接创建（用于追踪和连接dying信号）
+    void enemySpawned(Enemy* enemy);
 
-    void requestChangeBackground(const QString &backgroundPath);
-    
+    void requestShowDialog(const QStringList& dialogs, const QString& background);
+
+    void requestChangeBackground(const QString& backgroundPath);
+
     // 请求渐变背景（用于boss击败后的渐变效果）
-    void requestFadeBackground(const QString &backgroundPath, int duration);
-    
-    // 请求渐变对话背景（用于boss击败后对话框背景的渐变效果）
-    void requestFadeDialogBackground(const QString &backgroundPath, int duration);
-    
-    // 请求对话过程中切换对话背景（在指定对话索引时瞬间切换）
-    void requestDialogBackgroundChange(int dialogIndex, const QString &newBackground);
+    void requestFadeBackground(const QString& backgroundPath, int duration);
 
-    void requestShowTransitionText(const QString &text);
+    // 请求渐变对话背景（用于boss击败后对话框背景的渐变效果）
+    void requestFadeDialogBackground(const QString& backgroundPath, int duration);
+
+    // 请求对话过程中切换对话背景（在指定对话索引时瞬间切换）
+    void requestDialogBackgroundChange(int dialogIndex, const QString& newBackground);
+
+    void requestShowTransitionText(const QString& text);
 
     // 阶段变化通知
     void phaseChanged(int newPhase);
@@ -71,7 +74,7 @@ signals:
     // 对话结束后继续战斗
     void dialogFinished();
 
-public slots:
+   public slots:
 
     // 对话结束后调用，继续战斗
     void onDialogFinished();
@@ -79,7 +82,7 @@ public slots:
     // 飞出动画完成后调用
     void onFlyOutComplete();
 
-private:
+   private:
     // ========== 阶段管理 ==========
     int m_phase;              // 1=授课, 2=期中考试, 3=调离
     bool m_isTransitioning;   // 阶段转换中（无敌）
@@ -90,7 +93,7 @@ private:
     bool m_isFlyingIn;        // 正在执行飞入动画
     QPointF m_flyStartPos;    // 飞行起始位置
     QPointF m_flyTargetPos;   // 飞行目标位置
-    QTimer *m_flyTimer;       // 飞行动画定时器
+    QTimer* m_flyTimer;       // 飞行动画定时器
 
     // ========== 图片资源 ==========
     QPixmap m_normalPixmap;         // cow.png - 授课阶段
@@ -102,11 +105,11 @@ private:
     QPixmap m_finalBulletPixmap;    // 分裂弹图片
 
     // 场景引用
-    QGraphicsScene *m_scene;
+    QGraphicsScene* m_scene;
 
     // ========== 第一阶段：授课阶段 ==========
-    QTimer *m_normalBarrageTimer;  // 正态分布弹幕定时器
-    QTimer *m_rollCallTimer;       // 随机点名定时器
+    QTimer* m_normalBarrageTimer;  // 正态分布弹幕定时器
+    QTimer* m_rollCallTimer;       // 随机点名定时器
 
     void startPhase1Skills();
 
@@ -116,9 +119,9 @@ private:
     void performRollCall();                // 随机点名（红圈+粉笔光束）
 
     // ========== 第二阶段：期中考试阶段 ==========
-    QTimer *m_examPaperTimer;                       // 考卷定时器
-    QTimer *m_mleTrapTimer;                         // 极大似然估计陷阱定时器
-    QTimer *m_summonInvigilatorTimer;               // 召唤监考员定时器
+    QTimer* m_examPaperTimer;                       // 考卷定时器
+    QTimer* m_mleTrapTimer;                         // 极大似然估计陷阱定时器
+    QTimer* m_summonInvigilatorTimer;               // 召唤监考员定时器
     QVector<QPointer<Invigilator>> m_invigilators;  // 监考员列表
 
     void startPhase2Skills();
@@ -131,9 +134,10 @@ private:
     void cleanupInvigilators();  // 清理监考员
 
     // ========== 第三阶段：调离阶段 ==========
-    QTimer *m_failWarningTimer;  // 挂科警告定时器
-    QTimer *m_formulaBombTimer;  // 公式轰炸定时器
-    QTimer *m_splitBulletTimer;  // 喜忧参半分裂弹定时器
+    QTimer* m_failWarningTimer;  // 挂科警告定时器
+    QTimer* m_formulaBombTimer;  // 公式轰炸定时器
+    QTimer* m_splitBulletTimer;  // 喜忧参半分裂弹定时器
+    QTimer* m_summonXukeTimer;   // 召唤xuke定时器
 
     void startPhase3Skills();
 
@@ -142,6 +146,7 @@ private:
     void performFailWarning();  // 挂科警告（追踪红圈）
     void fireFormulaBomb();     // 环形弹幕
     void fireSplitBullet();     // 分裂弹
+    void summonXuke();          // 召唤xuke
 
     // ========== 阶段转换 ==========
     void checkPhaseTransition();

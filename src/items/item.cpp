@@ -1,12 +1,19 @@
 #include "item.h"
+#include <QGraphicsTextItem>
+#include <QPointer>
+#include <QTimer>
+#include <memory>
 
-Item::Item(const QString &name, const QString &desc) {
+Item::Item(const QString& name, const QString& desc) {
     this->name = name;
     this->description = desc;
 }
 
-void Item::showFloatText(QGraphicsScene *scene, const QString &text, const QPointF &position, const QColor &color) {
-    QGraphicsTextItem *textItem = new QGraphicsTextItem(text);
+void Item::showFloatText(QGraphicsScene* scene, const QString& text, const QPointF& position, const QColor& color) {
+    if (!scene)
+        return;
+
+    QGraphicsTextItem* textItem = new QGraphicsTextItem(text);
     textItem->setPos(position);
     textItem->setDefaultTextColor(color);
     textItem->setFont(QFont("Microsoft YaHei", 10, QFont::Black));
@@ -14,30 +21,50 @@ void Item::showFloatText(QGraphicsScene *scene, const QString &text, const QPoin
 
     scene->addItem(textItem);
 
-    // 使用QTimer实现简单动画
-    QTimer *moveTimer = new QTimer;
-    QTimer *fadeTimer = new QTimer;
+    // 使用 QPointer 追踪 textItem，防止场景清理后访问悬空指针
+    QPointer<QGraphicsTextItem> textPtr(textItem);
+    QPointer<QGraphicsScene> scenePtr(scene);
 
-    // 使用值捕获，避免悬挂引用
-    int step = 0;
-    connect(moveTimer, &QTimer::timeout, [textItem, moveTimer, &step]() {  // 值捕获
-        textItem->setPos(textItem->pos() + QPointF(0, -2));
-        step++;
-        if (step >= 25) {
+    // 使用 shared_ptr 存储状态
+    auto stepPtr = std::make_shared<int>(0);
+
+    // 创建定时器
+    QTimer* moveTimer = new QTimer;
+    QTimer* fadeTimer = new QTimer;
+
+    // 上升动画
+    connect(moveTimer, &QTimer::timeout, [textPtr, moveTimer, stepPtr]() {
+        if (!textPtr) {
+            moveTimer->stop();
+            moveTimer->deleteLater();
+            return;
+        }
+        textPtr->setPos(textPtr->pos() + QPointF(0, -2));
+        (*stepPtr)++;
+        if (*stepPtr >= 25) {
             moveTimer->stop();
             moveTimer->deleteLater();
         }
     });
 
-    connect(fadeTimer, &QTimer::timeout, [textItem, scene, fadeTimer]() {  // 值捕获
-        qreal opacity = textItem->opacity() - 0.05;
+    // 淡出动画
+    connect(fadeTimer, &QTimer::timeout, [textPtr, scenePtr, fadeTimer]() {
+        if (!textPtr) {
+            fadeTimer->stop();
+            fadeTimer->deleteLater();
+            return;
+        }
+
+        qreal opacity = textPtr->opacity() - 0.05;
         if (opacity <= 0) {
-            scene->removeItem(textItem);
-            delete textItem;
+            if (scenePtr && textPtr->scene() == scenePtr) {
+                scenePtr->removeItem(textPtr.data());
+            }
+            delete textPtr.data();
             fadeTimer->stop();
             fadeTimer->deleteLater();
         } else {
-            textItem->setOpacity(opacity);
+            textPtr->setOpacity(opacity);
         }
     });
 

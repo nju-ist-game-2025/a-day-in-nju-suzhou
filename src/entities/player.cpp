@@ -146,10 +146,7 @@ Player::Player(const QPixmap& pic_player, double scale)
     this->setPos(400, 300);  // 初始位置,根据实际需要后续修改
 
     hurt = 1;  // 后续可修改
-
-    bombs = 1;
-
-    // 初始化射击按键
+    
     shootKeysPressed[Qt::Key_Up] = false;
     shootKeysPressed[Qt::Key_Down] = false;
     shootKeysPressed[Qt::Key_Left] = false;
@@ -771,25 +768,6 @@ void Player::crashEnemy() {
             }
         }
     }
-}
-
-void Player::placeBomb() {
-    if (bombs <= 0)
-        return;
-    auto posi = this->pos();
-    QTimer::singleShot(500, this, [this, posi]() {
-        foreach (QGraphicsItem* item, scene()->items()) {
-            if (auto it = dynamic_cast<Enemy*>(item)) {
-                if (abs(it->pos().x() - posi.x()) > bomb_r ||
-                    abs(it->pos().y() - posi.y()) > bomb_r)
-                    continue;
-                else {
-                    it->takeDamage(bombHurt);
-                }
-            }
-        }
-    });
-    bombs--;
 }
 
 void Player::focusOutEvent(QFocusEvent* event) {

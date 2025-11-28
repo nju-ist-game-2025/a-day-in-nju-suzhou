@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QPointer>
 #include <QRandomGenerator>
+#include "../items/itemeffectconfig.h"
 #include "enemy.h"
 #include "player.h"
 #include "probabilityenemy.h"
@@ -86,13 +87,19 @@ void Projectile::move() {
     }
 }
 
-// 冰霜子弹减速效果：50%减速，持续2秒，最多叠加2层
+// 冰霜子弹减速效果：从配置文件读取参数
 void applyFrostEffect(Enemy* enemy) {
     if (!enemy || !enemy->scene())
         return;
 
+    // 从配置文件读取寒冰效果参数
+    ItemEffectData frostConfig = ItemEffectConfig::instance().getItemEffect("frost_slowdown");
+    int maxStacks = frostConfig.getMaxSlowStacks();
+    double slowDuration = frostConfig.getSlowDuration();
+    double slowFactor = frostConfig.getSlowFactor();
+
     // 检查是否已达到最大叠加层数
-    if (!enemy->canApplySlowStack(2)) {
+    if (!enemy->canApplySlowStack(maxStacks)) {
         qDebug() << "Frost effect: max slow stacks reached, skipping";
         return;
     }
@@ -100,7 +107,7 @@ void applyFrostEffect(Enemy* enemy) {
     // 增加减速层数
     enemy->addSlowStack();
 
-    SpeedEffect* frostSlow = new SpeedEffect(2.0, 0.5);  // 2秒，50%速度
+    SpeedEffect* frostSlow = new SpeedEffect(slowDuration, slowFactor);
 
     // 连接效果结束信号，减少叠加层数
     QPointer<Enemy> enemyPtr = enemy;

@@ -13,8 +13,6 @@
 
 const int max_red_contain = 12;
 const int max_soul = 6;
-const int bomb_r = 100;
-const int bombHurt = 5;
 
 class Player : public Entity {
     Q_OBJECT
@@ -32,8 +30,6 @@ class Player : public Entity {
     void shoot(int key);   // 射击方法
     void checkShoot();     // 检测并执行射击
 
-    // 需要UI显式实现的
-    int bombs;
     int keys;
 
     int bulletHurt;  // 玩家子弹伤害，可配置
@@ -127,12 +123,6 @@ class Player : public Entity {
 
     void setInvincible();                          // 短暂无敌（1秒）
     void setPermanentInvincible(bool invincible);  // 持久无敌（手动取消）
-
-    void addBombs(int n) { bombs += n; };
-
-    int getBombs() { return bombs; };
-
-    void placeBomb();
 
     void addKeys(int n) { keys += n; };
 

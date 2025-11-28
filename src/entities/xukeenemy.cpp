@@ -298,11 +298,16 @@ void XukeProjectile::showHeadshotText(const QString& text) {
     textItem->setZValue(300);
     scene()->addItem(textItem);
 
-    // 1秒后删除文字
-    QTimer::singleShot(1000, textItem, [textItem]() {
-        if (textItem && textItem->scene())
-        {
-            textItem->scene()->removeItem(textItem);
+    // 使用 QPointer 保护指针
+    QPointer<QGraphicsTextItem> textPtr(textItem);
+
+    // 1秒后删除文字，使用 m_targetPlayer 作为上下文对象
+    QTimer::singleShot(1000, m_targetPlayer, [textPtr]() {
+        if (textPtr) {
+            if (textPtr->scene()) {
+                textPtr->scene()->removeItem(textPtr.data());
+            }
+            delete textPtr.data();
         }
-        delete textItem; });
+    });
 }

@@ -36,7 +36,7 @@
         "players": {
             "default": 60,
             "HighGracePeople": 60,
-            "beautifulGirl": 60,
+            "beautifulGirl": 80,
             "njuFish": 60,
             "quanfuxia": 60
         },
@@ -53,9 +53,9 @@
             "walker": 45,
             "yanglin": 200,
             "zhuhao": 30,
-            "xuke": 80,
+            "xuke": 120,
             "probability_theory": 100,
-            "invigilator": 50,
+            "invigilator": 80,
             "digital_system": 60,
             "optimization": 60
         },
@@ -64,7 +64,7 @@
             "nightmare": 200,
             "nightmare2": 230,
             "washmachine": 160,
-            "teacher": 80
+            "teacher": 100
         },
         "bullets": {
             "default": 50,
@@ -72,7 +72,7 @@
             "sock_shooter": 25,
             "boss_washmachine": 30,
             "zhuhao": 80,
-            "xuke": 10,
+            "xuke": 20,
             "xuke_special": 25
         }
     },
@@ -99,7 +99,7 @@
     },
     "enemies": {
         "clock_normal": {
-            "health": 10,
+            "health": 15,
             "contact_damage": 2,
             "vision_range": 250.0,
             "attack_range": 40.0,
@@ -110,7 +110,7 @@
             "scare_duration": 3000
         },
         "clock_boom": {
-            "health": 6,
+            "health": 8,
             "contact_damage": 0,
             "speed": 0,
             "explosion_radius": 150.0,
@@ -188,7 +188,7 @@
             "health": 8,
             "contact_damage": 0,
             "vision_range": 9999.0,
-            "speed": 3.0,
+            "speed": 10.0,
             "direction_change_interval": 2000,
             "trail_spawn_interval": 300,
             "trail_duration": 5000,
@@ -226,7 +226,7 @@
             "bullet_speed": 4.0
         },
         "xuke": {
-            "health": 15,
+            "health": 24,
             "contact_damage": 0,
             "vision_range": 9999.0,
             "attack_range": 9999.0,
@@ -241,7 +241,7 @@
             "special_headshot_damage": 8
         },
         "probability_theory": {
-            "health": 50,
+            "health": 100,
             "contact_damage": 2,
             "speed": 0,
             "initial_scale": 0.3,
@@ -252,7 +252,7 @@
             "heal_interval": 500
         },
         "invigilator": {
-            "health": 15,
+            "health": 25,
             "contact_damage": 1,
             "vision_range": 200.0,
             "attack_range": 30.0,
@@ -348,7 +348,7 @@
         },
         "teacher": {
             "phase1": {
-                "health": 1000,
+                "health": 600,
                 "contact_damage": 3,
                 "vision_range": 1000.0,
                 "attack_range": 70.0,
@@ -369,10 +369,10 @@
                 "contact_damage": 4,
                 "move_pattern": "dash",
                 "dash_charge_time": 800,
-                "dash_speed": 6.0,
+                "dash_speed": 8.0,
                 "exam_paper_interval": 5000,
-                "mle_trap_interval": 10000,
-                "summon_invigilator_interval": 15000
+                "mle_trap_interval": 7000,
+                "summon_invigilator_interval": 10000
             },
             "phase3": {
                 "health_threshold": 0.3,
@@ -380,18 +380,21 @@
                 "move_pattern": "keep_distance",
                 "preferred_distance": 180.0,
                 "speed": 3.0,
-                "fail_warning_interval": 6000,
-                "formula_bomb_interval": 4000,
+                "fail_warning_interval": 3000,
+                "fail_warning_time": 1000,
+                "fail_warning_count": 4,
+                "formula_bomb_interval": 3500,
                 "formula_bomb_count": 12,
                 "formula_bomb_damage": 1,
                 "formula_bomb_speed": 0.4,
-                "split_bullet_interval": 8000,
+                "split_bullet_interval": 5000,
                 "split_bullet_count": 5,
                 "split_bullet_main_damage": 2,
                 "split_bullet_main_speed": 0.3,
                 "split_bullet_small_damage": 1,
                 "split_bullet_small_speed": 0.6,
-                "split_bullet_spread_angle": 30.0
+                "split_bullet_spread_angle": 30.0,
+                "summon_xuke_interval": 10000
             }
         }
     }

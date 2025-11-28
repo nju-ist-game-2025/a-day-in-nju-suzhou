@@ -16,6 +16,8 @@
 #include "../core/GameWindow.cpp"
 #include "../core/audiomanager.h"
 #include "../core/resourcefactory.h"
+#include "../entities/sockenemy.h"
+#include "../entities/walker.h"
 #include "explosion.h"
 #include "level.h"
 #include "pausemenu.h"
@@ -173,6 +175,10 @@ void GameView::cleanupGame() {
 
     // ===== 停止音乐 =====
     AudioManager::instance().stopMusic();
+
+    // ===== 清理静态冷却数据 =====
+    PoisonTrail::clearCooldowns();
+    SockEnemy::clearAllCooldowns();
 
     qDebug() << "cleanupGame: 游戏状态清理完成";
 }
@@ -643,7 +649,14 @@ void GameView::applyCharacterAbility(Player* player, const QString& characterPat
 
     if (key == "beautifulGirl") {
         player->setBulletHurt(player->getBulletHurt() * 2);
-        qDebug() << "角色加成: 美少女 - 子弹伤害翻倍";
+        // 美少女初始血量减半（使用负数调用addRedContainers）
+        int currentMax = static_cast<int>(player->getMaxHealth());
+        int reduction = currentMax / 2;
+        player->addRedContainers(-reduction);
+        // 同时调整当前血量到新的上限
+        double newMax = player->getMaxHealth();
+        player->setCurrentHealth(newMax);
+        qDebug() << "角色加成: 美少女 - 子弹伤害翻倍，初始血量减半 (" << currentMax << " -> " << newMax << ")";
     } else if (key == "HighGracePeople") {
         player->addRedContainers(2);
         player->addRedHearts(2.0);
@@ -655,7 +668,6 @@ void GameView::applyCharacterAbility(Player* player, const QString& characterPat
         player->setShootCooldown(qMax(80, player->getShootCooldown() - 40));
         qDebug() << "角色加成: 小蓝鲸 - 高机动与射速";
     } else if (key == "quanfuxia") {
-        player->addBombs(2);
         player->addKeys(2);
         player->addBlackHearts(1);
         qDebug() << "角色加成: 权服侠 - 初始资源富足";

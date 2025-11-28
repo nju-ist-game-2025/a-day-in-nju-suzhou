@@ -710,7 +710,7 @@ void Codex::loadEnemyData() {
     xuke.traits = QString("远程敌人，保持距离%1，全图视野，无接触伤害")
                       .arg(config.getEnemyDouble("xuke", "preferred_distance", 250.0), 0, 'f', 0);
     xuke.weakness = "";
-    xuke.backstory = "沙鹰狙神是教室里的新面孔。在某位传奇教授调离之后，他接手了概率论的教鞭。\n\n他不像前任那样喜欢用正态分布轰炸学生，而是更偏爱精准打击——一发入魂，直击要害。他的课堂上没有弹幕，只有致命的单点突破。\n\n每当他喊出「颗秒」的时候，就意味着有人的平时分被精准命中了。这两个字是他的招牌，也是无数学生的噩梦。\n\n「概率论的精髓不在于撒网，而在于瞄准。」——这是他的教学理念。";
+    xuke.backstory = "沙鹰狙神是教室里的新面孔。在某位传奇教授调离之后，他接手了概率论的教鞭。\n\n他从来没去过沙漠，虽然他的枪叫沙漠之鹰。他只去过一次海边，还晒伤了。但他依然坚持用这把枪，因为它听起来很酷。\n\n他不像前任那样喜欢用正态分布弹幕覆盖全场，而是更偏爱精准打击——一发入魂，直击要害。\"概率论的精髓不在于撒网，而在于瞄准，\"他说。\n\n\"颗秒\"是他的口头禅。每当他喊出这两个字的时候，就意味着有人的平时分被精准命中了。没人知道这两个字是什么意思，包括他自己。他只是觉得在开枪之前喊点什么会比较专业。";
     xuke.isCharacter = false;
     m_enemyEntries.append(xuke);
 
@@ -740,7 +740,7 @@ void Codex::loadPlayerData() {
     beautifulGirl.imagePath = "assets/player/beautifulGirl.png";
     beautifulGirl.health = -1;
     beautifulGirl.isCharacter = true;
-    beautifulGirl.backstory = "美少女是某组员最喜欢的角色。她拥有让子弹伤害翻倍的神奇能力，据说这种力量来源于她对游戏的热爱。\n\n她的座右铭是：输出就是正义。";
+    beautifulGirl.backstory = "美少女是某组员最喜欢的角色。她拥有让子弹伤害翻倍的神奇能力，据说这种力量来源于她对游戏的热爱。\n\n但力量是有代价的——她的生命力只有普通人的一半。有人问她为什么要用生命换取力量，她说：\n\n\"反正我也不打算被打到。\"\n\n她的座右铭是：输出就是正义，闪避就是艺术。";
     m_playerEntries.append(beautifulGirl);
 
     CodexEntry highGracePeople;
@@ -748,7 +748,7 @@ void Codex::loadPlayerData() {
     highGracePeople.imagePath = "assets/player/HighGracePeople.png";
     highGracePeople.health = -1;
     highGracePeople.isCharacter = true;
-    highGracePeople.backstory = "高雅人士是一只神秘优雅的企鹅，戴着墨镜，插着腰，脸上挂着迷之微笑。没人知道墨镜后面藏着什么样的眼神，也没人敢问。\n\n它的高雅不仅体现在姿态上，还体现在它额外的心之容器和护盾上。高雅，是要有代价的。";
+    highGracePeople.backstory = "高雅人士是一只神秘优雅的企鹅，戴着墨镜，插着腰，脸上挂着迷之微笑。没人知道墨镜后面藏着什么样的眼神，也没人敢问。\n\n它从不解释自己为什么要戴墨镜。有人猜是为了装酷，有人猜是因为近视，还有人猜是为了隐藏它其实根本没有在看前面。\n\n高雅人士的护盾和额外的心之容器是它出生就有的。当其他企鹅还在学习游泳的时候，它已经开始练习插腰和微笑了。\n\n\"你不需要变得更强，\"高雅人士曾经对一只迷茫的小蓝鲸说，\"你只需要看起来很强。\"\n\n小蓝鲸没有听它的，选择了卷移速和攻速。高雅人士对此表示理解，毕竟不是每个人都能驾驭这份从容。";
     m_playerEntries.append(highGracePeople);
 
     CodexEntry njuFish;
@@ -764,7 +764,7 @@ void Codex::loadPlayerData() {
     quanfuxia.imagePath = "assets/player/quanfuxia.png";
     quanfuxia.health = -1;
     quanfuxia.isCharacter = true;
-    quanfuxia.backstory = "权服侠是一位神秘的英雄，专门帮助丢失物品的同学。丢了校园卡？找权服侠。丢了钥匙？找权服侠。丢了作业？呃...那还是自己重做吧。\n\n他随身携带炸弹和钥匙，还有一颗黑心——字面意义上的黑心，不是说他是坏人。";
+    quanfuxia.backstory = "权服侠是一位神秘的英雄，专门帮助丢失物品的同学。丢了校园卡？找权服侠。丢了钥匙？找权服侠。丢了作业？呃...那还是自己重做吧。\n\n他随身携带钥匙和一颗黑心——字面意义上的黑心，不是说他是坏人。那颗黑心是他从某个失物招领处找到的，据说能在关键时刻救你一命。";
     m_playerEntries.append(quanfuxia);
 }
 
@@ -848,8 +848,10 @@ void Codex::loadItemData() {
     frostSlowdown.imagePath = "assets/props/frost_slowdown.png";
     frostSlowdown.health = -1;
     frostSlowdown.isCharacter = true;
-    frostSlowdown.skills = QString("拾取后增加%1%寒冰子弹概率\n寒冰子弹击中敌人后使其减速50%，持续2秒\n最多叠加至%2%概率")
+    frostSlowdown.skills = QString("拾取后增加%1%寒冰子弹概率\n寒冰子弹击中敌人后使其减速至原速度的%2%，持续%3秒\n最多叠加至%4%概率")
                                .arg(frostData.getValue())
+                               .arg(static_cast<int>(frostData.getSlowFactor() * 100))
+                               .arg(frostData.getSlowDuration(), 0, 'f', 1)
                                .arg(frostData.getMaxValue());
     frostSlowdown.backstory = "冰冻减速是一颗永远不会融化的冰块。把它含在嘴里，你呼出的气都会变成寒霜。\n\n这颗冰块据说来自南极最深处，是企鹅们世代守护的圣物。不知道是谁把它偷出来的，但现在它在帮你冻住敌人。";
     m_itemEntries.append(frostSlowdown);

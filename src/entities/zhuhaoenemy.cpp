@@ -583,22 +583,24 @@ void ZhuhaoProjectile::applyEffect(Player* player) {
                 scene()->addItem(sleepText);
 
                 QPointer<Player> playerPtr = player;
+                QPointer<QGraphicsTextItem> sleepTextPtr = sleepText;
 
                 // 1.5秒后恢复移动（与枕头一致，不跟随移动）
-                QTimer::singleShot(1500, [playerPtr, sleepText]() {
+                // 使用player作为上下文对象，确保player销毁时回调不会执行
+                QTimer::singleShot(1500, player, [playerPtr, sleepTextPtr]() {
                     if (playerPtr) {
                         playerPtr->setCanMove(true);
-                        QTimer::singleShot(3000, [playerPtr]() {
+                        QTimer::singleShot(3000, playerPtr.data(), [playerPtr]() {
                             if (playerPtr) {
                                 playerPtr->setEffectCooldown(false);
                             }
                         });
                     }
-                    if (sleepText) {
-                        if (sleepText->scene()) {
-                            sleepText->scene()->removeItem(sleepText);
+                    if (sleepTextPtr) {
+                        if (sleepTextPtr->scene()) {
+                            sleepTextPtr->scene()->removeItem(sleepTextPtr);
                         }
-                        delete sleepText;
+                        delete sleepTextPtr;
                     }
                 });
             }
@@ -628,22 +630,24 @@ void ZhuhaoProjectile::applyEffect(Player* player) {
                         sleepText->setPos(player->pos().x(), player->pos().y() - 40);
                         sleepText->setZValue(200);
                         currentScene->addItem(sleepText);
+                        QPointer<QGraphicsTextItem> sleepTextPtr = sleepText;
 
                         // 1.5秒后恢复移动（与枕头一致，不跟随移动）
-                        QTimer::singleShot(1500, [playerPtr, sleepText]() {
+                        // 使用player作为上下文对象，确保player销毁时回调不会执行
+                        QTimer::singleShot(1500, player, [playerPtr, sleepTextPtr]() {
                             if (playerPtr) {
                                 playerPtr->setCanMove(true);
-                                QTimer::singleShot(3000, [playerPtr]() {
+                                QTimer::singleShot(3000, playerPtr.data(), [playerPtr]() {
                                     if (playerPtr) {
                                         playerPtr->setEffectCooldown(false);
                                     }
                                 });
                             }
-                            if (sleepText) {
-                                if (sleepText->scene()) {
-                                    sleepText->scene()->removeItem(sleepText);
+                            if (sleepTextPtr) {
+                                if (sleepTextPtr->scene()) {
+                                    sleepTextPtr->scene()->removeItem(sleepTextPtr);
                                 }
-                                delete sleepText;
+                                delete sleepTextPtr;
                             }
                         });
                     }
@@ -663,34 +667,36 @@ void ZhuhaoProjectile::applyEffect(Player* player) {
 
                         // 应用惊吓效果
                         player->setScared(true);
+                        QPointer<QGraphicsTextItem> scareTextPtr = scareText;
 
-                        QTimer* followTimer = new QTimer();
-                        QObject::connect(followTimer, &QTimer::timeout, [playerPtr, scareText]() {
-                            if (playerPtr && scareText && scareText->scene()) {
-                                scareText->setPos(playerPtr->pos().x(), playerPtr->pos().y() - 40);
+                        // 以player为父对象，确保player销毁时定时器也被销毁
+                        QTimer* followTimer = new QTimer(player);
+                        QObject::connect(followTimer, &QTimer::timeout, [playerPtr, scareTextPtr]() {
+                            if (playerPtr && scareTextPtr && scareTextPtr->scene()) {
+                                scareTextPtr->setPos(playerPtr->pos().x(), playerPtr->pos().y() - 40);
                             }
                         });
                         followTimer->start(16);
 
                         // 3秒后恢复
-                        QTimer::singleShot(3000, player, [playerPtr, scareText, followTimer]() {
+                        QTimer::singleShot(3000, player, [playerPtr, scareTextPtr, followTimer]() {
                             if (followTimer) {
                                 followTimer->stop();
-                                delete followTimer;
+                                followTimer->deleteLater();
                             }
                             if (playerPtr) {
                                 playerPtr->setScared(false);
-                                QTimer::singleShot(3000, playerPtr, [playerPtr]() {
+                                QTimer::singleShot(3000, playerPtr.data(), [playerPtr]() {
                                     if (playerPtr) {
                                         playerPtr->setEffectCooldown(false);
                                     }
                                 });
                             }
-                            if (scareText) {
-                                if (scareText->scene()) {
-                                    scareText->scene()->removeItem(scareText);
+                            if (scareTextPtr) {
+                                if (scareTextPtr->scene()) {
+                                    scareTextPtr->scene()->removeItem(scareTextPtr);
                                 }
-                                delete scareText;
+                                delete scareTextPtr;
                             }
                         });
                     } else {
@@ -724,34 +730,36 @@ void ZhuhaoProjectile::applyEffect(Player* player) {
 
                 // 应用惊吓效果（与闹钟一致：移动速度增加但受伤提升150%）
                 player->setScared(true);
+                QPointer<QGraphicsTextItem> scareTextPtr = scareText;
 
-                QTimer* followTimer = new QTimer();
-                QObject::connect(followTimer, &QTimer::timeout, [playerPtr, scareText]() {
-                    if (playerPtr && scareText && scareText->scene()) {
-                        scareText->setPos(playerPtr->pos().x(), playerPtr->pos().y() - 40);
+                // 以player为父对象，确保player销毁时定时器也被销毁
+                QTimer* followTimer = new QTimer(player);
+                QObject::connect(followTimer, &QTimer::timeout, [playerPtr, scareTextPtr]() {
+                    if (playerPtr && scareTextPtr && scareTextPtr->scene()) {
+                        scareTextPtr->setPos(playerPtr->pos().x(), playerPtr->pos().y() - 40);
                     }
                 });
                 followTimer->start(16);
 
                 // 3秒后恢复
-                QTimer::singleShot(3000, player, [playerPtr, scareText, followTimer]() {
+                QTimer::singleShot(3000, player, [playerPtr, scareTextPtr, followTimer]() {
                     if (followTimer) {
                         followTimer->stop();
-                        delete followTimer;
+                        followTimer->deleteLater();
                     }
                     if (playerPtr) {
                         playerPtr->setScared(false);
-                        QTimer::singleShot(3000, playerPtr, [playerPtr]() {
+                        QTimer::singleShot(3000, playerPtr.data(), [playerPtr]() {
                             if (playerPtr) {
                                 playerPtr->setEffectCooldown(false);
                             }
                         });
                     }
-                    if (scareText) {
-                        if (scareText->scene()) {
-                            scareText->scene()->removeItem(scareText);
+                    if (scareTextPtr) {
+                        if (scareTextPtr->scene()) {
+                            scareTextPtr->scene()->removeItem(scareTextPtr);
                         }
-                        delete scareText;
+                        delete scareTextPtr;
                     }
                 });
             }

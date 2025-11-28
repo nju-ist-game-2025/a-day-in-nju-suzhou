@@ -7,19 +7,19 @@
 #include "entity.h"
 #include "player.h"
 
-ExamPaper::ExamPaper(QPointF startPos, QPointF direction, const QPixmap &pic, Player *player)
-        : QObject(),
-          QGraphicsPixmapItem(),
-          m_player(player),
-          m_moveTimer(nullptr),
-          m_direction(direction),
-          m_speed(6.0),  // 飞行速度
-          m_rotation(0.0),
-          m_rotationSpeed(15.0),  // 每帧旋转15度
-          m_damage(1),            // 1点伤害
-          m_stunDuration(2000),   // 2秒晕厥
-          m_isPaused(false),
-          m_isDestroying(false) {
+ExamPaper::ExamPaper(QPointF startPos, QPointF direction, const QPixmap& pic, Player* player)
+    : QObject(),
+      QGraphicsPixmapItem(),
+      m_player(player),
+      m_moveTimer(nullptr),
+      m_direction(direction),
+      m_speed(6.0),  // 飞行速度
+      m_rotation(0.0),
+      m_rotationSpeed(15.0),  // 每帧旋转15度
+      m_damage(1),            // 1点伤害
+      m_stunDuration(2000),   // 2秒晕厥
+      m_isPaused(false),
+      m_isDestroying(false) {
     // 设置图片
     if (!pic.isNull()) {
         setPixmap(pic);
@@ -111,7 +111,7 @@ void ExamPaper::applyStunEffect() {
     m_player->setEffectCooldown(true);
 
     // 显示"晕厥"文字提示
-    QGraphicsTextItem *stunText = new QGraphicsTextItem("晕厥!");
+    QGraphicsTextItem* stunText = new QGraphicsTextItem("晕厥!");
     QFont font;
     font.setPointSize(16);
     font.setBold(true);
@@ -124,18 +124,19 @@ void ExamPaper::applyStunEffect() {
     // 禁用玩家移动
     m_player->setCanMove(false);
 
-    // 保存玩家指针（用于lambda）
+    // 保存玩家指针和文字指针（用于lambda）
     QPointer<Player> playerPtr = m_player;
-    QGraphicsScene *currentScene = scene();
+    QPointer<QGraphicsTextItem> stunTextPtr = stunText;
 
     // 晕厥结束后恢复移动
-    QTimer::singleShot(m_stunDuration, [playerPtr, stunText, currentScene]() {
+    // 使用 m_player 作为上下文对象，确保 player 销毁时回调不会执行
+    QTimer::singleShot(m_stunDuration, m_player, [playerPtr, stunTextPtr]() {
         if (playerPtr) {
             playerPtr->setCanMove(true);
             qDebug() << "[ExamPaper] 晕厥效果结束，玩家恢复移动";
 
-            // 3秒后解除冷却
-            QTimer::singleShot(3000, [playerPtr]() {
+            // 3秒后解除冷却，同样使用 player 作为上下文
+            QTimer::singleShot(3000, playerPtr.data(), [playerPtr]() {
                 if (playerPtr) {
                     playerPtr->setEffectCooldown(false);
                 }
@@ -143,9 +144,11 @@ void ExamPaper::applyStunEffect() {
         }
 
         // 删除文字
-        if (stunText && currentScene) {
-            currentScene->removeItem(stunText);
-            delete stunText;
+        if (stunTextPtr) {
+            if (stunTextPtr->scene()) {
+                stunTextPtr->scene()->removeItem(stunTextPtr);
+            }
+            delete stunTextPtr;
         }
     });
 }

@@ -1,6 +1,7 @@
 #ifndef CHEST_H
 #define CHEST_H
 
+#include <QColor>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsTextItem>
 #include <QPointer>
@@ -37,9 +38,9 @@ class Chest : public QObject, public QGraphicsPixmapItem {
     QGraphicsTextItem* m_hintText;  // 提示文字
     QTimer* m_hintTimer;            // 提示文字消失定时器
 
-    virtual void initItems();            // 初始化物品列表
-    void showHint(const QString& text);  // 显示提示文字
-    void hideHint();                     // 隐藏提示文字
+    virtual void initItems();                                              // 初始化物品列表
+    void showHint(const QString& text, const QColor& color = Qt::yellow);  // 显示提示文字
+    void hideHint();                                                       // 隐藏提示文字
 
    public:
     Chest(Player* pl, ChestType type, const QPixmap& pic_chest, double scale = 1.0);

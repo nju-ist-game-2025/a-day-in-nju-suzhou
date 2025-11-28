@@ -893,12 +893,15 @@ void Level::showPhaseTransitionText(const QString& text, const QColor& color) {
 
     // 2秒后自动移除，使用QPointer保护指针
     QPointer<QGraphicsScene> scenePtr(m_scene);
-    QTimer::singleShot(2000, this, [textItem, scenePtr]() {
-        if (scenePtr && textItem->scene() == scenePtr) {
-            scenePtr->removeItem(textItem);
+    QPointer<QGraphicsTextItem> textItemPtr(textItem);
+    QTimer::singleShot(2000, this, [textItemPtr, scenePtr]() {
+        if (textItemPtr) {
+            if (scenePtr && textItemPtr->scene() == scenePtr) {
+                scenePtr->removeItem(textItemPtr.data());
+            }
+            delete textItemPtr.data();
+            qDebug() << "阶段转换文字已移除";
         }
-        delete textItem;
-        qDebug() << "阶段转换文字已移除";
     });
 }
 
@@ -932,14 +935,17 @@ void Level::showCredits(const QStringList& desc) {
                                    -creditsText->boundingRect().height() - 100));
     animation->setEasingCurve(QEasingCurve::Linear);
 
-    // 动画结束时清理，使用QPointer保护this指针
+    // 动画结束时清理，使用QPointer保护指针
     QPointer<Level> levelPtr(this);
     QPointer<QGraphicsScene> scenePtr(m_scene);
-    connect(animation, &QPropertyAnimation::finished, [levelPtr, scenePtr, creditsText, animation]() {
-        if (scenePtr && creditsText->scene() == scenePtr) {
-            scenePtr->removeItem(creditsText);
+    QPointer<QGraphicsTextItem> creditsTextPtr(creditsText);
+    connect(animation, &QPropertyAnimation::finished, [levelPtr, scenePtr, creditsTextPtr, animation]() {
+        if (creditsTextPtr) {
+            if (scenePtr && creditsTextPtr->scene() == scenePtr) {
+                scenePtr->removeItem(creditsTextPtr.data());
+            }
+            delete creditsTextPtr.data();
         }
-        delete creditsText;
         animation->deleteLater();
     });
 
@@ -965,17 +971,20 @@ void Level::showLevelStartText(LevelConfig& config) {
         m_levelTextTimer->deleteLater();
     }
 
-    // 2秒后自动移除，使用QPointer保护this指针
+    // 2秒后自动移除，使用QPointer保护指针
     m_levelTextTimer = new QTimer(this);
     m_levelTextTimer->setSingleShot(true);
     QPointer<Level> levelPtr(this);
     QPointer<QGraphicsScene> scenePtr(m_scene);
-    connect(m_levelTextTimer, &QTimer::timeout, [levelTextItem, levelPtr, scenePtr]() {
-        if (scenePtr && levelTextItem->scene() == scenePtr) {
-            scenePtr->removeItem(levelTextItem);
+    QPointer<QGraphicsTextItem> levelTextItemPtr(levelTextItem);
+    connect(m_levelTextTimer, &QTimer::timeout, [levelTextItemPtr, levelPtr, scenePtr]() {
+        if (levelTextItemPtr) {
+            if (scenePtr && levelTextItemPtr->scene() == scenePtr) {
+                scenePtr->removeItem(levelTextItemPtr.data());
+            }
+            delete levelTextItemPtr.data();
+            qDebug() << "测试文字已移除";
         }
-        delete levelTextItem;
-        qDebug() << "测试文字已移除";
     });
     m_levelTextTimer->start(2000);
 }
@@ -3074,6 +3083,19 @@ void Level::connectTeacherBossSignals(TeacherBoss* boss) {
     // 连接召唤敌人信号
     connect(boss, &TeacherBoss::requestSpawnEnemies,
             this, &Level::spawnEnemiesForBoss);
+
+    // 连接直接生成敌人的信号（用于追踪xuke等）
+    connect(boss, &TeacherBoss::enemySpawned, this, [this](Enemy* enemy) {
+        if (enemy) {
+            QPointer<Enemy> eptr(enemy);
+            m_currentEnemies.append(eptr);
+            if (m_currentRoomIndex >= 0 && m_currentRoomIndex < m_rooms.size()) {
+                m_rooms[m_currentRoomIndex]->currentEnemies.append(eptr);
+            }
+            connect(enemy, &Enemy::dying, this, &Level::onEnemyDying);
+            qDebug() << "[Level] TeacherBoss召唤的敌人已追踪";
+        }
+    });
 
     // 设置场景引用
     boss->setScene(m_scene);

@@ -11,27 +11,17 @@ class HUD : public QObject, public QGraphicsItem {
     Q_INTERFACES(QGraphicsItem)
    public:
     HUD(Player* pl, QGraphicsItem* parent = nullptr);
+    ~HUD() override;
 
     QRectF boundingRect() const override;
-
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
-
     void paintShield(QPainter* painter);
-
     void paintBlack(QPainter* painter);
-
     void paintFrostChance(QPainter* painter);
-
     void paintKey(QPainter* painter);
-
-    void paintBomb(QPainter* painter);
-
     void paintEffects(QPainter* painter, const QString& text, int count, double duration, QColor color = Qt::black);
-
     void paintMinimap(QPainter* painter);
-
     void paintTeleportCooldown(QPainter* painter);
-
     void paintUltimateStatus(QPainter* painter);
 
     struct RoomNode {
@@ -66,6 +56,7 @@ class HUD : public QObject, public QGraphicsItem {
     QTimer* screenFlashTimer;
     Player* player;
     int currentRoomIndex;
+    QTimer* m_hudTimer;  // HUD刷新定时器
 
     QVector<RoomNode> mapNodes;
 };

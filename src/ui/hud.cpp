@@ -19,13 +19,28 @@ HUD::HUD(Player* pl, QGraphicsItem* parent)
     });
 
     // ***** 60 FPS HUD刷新定时器 *****
-    auto* hudTimer = new QTimer();
-    hudTimer->setInterval(16);
-    connect(hudTimer, &QTimer::timeout, [this]() {
+    // 设置 this 为父对象，确保 HUD 销毁时定时器也被销毁
+    m_hudTimer = new QTimer(this);
+    m_hudTimer->setInterval(16);
+    connect(m_hudTimer, &QTimer::timeout, [this]() {
         this->update();  // 直接调用 HUD 的 update()
     });
-    hudTimer->start();
+    m_hudTimer->start();
     setPos(0, 0);
+}
+
+HUD::~HUD() {
+    // 停止并清理定时器
+    if (m_hudTimer) {
+        m_hudTimer->stop();
+        // 定时器会被Qt的父子关系自动删除
+    }
+    if (flashTimer) {
+        flashTimer->stop();
+    }
+    if (screenFlashTimer) {
+        screenFlashTimer->stop();
+    }
 }
 
 void HUD::setMapLayout(const QVector<RoomNode>& nodes) {
@@ -145,7 +160,6 @@ void HUD::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidg
     paintShield(painter);
     paintBlack(painter);
     paintFrostChance(painter);
-    // paintBomb(painter);  // 已移除炸弹功能
     paintTeleportCooldown(painter);
     paintUltimateStatus(painter);
     paintMinimap(painter);
@@ -160,19 +174,6 @@ void HUD::paintKey(QPainter* painter) {
     font.setPointSize(11);
     painter->setFont(font);
     QString Text = QString("🔑钥匙数：%1").arg(player->getKeys());
-    painter->drawText(QRect(250, Y, textAreaWidth - 12, Height),
-                      Qt::AlignLeft | Qt::AlignVCenter, Text);
-}
-
-void HUD::paintBomb(QPainter* painter) {
-    const int textAreaWidth = 200;  // 文字区域宽度
-    const int Y = 10;               // 血条Y坐标
-    const int Height = 25;          // 血条高度
-    QFont font = painter->font();
-    painter->setPen(Qt::black);
-    font.setPointSize(11);
-    painter->setFont(font);
-    QString Text = QString("💣炸弹数(按E)：%1").arg(player->getBombs());
     painter->drawText(QRect(250, Y, textAreaWidth - 12, Height),
                       Qt::AlignLeft | Qt::AlignVCenter, Text);
 }

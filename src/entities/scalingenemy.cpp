@@ -7,22 +7,22 @@
 #include <QPointer>
 #include <QRandomGenerator>
 #include <QTimer>
-#include "player.h"
 #include "../core/audiomanager.h"
 #include "../ui/explosion.h"
+#include "player.h"
 
-ScalingEnemy::ScalingEnemy(const QPixmap &pic, double scale)
-        : Enemy(pic, 1.0), // 不让Enemy缩放，传入scale=1.0
-          m_scalingTimer(nullptr),
-          m_baseScale(scale), // 保存基础缩放用于setScale
-          m_minScale(1.0),
-          m_maxScale(3.0),
-          m_currentScale(1.0),
-          m_scaleSpeed(0.04),
-          m_scalingUp(true),
-          m_originalPixmap(pic), // 保存原始未缩放图片
-          m_isFlashing(false),
-          m_flashTimer(nullptr) {
+ScalingEnemy::ScalingEnemy(const QPixmap& pic, double scale)
+    : Enemy(pic, 1.0),  // 不让Enemy缩放，传入scale=1.0
+      m_scalingTimer(nullptr),
+      m_baseScale(scale),  // 保存基础缩放用于setScale
+      m_minScale(1.0),
+      m_maxScale(3.0),
+      m_currentScale(1.0),
+      m_scaleSpeed(0.04),
+      m_scalingUp(true),
+      m_originalPixmap(pic),  // 保存原始未缩放图片
+      m_isFlashing(false),
+      m_flashTimer(nullptr) {
     // 设置移动模式为绕圈移动
     setMovementPattern(MOVE_CIRCLE);
 
@@ -157,7 +157,7 @@ void ScalingEnemy::takeDamage(int damage) {
         AudioManager::instance().playSound("enemy_death");
 
         // 创建爆炸动画
-        Explosion *explosion = new Explosion();
+        Explosion* explosion = new Explosion();
         explosion->setPos(this->pos());
         if (scene()) {
             scene()->addItem(explosion);
@@ -176,7 +176,7 @@ void ScalingEnemy::takeDamage(int damage) {
 void ScalingEnemy::applyFlashEffect() {
     m_isFlashing = true;
     QGraphicsPixmapItem::setPixmap(m_flashPixmap);
-    m_flashTimer->start(120); // 120ms后结束闪烁
+    m_flashTimer->start(120);  // 120ms后结束闪烁
 }
 
 void ScalingEnemy::endFlashEffect() {
@@ -195,7 +195,7 @@ QPainterPath ScalingEnemy::shape() const {
     return path;
 }
 
-void ScalingEnemy::onContactWithPlayer(Player *p) {
+void ScalingEnemy::onContactWithPlayer(Player* p) {
     Q_UNUSED(p);
     if (QRandomGenerator::global()->bounded(100) < 50) {
         applySleepEffect();
@@ -209,9 +209,9 @@ void ScalingEnemy::attackPlayer() {
     if (m_isPaused)
         return;
 
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item: collisions) {
-        Player *p = dynamic_cast<Player *>(item);
+    QList<QGraphicsItem*> collisions = collidingItems();
+    for (QGraphicsItem* item : collisions) {
+        Player* p = dynamic_cast<Player*>(item);
         if (p) {
             p->takeDamage(contactDamage);
 
@@ -237,7 +237,7 @@ void ScalingEnemy::applySleepEffect() {
 
     player->setEffectCooldown(true);
 
-    QGraphicsTextItem *sleepText = new QGraphicsTextItem("昏睡ZZZ");
+    QGraphicsTextItem* sleepText = new QGraphicsTextItem("昏睡ZZZ");
     QFont font;
     font.setPointSize(16);
     font.setBold(true);
@@ -250,21 +250,23 @@ void ScalingEnemy::applySleepEffect() {
     player->setCanMove(false);
 
     QPointer<Player> playerPtr = player;
+    QPointer<QGraphicsTextItem> sleepTextPtr = sleepText;
 
-    QTimer::singleShot(1500, [playerPtr, sleepText]() {
+    // 使用player作为上下文对象，确保player销毁时回调不会执行
+    QTimer::singleShot(1500, player, [playerPtr, sleepTextPtr]() {
         if (playerPtr) {
             playerPtr->setCanMove(true);
-            QTimer::singleShot(3000, [playerPtr]() {
+            QTimer::singleShot(3000, playerPtr.data(), [playerPtr]() {
                 if (playerPtr) {
                     playerPtr->setEffectCooldown(false);
                 }
             });
         }
-        if (sleepText) {
-            if (sleepText->scene()) {
-                sleepText->scene()->removeItem(sleepText);
+        if (sleepTextPtr) {
+            if (sleepTextPtr->scene()) {
+                sleepTextPtr->scene()->removeItem(sleepTextPtr);
             }
-            delete sleepText;
+            delete sleepTextPtr;
         }
     });
 }

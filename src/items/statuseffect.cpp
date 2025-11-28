@@ -1,14 +1,14 @@
 #include "statuseffect.h"
 #include <memory>
 
-StatusEffect::StatusEffect(double dur, QObject *parent)
-        : QObject{parent}, duration(dur), target(nullptr) {
+StatusEffect::StatusEffect(double dur, QObject* parent)
+    : QObject{parent}, duration(dur), target(nullptr) {
     effTimer = new QTimer(this);
     effTimer->setSingleShot(true);
     connect(effTimer, &QTimer::timeout, this, &StatusEffect::expire);
 }
 
-void StatusEffect::applyTo(Entity *tgt) {
+void StatusEffect::applyTo(Entity* tgt) {
     if (!tgt)
         return;
     target = tgt;
@@ -21,24 +21,23 @@ void StatusEffect::expire() {
         onRemoveEffect(target);
     }
     effTimer->stop();
-    deleteLater(); // 自我销毁，防止内存泄漏
+    deleteLater();  // 自我销毁，防止内存泄漏
 }
 
-PoisonEffect::PoisonEffect(Entity *target_, double duration, int damage_)
-        : StatusEffect(duration), damage(damage_), poisonTimer(nullptr) {
+PoisonEffect::PoisonEffect(Entity* target_, double duration, int damage_)
+    : StatusEffect(duration), damage(damage_), poisonTimer(nullptr) {
     // 无论 target_ 是否为空，都创建定时器
     // 定时器会在 onApplyEffect 中启动
     poisonTimer = new QTimer(this);
     connect(poisonTimer, &QTimer::timeout, this, &PoisonEffect::emitApplyEffect);
-    Q_UNUSED(target_); // target_ 参数目前未使用，保留用于兼容性
+    Q_UNUSED(target_);  // target_ 参数目前未使用，保留用于兼容性
 }
 
-void
-StatusEffect::showFloatText(QGraphicsScene *scene, const QString &text, const QPointF &position, const QColor &color) {
+void StatusEffect::showFloatText(QGraphicsScene* scene, const QString& text, const QPointF& position, const QColor& color) {
     if (!scene)
         return;
 
-    QGraphicsTextItem *textItem = new QGraphicsTextItem(text);
+    QGraphicsTextItem* textItem = new QGraphicsTextItem(text);
     textItem->setPos(position);
     textItem->setDefaultTextColor(color);
     textItem->setFont(QFont("Microsoft YaHei", 10, QFont::Black));
@@ -46,16 +45,17 @@ StatusEffect::showFloatText(QGraphicsScene *scene, const QString &text, const QP
 
     scene->addItem(textItem);
 
-    // 使用 QPointer 追踪 textItem，防止场景清理后访问悬空指针
+    // 使用 QPointer 追踪 textItem 和 scene，防止清理后访问悬空指针
     QPointer<QGraphicsTextItem> textPtr(textItem);
+    QPointer<QGraphicsScene> scenePtr(scene);
 
     // 使用shared_ptr存储所有需要的状态
     auto stepPtr = std::make_shared<int>(0);
     auto textDeleted = std::make_shared<bool>(false);
 
     // 创建定时器
-    QTimer *moveTimer = new QTimer;
-    QTimer *fadeTimer = new QTimer;
+    QTimer* moveTimer = new QTimer;
+    QTimer* fadeTimer = new QTimer;
 
     // 上升动画
     connect(moveTimer, &QTimer::timeout, [textPtr, moveTimer, stepPtr, textDeleted]() {
@@ -73,7 +73,7 @@ StatusEffect::showFloatText(QGraphicsScene *scene, const QString &text, const QP
     });
 
     // 淡出动画
-    connect(fadeTimer, &QTimer::timeout, [textPtr, scene, fadeTimer, textDeleted]() {
+    connect(fadeTimer, &QTimer::timeout, [textPtr, scenePtr, fadeTimer, textDeleted]() {
         if (*textDeleted) {
             fadeTimer->stop();
             fadeTimer->deleteLater();
@@ -90,8 +90,8 @@ StatusEffect::showFloatText(QGraphicsScene *scene, const QString &text, const QP
         qreal opacity = textPtr->opacity() - 0.05;
         if (opacity <= 0) {
             *textDeleted = true;
-            if (scene && textPtr->scene() == scene) {
-                scene->removeItem(textPtr.data());
+            if (scenePtr && textPtr->scene() == scenePtr) {
+                scenePtr->removeItem(textPtr.data());
             }
             delete textPtr.data();
             fadeTimer->stop();
