@@ -20,6 +20,7 @@ class Entity : public QObject, public QGraphicsPixmapItem {
     double hurt{};
     bool invincible{};
     bool isFlashing;
+    int m_slowStackCount = 0;  // 减速效果叠加层数（寒冰/毒气）
 
     // 保留四方向图（兼容 player/enemy）
     QPixmap down, up, left, right;
@@ -71,6 +72,15 @@ class Entity : public QObject, public QGraphicsPixmapItem {
     void setInvincible(bool i) { invincible = i; };
 
     bool isInvincible() const { return invincible; }
+
+    // 减速层数管理（用于寒冰子弹和毒气攻击）
+    int getSlowStackCount() const { return m_slowStackCount; }
+    void addSlowStack() { m_slowStackCount++; }
+    void removeSlowStack() {
+        if (m_slowStackCount > 0)
+            m_slowStackCount--;
+    }
+    bool canApplySlowStack(int maxStacks = 2) const { return m_slowStackCount < maxStacks; }
 
     // 重载 setPos，以便在每次位置更新时检查并调整朝向
     void setPos(qreal x, qreal y);

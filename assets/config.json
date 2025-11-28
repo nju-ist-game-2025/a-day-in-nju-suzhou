@@ -309,7 +309,7 @@
         },
         "washmachine": {
             "phase1": {
-                "health": 400,
+                "health": 700,
                 "contact_damage": 3,
                 "vision_range": 500.0,
                 "attack_range": 60.0,
@@ -345,7 +345,7 @@
         },
         "teacher": {
             "phase1": {
-                "health": 500,
+                "health": 1000,
                 "contact_damage": 3,
                 "vision_range": 1000.0,
                 "attack_range": 70.0,

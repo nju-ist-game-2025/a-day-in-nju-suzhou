@@ -581,6 +581,12 @@ void GameView::keyPressEvent(QKeyEvent* event) {
         return;
     }
 
+    // G键进入下一关（在Boss房间奖励完成后激活）
+    if (event->key() == Qt::Key_G && level && level->isGKeyEnabled()) {
+        level->triggerNextLevelByGKey();
+        return;
+    }
+
     // 检查是否在剧情模式下
     if (level && m_isInStoryMode) {
         // 剧情模式下，空格键或回车键继续对话

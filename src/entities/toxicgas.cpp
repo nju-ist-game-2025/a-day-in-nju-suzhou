@@ -5,19 +5,19 @@
 #include "player.h"
 #include "statuseffect.h"
 
-ToxicGas::ToxicGas(QPointF startPos, QPointF direction, const QPixmap &pic, Player *player)
-        : QGraphicsPixmapItem(pic),
-          m_player(player),
-          m_moveTimer(nullptr),
-          m_effectTimer(nullptr),
-          m_despawnTimer(nullptr),
-          m_direction(direction),
-          m_speed(4.0),
-          m_isStationary(false),
-          m_isPaused(false),
-          m_isDestroying(false),
-          m_damagePerTick(1),
-          m_slowFactor(0.5) {
+ToxicGas::ToxicGas(QPointF startPos, QPointF direction, const QPixmap& pic, Player* player)
+    : QGraphicsPixmapItem(pic),
+      m_player(player),
+      m_moveTimer(nullptr),
+      m_effectTimer(nullptr),
+      m_despawnTimer(nullptr),
+      m_direction(direction),
+      m_speed(4.0),
+      m_isStationary(false),
+      m_isPaused(false),
+      m_isDestroying(false),
+      m_damagePerTick(1),
+      m_slowFactor(0.5) {
     setPos(startPos);
     setZValue(50);  // 在敌人之上，UI之下
 
@@ -149,9 +149,22 @@ void ToxicGas::applyDamageAndSlow() {
         // 造成伤害
         m_player->takeDamage(m_damagePerTick);
 
-        // 应用减速效果（短时间，会被持续刷新）
-        SpeedEffect *slowEffect = new SpeedEffect(2, m_slowFactor);
-        slowEffect->applyTo(m_player);
+        // 应用减速效果（短时间，会被持续刷新），最多叠加2层
+        if (m_player->canApplySlowStack(2)) {
+            m_player->addSlowStack();
+
+            SpeedEffect* slowEffect = new SpeedEffect(2, m_slowFactor);
+
+            // 连接效果结束信号，减少叠加层数
+            QPointer<Player> playerPtr = m_player;
+            QObject::connect(slowEffect, &QObject::destroyed, [playerPtr]() {
+                if (playerPtr) {
+                    playerPtr->removeSlowStack();
+                }
+            });
+
+            slowEffect->applyTo(m_player);
+        }
 
         qDebug() << "ToxicGas applied damage and slow to player";
     }

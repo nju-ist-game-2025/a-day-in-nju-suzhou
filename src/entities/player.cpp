@@ -58,6 +58,37 @@ void spawnTeleportEffect(QGraphicsScene* scene, const QPointF& center) {
         return;
     new TeleportEffectItem(scene, center);
 }
+
+// 计算图片非透明像素的中心点（相对于图片左上角）
+QPointF getOpaqueCenter(const QPixmap& pixmap, int alphaThreshold = 50) {
+    if (pixmap.isNull())
+        return QPointF(0, 0);
+
+    QImage img = pixmap.toImage();
+    if (img.format() != QImage::Format_ARGB32 && img.format() != QImage::Format_ARGB32_Premultiplied) {
+        img = img.convertToFormat(QImage::Format_ARGB32);
+    }
+
+    qint64 sumX = 0, sumY = 0, count = 0;
+
+    for (int y = 0; y < img.height(); ++y) {
+        const QRgb* scanLine = reinterpret_cast<const QRgb*>(img.constScanLine(y));
+        for (int x = 0; x < img.width(); ++x) {
+            if (qAlpha(scanLine[x]) > alphaThreshold) {
+                sumX += x;
+                sumY += y;
+                count++;
+            }
+        }
+    }
+
+    if (count == 0) {
+        // 没有非透明像素，返回图片中心
+        return QPointF(pixmap.width() / 2.0, pixmap.height() / 2.0);
+    }
+
+    return QPointF(static_cast<double>(sumX) / count, static_cast<double>(sumY) / count);
+}
 }  // namespace
 
 Player::Player(const QPixmap& pic_player, double scale)
@@ -84,7 +115,9 @@ Player::Player(const QPixmap& pic_player, double scale)
     } else {
         // 缩放到与普通子弹相同的大小（20x20）
         m_frostBulletPic = frostPic.scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        qDebug() << "寒冰子弹图片加载成功，大小:" << m_frostBulletPic.size();
+        // 预计算寒冰子弹的非透明中心点
+        m_frostBulletOpaqueCenter = getOpaqueCenter(m_frostBulletPic);
+        qDebug() << "寒冰子弹图片加载成功，大小:" << m_frostBulletPic.size() << "非透明中心:" << m_frostBulletOpaqueCenter;
     }
 
     // 如果scale是1.0，直接使用原始pixmap，否则按比例缩放
@@ -240,8 +273,6 @@ void Player::shoot(int key) {
 
     // 播放射击音效
     AudioManager::instance().playSound("player_shoot");
-    // 计算子弹发射位置
-    QPointF bulletPos = this->pos() + QPointF(pixmap().width() / 2 - 7.5, pixmap().height() / 2 - 30);
 
     // 根据寒冰概率决定是否发射寒冰子弹
     bool isFrostBullet = false;
@@ -250,8 +281,15 @@ void Player::shoot(int key) {
         isFrostBullet = (roll < m_frostChance);
     }
 
-    // 选择子弹图片
+    // 选择子弹图片和对应的预计算中心点
     const QPixmap& bulletPic = isFrostBullet ? m_frostBulletPic : pic_bullet;
+    const QPointF& bulletOpaqueCenter = isFrostBullet ? m_frostBulletOpaqueCenter : m_bulletOpaqueCenter;
+
+    // 计算玩家中心位置
+    QPointF playerCenter = this->pos() + QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
+
+    // 子弹发射位置：让子弹的非透明中心与玩家中心对齐，Y方向向上偏移15像素
+    QPointF bulletPos = playerCenter - bulletOpaqueCenter + QPointF(0, -15);
 
     auto* bullet = new Projectile(0, bulletHurt, bulletPos, bulletPic);  // 使用可配置的玩家子弹伤害
     bullet->setSpeed(shootSpeed);
@@ -469,18 +507,30 @@ void Player::activateUltimate() {
         return;
 
     m_ultimateOriginalBulletHurt = bulletHurt;
-    m_originalBulletPic = pic_bullet;  // 保存原始子弹图片
+    m_originalBulletPic = pic_bullet;             // 保存原始子弹图片
+    m_originalFrostBulletPic = m_frostBulletPic;  // 保存原始寒冰子弹图片
 
     // 伤害变为2倍
     bulletHurt = qMax(1, bulletHurt * 2);
 
-    // 子弹变大1.5倍
+    // 子弹变大（普通子弹和寒冰子弹都放大）
     if (!pic_bullet.isNull()) {
         pic_bullet = pic_bullet.scaled(
             pic_bullet.width() * m_bulletScaleMultiplier,
             pic_bullet.height() * m_bulletScaleMultiplier,
             Qt::KeepAspectRatio,
             Qt::SmoothTransformation);
+        // 重新计算放大后的子弹中心点
+        m_bulletOpaqueCenter = getOpaqueCenter(pic_bullet);
+    }
+    if (!m_frostBulletPic.isNull()) {
+        m_frostBulletPic = m_frostBulletPic.scaled(
+            m_frostBulletPic.width() * m_bulletScaleMultiplier,
+            m_frostBulletPic.height() * m_bulletScaleMultiplier,
+            Qt::KeepAspectRatio,
+            Qt::SmoothTransformation);
+        // 重新计算放大后的寒冰子弹中心点
+        m_frostBulletOpaqueCenter = getOpaqueCenter(m_frostBulletPic);
     }
 
     m_isUltimateActive = true;
@@ -509,8 +559,18 @@ void Player::endUltimate() {
         bulletHurt = m_ultimateOriginalBulletHurt;
 
     // 恢复原始子弹图片
-    if (!m_originalBulletPic.isNull())
+    if (!m_originalBulletPic.isNull()) {
         pic_bullet = m_originalBulletPic;
+        // 重新计算原始大小的子弹中心点
+        m_bulletOpaqueCenter = getOpaqueCenter(pic_bullet);
+    }
+
+    // 恢复原始寒冰子弹图片
+    if (!m_originalFrostBulletPic.isNull()) {
+        m_frostBulletPic = m_originalFrostBulletPic;
+        // 重新计算原始大小的寒冰子弹中心点
+        m_frostBulletOpaqueCenter = getOpaqueCenter(m_frostBulletPic);
+    }
 }
 
 int Player::getUltimateRemainingMs() const {
@@ -738,6 +798,13 @@ void Player::focusOutEvent(QFocusEvent* event) {
 }
 
 // ============ 新道具系统方法 ============
+
+void Player::setBulletPic(const QPixmap& pic) {
+    pic_bullet = pic;
+    // 预计算普通子弹的非透明中心点
+    m_bulletOpaqueCenter = getOpaqueCenter(pic_bullet);
+    qDebug() << "普通子弹图片设置成功，非透明中心:" << m_bulletOpaqueCenter;
+}
 
 void Player::addFrostChance(int amount) {
     m_frostChance = qMin(60, m_frostChance + amount);

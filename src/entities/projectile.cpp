@@ -1,4 +1,6 @@
 #include "projectile.h"
+#include <QDebug>
+#include <QPointer>
 #include <QRandomGenerator>
 #include "enemy.h"
 #include "player.h"
@@ -84,12 +86,30 @@ void Projectile::move() {
     }
 }
 
-// 冰霜子弹减速效果：50%减速，持续2秒
+// 冰霜子弹减速效果：50%减速，持续2秒，最多叠加2层
 void applyFrostEffect(Enemy* enemy) {
     if (!enemy || !enemy->scene())
         return;
 
+    // 检查是否已达到最大叠加层数
+    if (!enemy->canApplySlowStack(2)) {
+        qDebug() << "Frost effect: max slow stacks reached, skipping";
+        return;
+    }
+
+    // 增加减速层数
+    enemy->addSlowStack();
+
     SpeedEffect* frostSlow = new SpeedEffect(2.0, 0.5);  // 2秒，50%速度
+
+    // 连接效果结束信号，减少叠加层数
+    QPointer<Enemy> enemyPtr = enemy;
+    QObject::connect(frostSlow, &QObject::destroyed, [enemyPtr]() {
+        if (enemyPtr) {
+            enemyPtr->removeSlowStack();
+        }
+    });
+
     frostSlow->applyTo(enemy);
 }
 

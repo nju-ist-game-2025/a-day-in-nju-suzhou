@@ -35,50 +35,50 @@ struct CodexEntry {
 
 // 图鉴条目卡片组件
 class CodexCard : public QWidget {
-Q_OBJECT
-public:
-    explicit CodexCard(const CodexEntry &entry, QWidget *parent = nullptr);
+    Q_OBJECT
+   public:
+    explicit CodexCard(const CodexEntry& entry, QWidget* parent = nullptr);
 
-signals:
+   signals:
 
-    void clicked(const CodexEntry &entry);
+    void clicked(const CodexEntry& entry);
 
-protected:
-    void mousePressEvent(QMouseEvent *event) override;
+   protected:
+    void mousePressEvent(QMouseEvent* event) override;
 
-    void enterEvent(QEnterEvent *event) override;
+    void enterEvent(QEnterEvent* event) override;
 
-    void leaveEvent(QEvent *event) override;
+    void leaveEvent(QEvent* event) override;
 
-private:
+   private:
     CodexEntry m_entry;
-    QLabel *m_imageLabel;
-    QLabel *m_nameLabel;
+    QLabel* m_imageLabel;
+    QLabel* m_nameLabel;
 };
 
 // 详细信息弹窗
 class CodexDetailDialog : public QDialog {
-Q_OBJECT
-public:
-    explicit CodexDetailDialog(const CodexEntry &entry, QWidget *parent = nullptr);
+    Q_OBJECT
+   public:
+    explicit CodexDetailDialog(const CodexEntry& entry, QWidget* parent = nullptr);
 };
 
 // 主图鉴类
 class Codex : public QWidget {
-Q_OBJECT
+    Q_OBJECT
 
-public:
-    explicit Codex(QWidget *parent = nullptr);
+   public:
+    explicit Codex(QWidget* parent = nullptr);
 
-public slots:
+   public slots:
 
     void returnToMenu();
 
-signals:
+   signals:
 
     void backToMenu();
 
-private:
+   private:
     void setupUI();
 
     void loadBossData();
@@ -89,20 +89,26 @@ private:
 
     void loadUsagiData();
 
-    QWidget *createCategoryPage(const QList<CodexEntry> &entries);
+    void loadItemData();
 
-    void showEntryDetail(const CodexEntry &entry);
+    void loadMechanicsData();
 
-    QTabWidget *tabWidget;
-    QPushButton *backButton;
+    QWidget* createCategoryPage(const QList<CodexEntry>& entries);
+
+    void showEntryDetail(const CodexEntry& entry);
+
+    QTabWidget* tabWidget;
+    QPushButton* backButton;
 
     QList<CodexEntry> m_bossEntries;
     QList<CodexEntry> m_enemyEntries;
     QList<CodexEntry> m_playerEntries;
     QList<CodexEntry> m_usagiEntries;
+    QList<CodexEntry> m_itemEntries;
+    QList<CodexEntry> m_mechanicsEntries;
 
-protected:
-    void resizeEvent(QResizeEvent *event) override;
+   protected:
+    void resizeEvent(QResizeEvent* event) override;
 };
 
 #endif  // CODEX_H

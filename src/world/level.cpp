@@ -195,6 +195,8 @@ void Level::init(int levelNumber) {
     m_bossDefeated = false;
     m_rewardSequenceActive = false;
     m_bossRoomCleared = false;
+    m_gKeyEnabled = false;
+    hideGKeyHint();  // 隐藏G键提示
     m_usagi = nullptr;
 
     // 重置精英房间状态
@@ -1642,15 +1644,18 @@ void Level::clearSceneEntities() {
     }
     m_currentDoors.clear();
 
-    // 清理场景中残留的子弹
+    // 清理场景中残留的子弹和毒液轨迹
     if (m_scene) {
         QList<QGraphicsItem*> allItems = m_scene->items();
         QVector<Projectile*> projectilesToDelete;
+        QVector<PoisonTrail*> poisonTrailsToDelete;
 
-        // 先收集所有子弹
+        // 先收集所有子弹和毒液轨迹
         for (QGraphicsItem* item : allItems) {
             if (auto proj = dynamic_cast<Projectile*>(item)) {
                 projectilesToDelete.append(proj);
+            } else if (auto trail = dynamic_cast<PoisonTrail*>(item)) {
+                poisonTrailsToDelete.append(trail);
             }
         }
 
@@ -1658,6 +1663,14 @@ void Level::clearSceneEntities() {
         for (Projectile* proj : projectilesToDelete) {
             if (proj) {
                 proj->destroy();
+            }
+        }
+
+        // 删除毒液轨迹
+        for (PoisonTrail* trail : poisonTrailsToDelete) {
+            if (trail) {
+                m_scene->removeItem(trail);
+                delete trail;
             }
         }
     }
@@ -1755,19 +1768,6 @@ bool Level::enterNextRoom() {
     }
 
     const RoomConfig& currentRoomCfg = config.getRoom(m_currentRoomIndex);
-
-    // 检测是否从Boss房间离开（Boss已被击败且奖励已领取）
-    if (currentRoomCfg.hasBoss && m_bossRoomCleared) {
-        qDebug() << "从Boss房间离开，触发进入下一关";
-        currentRoom->resetChangeDir();
-
-        // 重置Boss房间通关标记
-        m_bossRoomCleared = false;
-
-        // 发送关卡完成信号，触发进入下一关
-        emit levelCompleted(m_levelNumber);
-        return true;
-    }
 
     int nextRoomIndex = -1;
 
@@ -2040,6 +2040,12 @@ void Level::onEnemyDying(Enemy* enemy) {
     if (dynamic_cast<NightmareBoss*>(enemy)) {
         // 梦魇完全死亡，背景变为map1
         fadeBackgroundTo(QString("assets/background/startRoom.png"), 3000);
+    }
+
+    // 如果死亡的是WashMachineBoss，恢复到原始背景（3秒渐变）
+    if (dynamic_cast<WashMachineBoss*>(enemy)) {
+        // 洗衣机Boss完全死亡，背景恢复为map2
+        fadeBackgroundTo(QString("assets/background/map2.png"), 3000);
     }
 
     for (Room* r : m_rooms) {
@@ -3018,25 +3024,16 @@ void Level::onUsagiRequestShowDialog(const QStringList& dialog) {
 }
 
 void Level::onUsagiRewardCompleted() {
-    qDebug() << "[Level] 乌萨奇奖励流程完成，打开Boss房门";
+    qDebug() << "[Level] 乌萨奇奖励流程完成，激活G键进入下一关";
 
-    // 打开门
-    Room* cur = m_rooms[m_currentRoomIndex];
-    if (cur) {
-        openDoors(cur);
-        // 确保房间的changeTimer正在运行
-        cur->startChangeTimer();
-    }
-
-    // 确保checkChange定时器正在运行
-    if (checkChange && !checkChange->isActive()) {
-        checkChange->start(100);
-        qDebug() << "[Level] 重新启动checkChange定时器";
-    }
-
-    // 标记Boss房间已通关（不发送 levelCompleted 信号，等玩家进门后再触发）
+    // 标记Boss房间已通关
     m_bossRoomCleared = true;
-    qDebug() << "[Level] m_bossRoomCleared 设置为 true，等待玩家进门触发下一关";
+
+    // 激活G键并显示提示
+    m_gKeyEnabled = true;
+    showGKeyHint();
+
+    qDebug() << "[Level] G键已激活，等待玩家按G进入下一关";
 
     m_rewardSequenceActive = false;
     m_usagi = nullptr;
@@ -3209,4 +3206,59 @@ void Level::spawnZhuhaoEnemy() {
     m_zhuhaoEnemy = zhuhao;
 
     qDebug() << "朱浩已生成，位置:" << zhuhao->pos();
+}
+
+// ==================== G键进入下一关相关方法 ====================
+
+void Level::showGKeyHint() {
+    if (!m_scene)
+        return;
+
+    // 如果已存在提示，先移除
+    hideGKeyHint();
+
+    // 创建提示文字
+    m_gKeyHintText = new QGraphicsTextItem("按 G 键进入下一关");
+    m_gKeyHintText->setDefaultTextColor(QColor(0, 0, 0));  // 黑色
+    m_gKeyHintText->setFont(QFont("Microsoft YaHei", 20, QFont::Bold));
+
+    // 居中显示在屏幕下方
+    QRectF textRect = m_gKeyHintText->boundingRect();
+    m_gKeyHintText->setPos((800 - textRect.width()) / 2, 500);
+    m_gKeyHintText->setZValue(9000);  // 确保在大部分元素之上
+    m_scene->addItem(m_gKeyHintText);
+
+    qDebug() << "[Level] 显示G键提示";
+}
+
+void Level::hideGKeyHint() {
+    if (m_gKeyHintText) {
+        if (m_scene) {
+            m_scene->removeItem(m_gKeyHintText);
+        }
+        delete m_gKeyHintText;
+        m_gKeyHintText = nullptr;
+        qDebug() << "[Level] 隐藏G键提示";
+    }
+}
+
+void Level::triggerNextLevelByGKey() {
+    if (!m_gKeyEnabled) {
+        qDebug() << "[Level] G键未激活，忽略";
+        return;
+    }
+
+    qDebug() << "[Level] G键触发进入下一关";
+
+    // 禁用G键
+    m_gKeyEnabled = false;
+
+    // 隐藏提示
+    hideGKeyHint();
+
+    // 重置Boss房间通关标记
+    m_bossRoomCleared = false;
+
+    // 发送关卡完成信号
+    emit levelCompleted(m_levelNumber);
 }

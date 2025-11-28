@@ -44,6 +44,8 @@ class Player : public Entity {
     int m_shieldCount;                    // 护盾数量
     QGraphicsPixmapItem* m_shieldSprite;  // 护盾图案
     QPixmap m_frostBulletPic;             // 寒冰子弹图片
+    QPointF m_bulletOpaqueCenter;         // 普通子弹非透明中心点
+    QPointF m_frostBulletOpaqueCenter;    // 寒冰子弹非透明中心点
 
    public:
     friend class Item;
@@ -60,7 +62,7 @@ class Player : public Entity {
     void tryTeleport();       // Q键瞬移
     void activateUltimate();  // E键大招
 
-    void setBulletPic(const QPixmap& pic) { pic_bullet = pic; };
+    void setBulletPic(const QPixmap& pic);
 
     void setShootCooldown(int milliseconds) { shootCooldown = milliseconds; }  // 设置射击冷却时间
     [[nodiscard]] int getShootCooldown() const { return shootCooldown; };
@@ -224,6 +226,7 @@ class Player : public Entity {
     int m_ultimateOriginalBulletHurt = 0;  // 技能前的伤害
     double m_bulletScaleMultiplier = 2.0;  // 技能期间子弹缩放倍率
     QPixmap m_originalBulletPic;           // 原始子弹图片
+    QPixmap m_originalFrostBulletPic;      // 原始寒冰子弹图片
     QTimer* m_ultimateTimer = nullptr;     // 技能持续计时
 
     QPointF currentMoveDirection() const;

@@ -80,6 +80,10 @@ class Level : public QObject {
 
     bool isPaused() const { return m_isPaused; }
 
+    // G键进入下一关
+    bool isGKeyEnabled() const { return m_gKeyEnabled; }
+    void triggerNextLevelByGKey();  // 按G键触发进入下一关
+
     // 背景切换
     void changeBackground(const QString& backgroundPath);
 
@@ -167,6 +171,10 @@ class Level : public QObject {
 
     void resumeAllEnemyTimers();
 
+    // G键提示相关
+    void showGKeyHint();  // 显示G键提示
+    void hideGKeyHint();  // 隐藏G键提示
+
     int m_levelNumber;
     QVector<Room*> m_rooms;
     int m_currentRoomIndex;
@@ -243,6 +251,10 @@ class Level : public QObject {
     bool m_bossDefeated = false;          // Boss是否已被击败
     bool m_rewardSequenceActive = false;  // 奖励流程是否激活
     bool m_bossRoomCleared = false;       // Boss房间是否已通关（奖励已领取，门已打开）
+
+    // G键进入下一关相关
+    bool m_gKeyEnabled = false;                   // G键是否激活
+    QGraphicsTextItem* m_gKeyHintText = nullptr;  // G键提示文字
 
     // 精英房间相关
     bool m_isEliteRoom = false;           // 当前是否在精英房间
