@@ -37,7 +37,6 @@ NightmareBoss::NightmareBoss(const QPixmap& pic, double scale, QGraphicsScene* /
     setAttackCooldown(config.getBossInt("nightmare", "phase1", "attack_cooldown", 1200));
     setSpeed(config.getBossDouble("nightmare", "phase1", "speed", 1.0));
 
-    crash_r = 35;  // 实际攻击范围
     damageScale = config.getBossDouble("nightmare", "phase1", "damage_scale", 0.7);
 
     // 一阶段：使用单段冲刺模式

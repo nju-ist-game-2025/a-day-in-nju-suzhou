@@ -1,0 +1,106 @@
+{
+    "version": "1.0",
+    "description": "道具效果配置文件",
+    "items": {
+        "red_heart": {
+            "name": "红心",
+            "description": "增加血量",
+            "effect": {
+                "type": "heal",
+                "value": 1
+            },
+            "pickupText": "❤️ +{value} 血量",
+            "pickupTextFull": "❤️ 血量已满",
+            "color": "#FF0000"
+        },
+        "black_heart": {
+            "name": "黑心",
+            "description": "复活用黑心，死亡时自动转化为血量",
+            "effect": {
+                "type": "black_heart",
+                "value": 1,
+                "healPerHeart": 6
+            },
+            "pickupText": "🖤 +{value} 黑心",
+            "color": "#505050"
+        },
+        "blood_bag": {
+            "name": "血袋",
+            "description": "增加血量上限和当前血量",
+            "effect": {
+                "type": "blood_bag",
+                "maxHealthBonus": 2,
+                "currentHealthBonus": 2
+            },
+            "pickupText": "💉 +{maxHealthBonus} 血量上限 & +{currentHealthBonus} 血量",
+            "color": "#C83232"
+        },
+        "damage_boost": {
+            "name": "伤害提升",
+            "description": "增加子弹伤害",
+            "effect": {
+                "type": "damage",
+                "value": 1
+            },
+            "pickupText": "⚔️ 伤害 +{value}",
+            "color": "#FF6464"
+        },
+        "fire_rate_boost": {
+            "name": "射速提升",
+            "description": "提高射击速度（冷却时间除以倍率）",
+            "effect": {
+                "type": "fire_rate",
+                "multiplier": 1.5,
+                "maxMultiplier": 6.0,
+                "baseCooldown": 150
+            },
+            "pickupText": "🔫 射速提升!",
+            "pickupTextMax": "🔫 射速已达最高！",
+            "color": "#FFC864"
+        },
+        "frost_slowdown": {
+            "name": "冰冻减速",
+            "description": "增加寒冰子弹概率",
+            "effect": {
+                "type": "frost_chance",
+                "value": 20,
+                "maxValue": 60
+            },
+            "pickupText": "❄️ 寒冰概率 +{value}%",
+            "pickupTextMax": "❄️ 寒冰子弹概率已达最高",
+            "color": "#64C8FF"
+        },
+        "movement_speed": {
+            "name": "移动速度提升",
+            "description": "提高移动速度（乘以倍率，有上限）",
+            "effect": {
+                "type": "speed",
+                "multiplier": 1.1,
+                "maxMultiplier": 1.5
+            },
+            "pickupText": "⚡ 移速提升!",
+            "pickupTextMax": "⚡ 移速已达最高！",
+            "color": "#64C8FF"
+        },
+        "shield": {
+            "name": "护盾",
+            "description": "增加护盾，可以抵挡一次伤害",
+            "effect": {
+                "type": "shield",
+                "value": 1
+            },
+            "pickupText": "🛡️ +{value} 护盾",
+            "color": "#64FF96"
+        },
+        "key": {
+            "name": "钥匙",
+            "description": "可以打开上锁的宝箱",
+            "effect": {
+                "type": "key",
+                "value": 1
+            },
+            "pickupText": "🔑 获得一把钥匙",
+            "color": "#FFD700"
+        }
+    }
+}

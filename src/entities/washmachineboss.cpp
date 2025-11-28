@@ -40,7 +40,6 @@ WashMachineBoss::WashMachineBoss(const QPixmap& pic, double scale)
     setAttackCooldown(config.getBossInt("washmachine", "phase1", "attack_cooldown", 1500));
     setSpeed(config.getBossDouble("washmachine", "phase1", "speed", 1.5));
 
-    crash_r = 35;
     damageScale = config.getBossDouble("washmachine", "phase1", "damage_scale", 0.8);
 
     // 普通阶段使用保持距离模式

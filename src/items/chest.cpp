@@ -126,9 +126,8 @@ void Chest::doOpen() {
     // 保存player的QPointer副本
     QPointer<Player> playerPtr = m_player;
 
-    // 使用新物品掉落系统：普通宝箱掉落1-3个物品
-    int itemCount = QRandomGenerator::global()->bounded(1, 4);
-    dropItems(itemCount);
+    // 普通宝箱和锁定宝箱只掉落1个物品
+    dropItems(1);
 
     // 隐藏提示
     hideHint();
@@ -348,7 +347,7 @@ void BossChest::doOpen() {
     QPointer<Player> playerPtr = m_player;
 
     if (!m_customItemNames.isEmpty()) {
-        // 使用自定义物品列表
+        // 使用自定义物品列表（从level配置中读取，每个宝箱掉2个道具）
         QVector<DroppedItemType> customTypes;
         for (const QString& name : m_customItemNames) {
             customTypes.append(DroppedItemFactory::getItemTypeFromName(name));
@@ -358,17 +357,9 @@ void BossChest::doOpen() {
         DroppedItemFactory::dropSpecificItems(customTypes, chestPos, m_player.data(), scene());
         qDebug() << "Boss宝箱掉落自定义物品:" << m_customItemNames.size() << "个";
     } else {
-        // 默认行为：掉落2-4个普通物品 + 1个红心
-        int itemCount = QRandomGenerator::global()->bounded(2, 5);
-        dropItems(itemCount);
-
-        // Boss宝箱必定额外给予1个红心
-        if (playerPtr && scene()) {
-            QPointF chestPos = this->pos() + QPointF(boundingRect().width() / 2, boundingRect().height() / 2);
-            DroppedItem* extraHeart = new DroppedItem(DroppedItemType::RED_HEART, chestPos, m_player.data());
-            scene()->addItem(extraHeart);
-            qDebug() << "Boss宝箱额外掉落1个红心";
-        }
+        // 默认行为：每个Boss宝箱掉落2个物品
+        dropItems(2);
+        qDebug() << "Boss宝箱掉落默认2个物品";
     }
 
     // 隐藏提示

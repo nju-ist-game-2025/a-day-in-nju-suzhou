@@ -97,6 +97,11 @@ class DroppedItem : public QObject, public QGraphicsPixmapItem {
     void applyEffect();
 
     /**
+     * @brief 获取道具的配置key
+     */
+    QString getItemConfigKey() const;
+
+    /**
      * @brief 显示拾取提示文字
      * @param text 提示文字
      * @param color 文字颜色

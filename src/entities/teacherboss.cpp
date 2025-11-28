@@ -541,9 +541,12 @@ void TeacherBoss::fireNormalDistributionBarrage() {
     double baseAngle = qAtan2(dy, dx);
 
     // 发射15发弹幕，角度服从正态分布 N(baseAngle, 15°)
-    int bulletCount = 15;
-    double stddevDegrees = 15.0;
+    int bulletCount = ConfigManager::instance().getBossInt("teacher", "phase1", "normal_barrage_count", 15);
+    double stddevDegrees = ConfigManager::instance().getBossDouble("teacher", "phase1", "normal_barrage_stddev", 15.0);
     double stddevRadians = qDegreesToRadians(stddevDegrees);
+
+    int bulletDamage = ConfigManager::instance().getBossInt("teacher", "phase1", "normal_barrage_damage", 1);
+    double bulletSpeed = ConfigManager::instance().getBossDouble("teacher", "phase1", "normal_barrage_speed", 0.8);
 
     for (int i = 0; i < bulletCount; ++i) {
         double angle = randomNormal(baseAngle, stddevRadians);
@@ -551,13 +554,12 @@ void TeacherBoss::fireNormalDistributionBarrage() {
         // 创建弹幕 - 使用formula_bullet.png图片
         Projectile* bullet = new Projectile(
             1,  // 敌人发出
-            1,  // 伤害
+            bulletDamage,
             bossCenter,
             m_formulaBulletPixmap,
             1.0);
 
         // 设置方向 - 降低速度（参考毒气速度4.0）
-        double bulletSpeed = 0.8;
         double vx = qCos(angle) * bulletSpeed;
         double vy = qSin(angle) * bulletSpeed;
         bullet->setDir(static_cast<int>(vx * 10), static_cast<int>(vy * 10));
@@ -813,22 +815,25 @@ void TeacherBoss::fireFormulaBomb() {
     QPointF bossCenter = pos() + QPointF(pixmap().width() / 2, pixmap().height() / 2);
 
     // 12发弹幕均匀分布360度，随机起始角度
-    int bulletCount = 12;
+    int bulletCount = ConfigManager::instance().getBossInt("teacher", "phase3", "formula_bomb_count", 12);
     double startAngle = QRandomGenerator::global()->generateDouble() * 2 * M_PI;
+
+    int bulletDamage = ConfigManager::instance().getBossInt("teacher", "phase3", "formula_bomb_damage", 1);
+    double bulletSpeed = ConfigManager::instance().getBossDouble("teacher", "phase3", "formula_bomb_speed", 0.4);
 
     for (int i = 0; i < bulletCount; ++i) {
         double angle = startAngle + (2 * M_PI * i / bulletCount);
 
         Projectile* bullet = new Projectile(
             1,
-            1,
+            bulletDamage,
             bossCenter,
             m_formulaBulletPixmap,
             1.0);
 
         // 降低速度（原来4*10=40，现在2.5*10=25）
-        double vx = qCos(angle) * 2.5;
-        double vy = qSin(angle) * 2.5;
+        double vx = qCos(angle) * bulletSpeed;
+        double vy = qSin(angle) * bulletSpeed;
         bullet->setDir(static_cast<int>(vx * 10), static_cast<int>(vy * 10));
 
         m_scene->addItem(bullet);
@@ -856,20 +861,27 @@ void TeacherBoss::fireSplitBullet() {
     // 分裂距离：发射时Boss与玩家距离的三分之二
     double splitDistance = totalDistance * 2.0 / 3.0;
 
+    // 从配置读取子弹参数
+    int mainDamage = ConfigManager::instance().getBossInt("teacher", "phase3", "split_bullet_main_damage", 2);
+    double mainSpeed = ConfigManager::instance().getBossDouble("teacher", "phase3", "split_bullet_main_speed", 0.3);
+    int smallDamage = ConfigManager::instance().getBossInt("teacher", "phase3", "split_bullet_small_damage", 1);
+    double smallSpeed = ConfigManager::instance().getBossDouble("teacher", "phase3", "split_bullet_small_speed", 0.6);
+    int splitCount = ConfigManager::instance().getBossInt("teacher", "phase3", "split_bullet_count", 5);
+    double spreadAngleDeg = ConfigManager::instance().getBossDouble("teacher", "phase3", "split_bullet_spread_angle", 30.0);
+
     // 创建大弹幕（使用缩放的final_bullet.png）
     QPixmap bigBullet = m_finalBulletPixmap.scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
     Projectile* mainBullet = new Projectile(
         1,
-        2,  // 大弹伤害更高
+        mainDamage,
         bossCenter,
         bigBullet,
         1.0);
 
     // 设置速度（参考毒气速度4.0，setDir需乘10）
-    double bulletSpeed = 0.5;  // 主弹慢速飞行
-    double vx = direction.x() * bulletSpeed;
-    double vy = direction.y() * bulletSpeed;
+    double vx = direction.x() * mainSpeed;
+    double vy = direction.y() * mainSpeed;
     mainBullet->setDir(static_cast<int>(vx * 10), static_cast<int>(vy * 10));
 
     m_scene->addItem(mainBullet);
@@ -885,7 +897,7 @@ void TeacherBoss::fireSplitBullet() {
     // 创建检查定时器
     QTimer* checkTimer = new QTimer(this);
     connect(checkTimer, &QTimer::timeout, this,
-            [bulletPtr, scenePtr, startPos, dir, smallPix, splitDist, checkTimer]() {
+            [bulletPtr, scenePtr, startPos, dir, smallPix, splitDist, checkTimer, smallDamage, smallSpeed, splitCount, spreadAngleDeg]() {
                 if (!bulletPtr || !scenePtr) {
                     checkTimer->stop();
                     checkTimer->deleteLater();
@@ -909,23 +921,23 @@ void TeacherBoss::fireSplitBullet() {
                     scenePtr->removeItem(bulletPtr);
                     bulletPtr->deleteLater();
 
-                    // 生成5个小弹幕，扇形散开
+                    // 生成小弹幕，扇形散开
                     double baseAngle = qAtan2(dir.y(), dir.x());
-                    double spreadAngle = qDegreesToRadians(30.0);  // 总共60度扇形
+                    double spreadAngle = qDegreesToRadians(spreadAngleDeg);
 
-                    for (int i = 0; i < 5; ++i) {
-                        double angle = baseAngle - spreadAngle + (spreadAngle * 2 * i / 4);
+                    for (int i = 0; i < splitCount; ++i) {
+                        double angle = baseAngle - spreadAngle + (spreadAngle * 2 * i / (splitCount - 1));
 
                         Projectile* smallBullet = new Projectile(
                             1,
-                            1,
+                            smallDamage,
                             splitPos,
                             smallPix,
                             1.0);
 
-                        // 分裂后速度略快于毒气（毒气4.0，这里约5-6）
-                        double svx = qCos(angle) * 0.6;
-                        double svy = qSin(angle) * 0.6;
+                        // 分裂后速度
+                        double svx = qCos(angle) * smallSpeed;
+                        double svy = qSin(angle) * smallSpeed;
                         smallBullet->setDir(static_cast<int>(svx * 10), static_cast<int>(svy * 10));
 
                         scenePtr->addItem(smallBullet);

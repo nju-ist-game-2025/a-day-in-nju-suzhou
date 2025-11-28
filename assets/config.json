@@ -83,10 +83,9 @@
     "player": {
         "default": {
             "health": 8,
-            "speed": 5.0,
+            "speed": 4.0,
             "shoot_cooldown": 150,
             "bullet_hurt": 5,
-            "crash_radius": 40,
             "teleport_cooldown": 5000,
             "teleport_distance": 120.0,
             "ultimate_cooldown": 60000,
@@ -290,7 +289,6 @@
                 "attack_range": 70.0,
                 "attack_cooldown": 1200,
                 "speed": 1.0,
-                "crash_radius": 35,
                 "damage_scale": 0.7,
                 "move_pattern": "dash",
                 "dash_charge_time": 1000,
@@ -317,7 +315,6 @@
                 "attack_range": 60.0,
                 "attack_cooldown": 1500,
                 "speed": 1.5,
-                "crash_radius": 35,
                 "damage_scale": 0.8,
                 "move_pattern": "keep_distance",
                 "preferred_distance": 200.0,
@@ -359,6 +356,8 @@
                 "normal_barrage_interval": 4000,
                 "normal_barrage_count": 15,
                 "normal_barrage_stddev": 15.0,
+                "normal_barrage_damage": 1,
+                "normal_barrage_speed": 0.6,
                 "roll_call_interval": 8000,
                 "roll_call_count": 3
             },
@@ -381,8 +380,15 @@
                 "fail_warning_interval": 6000,
                 "formula_bomb_interval": 4000,
                 "formula_bomb_count": 12,
+                "formula_bomb_damage": 1,
+                "formula_bomb_speed": 0.4,
                 "split_bullet_interval": 8000,
-                "split_bullet_count": 5
+                "split_bullet_count": 5,
+                "split_bullet_main_damage": 2,
+                "split_bullet_main_speed": 0.3,
+                "split_bullet_small_damage": 1,
+                "split_bullet_small_speed": 0.6,
+                "split_bullet_spread_angle": 30.0
             }
         }
     }

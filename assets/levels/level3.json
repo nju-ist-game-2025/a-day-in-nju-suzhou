@@ -258,7 +258,6 @@
         "blood_bag",
         "damage_boost",
         "fire_rate_boost",
-        "frost_slowdown",
         "shield"
       ],
       "hasChest": false,

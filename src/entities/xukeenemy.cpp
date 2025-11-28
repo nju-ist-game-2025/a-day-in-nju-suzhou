@@ -24,9 +24,6 @@ XukeEnemy::XukeEnemy(const QPixmap& pic, double scale)
     setAttackCooldown(config.getEnemyInt("xuke", "shoot_cooldown", SHOOT_COOLDOWN));
     setSpeed(config.getEnemyDouble("xuke", "speed", 1.0));
 
-    // 设置碰撞半径
-    setCrashR(25);
-
     // 使用保持距离移动模式（远程敌人专用）
     setMovementPattern(MOVE_KEEP_DISTANCE);
     setPreferredDistance(config.getEnemyDouble("xuke", "keep_distance", KEEP_DISTANCE));

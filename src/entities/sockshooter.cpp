@@ -26,9 +26,6 @@ SockShooter::SockShooter(const QPixmap& pic, double scale)
     m_bulletDamage = config.getEnemyInt("sock_shooter", "bullet_damage", DEFAULT_BULLET_DAMAGE);
     m_bulletSpeed = config.getEnemyDouble("sock_shooter", "bullet_speed", DEFAULT_BULLET_SPEED);
 
-    // 设置碰撞半径（确保可以被玩家子弹击中）
-    setCrashR(25);
-
     // 使用保持距离移动模式（远程敌人专用）
     setMovementPattern(MOVE_KEEP_DISTANCE);
     setPreferredDistance(config.getEnemyDouble("sock_shooter", "preferred_distance", DEFAULT_KEEP_DISTANCE));

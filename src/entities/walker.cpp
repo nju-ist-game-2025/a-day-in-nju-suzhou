@@ -37,10 +37,7 @@ Walker::Walker(const QPixmap& pic, double scale)
     setSpeed(m_walkerSpeed);
     m_trailDuration = config.getEnemyInt("walker", "trail_duration", DEFAULT_TRAIL_DURATION);
     m_poisonDuration = config.getEnemyInt("walker", "poison_duration", DEFAULT_POISON_DURATION);
-    m_encourageDuration = config.getEnemyInt("walker", "encourage_duration", DEFAULT_ENCOURAGE_DURATION);
-
-    // 设置碰撞半径
-    setCrashR(20);
+    m_poisonDuration = config.getEnemyInt("walker", "poison_duration", DEFAULT_POISON_DURATION);
 
     // 不使用基类的移动模式，使用自定义随机移动
     setMovementPattern(MOVE_DIRECT);  // 设置为DIRECT但会被executeMovement覆盖

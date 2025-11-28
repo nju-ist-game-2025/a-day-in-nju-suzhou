@@ -244,9 +244,6 @@ void ProbabilityEnemy::updateScale() {
 
     // 设置偏移量使图片中心对齐到pos()位置
     setOffset(-newWidth / 2.0, -newHeight / 2.0);
-
-    // 更新碰撞半径
-    setCrashR(qMax(newWidth, newHeight) / 2);
 }
 
 void ProbabilityEnemy::startBlinking() {

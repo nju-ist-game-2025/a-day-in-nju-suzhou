@@ -12,6 +12,7 @@
 #include <QResizeEvent>
 #include <QSizePolicy>
 #include <QVBoxLayout>
+#include <QtMath>
 #include "../core/GameWindow.cpp"
 #include "../core/audiomanager.h"
 #include "../core/resourcefactory.h"
@@ -993,48 +994,152 @@ void GameView::adjustViewToWindow() {
 void GameView::onBlackHeartRevive() {
     qDebug() << "GameView: 黑心复活动画触发";
 
-    // 创建紫黑色全屏闪烁效果 - 多次闪烁让效果更明显
-    QGraphicsRectItem* reviveFlash = new QGraphicsRectItem(scene->sceneRect());
-    reviveFlash->setBrush(QColor(80, 0, 120, 200));  // 深紫色
-    reviveFlash->setPen(Qt::NoPen);
-    reviveFlash->setZValue(1000);  // 确保在最上层
-    scene->addItem(reviveFlash);
+    // 暂停游戏
+    if (level) {
+        level->setPaused(true);
+    }
+    if (player) {
+        player->setPaused(true);
+    }
 
-    // 第一次闪烁
-    QTimer::singleShot(150, this, [this, reviveFlash]() {
-        if (reviveFlash && scene->items().contains(reviveFlash)) {
-            reviveFlash->setBrush(QColor(120, 0, 180, 180));  // 变亮
-        }
-    });
-    QTimer::singleShot(300, this, [this, reviveFlash]() {
-        if (reviveFlash && scene->items().contains(reviveFlash)) {
-            reviveFlash->setBrush(QColor(80, 0, 120, 220));  // 变暗
-        }
-    });
-    // 第二次闪烁
-    QTimer::singleShot(450, this, [this, reviveFlash]() {
-        if (reviveFlash && scene->items().contains(reviveFlash)) {
-            reviveFlash->setBrush(QColor(140, 0, 200, 160));  // 变亮
-        }
-    });
-    QTimer::singleShot(600, this, [this, reviveFlash]() {
-        if (reviveFlash && scene->items().contains(reviveFlash)) {
-            reviveFlash->setBrush(QColor(80, 0, 120, 120));  // 变暗
-        }
-    });
-    // 淡出
-    QTimer::singleShot(750, this, [this, reviveFlash]() {
-        if (reviveFlash && scene->items().contains(reviveFlash)) {
-            reviveFlash->setBrush(QColor(80, 0, 120, 60));
-        }
-    });
-    QTimer::singleShot(900, this, [this, reviveFlash]() {
-        if (reviveFlash && scene->items().contains(reviveFlash)) {
-            scene->removeItem(reviveFlash);
-            delete reviveFlash;
+    // 创建半透明黑色背景遮罩
+    QGraphicsRectItem* overlay = new QGraphicsRectItem(scene->sceneRect());
+    overlay->setBrush(QColor(0, 0, 0, 150));
+    overlay->setPen(Qt::NoPen);
+    overlay->setZValue(2000);
+    scene->addItem(overlay);
+
+    // 加载黑心图片
+    QPixmap blackHeartPix("assets/props/black_heart.png");
+    if (blackHeartPix.isNull()) {
+        qWarning() << "无法加载黑心图片";
+        // 如果图片加载失败，直接结束动画
+        scene->removeItem(overlay);
+        delete overlay;
+        if (level)
+            level->setPaused(false);
+        if (player)
+            player->setPaused(false);
+        updateHUD();
+        return;
+    }
+
+    // 缩放黑心图片到较大尺寸（100x100）
+    int heartSize = 100;
+    blackHeartPix = blackHeartPix.scaled(heartSize, heartSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    // 创建黑心图片项，放在屏幕中央
+    QGraphicsPixmapItem* blackHeart = new QGraphicsPixmapItem(blackHeartPix);
+    blackHeart->setZValue(2001);
+    QPointF centerPos(400 - heartSize / 2, 300 - heartSize / 2);
+    blackHeart->setPos(centerPos);
+    blackHeart->setTransformOriginPoint(heartSize / 2, heartSize / 2);
+    scene->addItem(blackHeart);
+
+    // 加载红心图片
+    QPixmap redHeartPix("assets/props/red_heart.png");
+    if (redHeartPix.isNull()) {
+        redHeartPix = QPixmap(heartSize, heartSize);
+        redHeartPix.fill(Qt::red);
+    } else {
+        redHeartPix = redHeartPix.scaled(heartSize, heartSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+
+    // 血条位置（HUD中血条的大致位置）
+    QPointF healthBarPos(150, 22);
+
+    // 动画时间线
+    int flashDuration = 150;  // 每次闪烁持续时间
+    int flashCount = 3;       // 闪烁次数
+    int moveDuration = 800;   // 移动动画持续时间
+
+    // 第一阶段：黑心闪烁
+    for (int i = 0; i < flashCount; ++i) {
+        int showTime = i * flashDuration * 2;
+        int hideTime = showTime + flashDuration;
+
+        QTimer::singleShot(showTime, this, [blackHeart, this]() {
+            if (blackHeart && scene->items().contains(blackHeart)) {
+                blackHeart->setOpacity(1.0);
+            }
+        });
+        QTimer::singleShot(hideTime, this, [blackHeart, this]() {
+            if (blackHeart && scene->items().contains(blackHeart)) {
+                blackHeart->setOpacity(0.3);
+            }
+        });
+    }
+
+    // 第二阶段：黑心变成红心（闪烁结束后）
+    int transformTime = flashCount * flashDuration * 2;
+    QTimer::singleShot(transformTime, this, [this, blackHeart, redHeartPix, heartSize]() {
+        if (blackHeart && scene->items().contains(blackHeart)) {
+            blackHeart->setPixmap(redHeartPix);
+            blackHeart->setOpacity(1.0);
+            qDebug() << "黑心变成红心";
         }
     });
 
-    // 更新HUD
-    updateHUD();
+    // 第三阶段：红心缩小并移向血条
+    int moveStartTime = transformTime + 300;
+    QTimer::singleShot(moveStartTime, this, [this, blackHeart, healthBarPos, heartSize, moveDuration, overlay]() {
+        if (!blackHeart || !scene->items().contains(blackHeart)) {
+            return;
+        }
+
+        // 使用定时器实现平滑移动动画
+        QTimer* animTimer = new QTimer(this);
+        int* step = new int(0);
+        int totalSteps = moveDuration / 16;  // 约60fps
+        QPointF startPos = blackHeart->pos();
+        double startScale = 1.0;
+        double endScale = 0.3;
+
+        connect(animTimer, &QTimer::timeout, this, [this, animTimer, step, totalSteps, blackHeart, startPos, healthBarPos, heartSize, startScale, endScale, overlay]() {
+            (*step)++;
+            double progress = static_cast<double>(*step) / totalSteps;
+
+            if (progress >= 1.0 || !blackHeart || !scene->items().contains(blackHeart)) {
+                animTimer->stop();
+                animTimer->deleteLater();
+                delete step;
+
+                // 动画结束，清理
+                if (blackHeart && scene->items().contains(blackHeart)) {
+                    scene->removeItem(blackHeart);
+                    delete blackHeart;
+                }
+                if (overlay && scene->items().contains(overlay)) {
+                    scene->removeItem(overlay);
+                    delete overlay;
+                }
+
+                // 恢复游戏
+                if (level)
+                    level->setPaused(false);
+                if (player)
+                    player->setPaused(false);
+
+                // 更新HUD
+                updateHUD();
+
+                qDebug() << "黑心复活动画完成";
+                return;
+            }
+
+            // 使用缓动函数让动画更自然
+            double easedProgress = 1.0 - qPow(1.0 - progress, 3);  // easeOutCubic
+
+            // 计算当前位置
+            double newX = startPos.x() + (healthBarPos.x() - startPos.x()) * easedProgress;
+            double newY = startPos.y() + (healthBarPos.y() - startPos.y()) * easedProgress;
+            blackHeart->setPos(newX, newY);
+
+            // 计算当前缩放
+            double currentScale = startScale + (endScale - startScale) * easedProgress;
+            blackHeart->setScale(currentScale);
+        });
+
+        animTimer->start(16);
+    });
 }

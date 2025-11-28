@@ -8,32 +8,32 @@
 #include "../ui/explosion.h"
 #include "player.h"
 
-Enemy::Enemy(const QPixmap &pic, double scale)
-        : Entity(nullptr),
-          currentState(WANDER),
-          player(nullptr),
-          health(10),
-          maxHealth(10),
-          contactDamage(1),
-          visionRange(250.0),
-          attackRange(40.0),
-          attackCooldown(1000),
-          lastAttackTime(0),
-          wanderCooldown(0),
-          m_movePattern(MOVE_DIRECT),
-          m_zigzagPhase(0.0),
-          m_zigzagAmplitude(80.0),
-          m_circleAngle(0.0),
-          m_circleRadius(100.0),
-          m_isDashing(false),
-          m_dashChargeCounter(0),
-          m_dashChargeMs(1500),
-          m_dashSpeed(4.0),
-          m_dashDuration(0),
-          m_preferredDistance(150.0),
-          m_diagonalDirection(1),
-          m_isSummoned(false),
-          m_isPaused(false) {
+Enemy::Enemy(const QPixmap& pic, double scale)
+    : Entity(nullptr),
+      currentState(WANDER),
+      player(nullptr),
+      health(10),
+      maxHealth(10),
+      contactDamage(1),
+      visionRange(250.0),
+      attackRange(40.0),
+      attackCooldown(1000),
+      lastAttackTime(0),
+      wanderCooldown(0),
+      m_movePattern(MOVE_DIRECT),
+      m_zigzagPhase(0.0),
+      m_zigzagAmplitude(80.0),
+      m_circleAngle(0.0),
+      m_circleRadius(100.0),
+      m_isDashing(false),
+      m_dashChargeCounter(0),
+      m_dashChargeMs(1500),
+      m_dashSpeed(4.0),
+      m_dashDuration(0),
+      m_preferredDistance(150.0),
+      m_diagonalDirection(1),
+      m_isSummoned(false),
+      m_isPaused(false) {
     // 设置图像
     setPixmap(pic.scaled(pic.width() * scale, pic.height() * scale,
                          Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -41,7 +41,6 @@ Enemy::Enemy(const QPixmap &pic, double scale)
     // 设置基础属性
     speed = 2.0;
     hurt = contactDamage;
-    crash_r = 20;
     damageScale = 1.0;
     invincible = false;
 
@@ -105,12 +104,12 @@ void Enemy::getEffects() {
     // 3: shootSpeedEffect (slow fire)
 
     int type = QRandomGenerator::global()->bounded(4);
-    StatusEffect *effect = nullptr;
+    StatusEffect* effect = nullptr;
 
     switch (type) {
         case 0: {
             // 防止中毒效果在delete后施加
-            int duration = (3 > player->getCurrentHealth() * 2 ? (int) player->getCurrentHealth() : 3);
+            int duration = (3 > player->getCurrentHealth() * 2 ? (int)player->getCurrentHealth() : 3);
             effect = new PoisonEffect(player, duration, 1);
             break;
         }
@@ -354,7 +353,7 @@ void Enemy::takeDamage(int damage) {
         qDebug() << "敌人死亡音效已触发";
 
         // 创建爆炸动画
-        Explosion *explosion = new Explosion();
+        Explosion* explosion = new Explosion();
         explosion->setPos(this->pos());  // 在敌人位置创建爆炸
         if (scene()) {
             scene()->addItem(explosion);

@@ -6,7 +6,9 @@
 #include <QRandomGenerator>
 #include <QtMath>
 #include "../core/audiomanager.h"
+#include "../core/configmanager.h"
 #include "../entities/player.h"
+#include "itemeffectconfig.h"
 
 DroppedItem::DroppedItem(DroppedItemType type, const QPointF& pos, Player* player, QObject* parent)
     : QObject(parent),
@@ -216,128 +218,144 @@ void DroppedItem::applyEffect() {
         return;
     }
 
+    // 获取道具配置key
+    QString itemKey = getItemConfigKey();
+    ItemEffectData config = ItemEffectConfig::instance().getItemEffect(itemKey);
+
     QString pickupText;
-    QColor textColor = Qt::white;
+    QColor textColor = config.color;
+    QMap<QString, QString> textParams;
 
-    switch (m_type) {
-        case DroppedItemType::RED_HEART: {
-            // 红心：增加1点血量（若已满则不增加）
-            double currentHealth = m_player->getCurrentHealth();
-            double maxHealth = m_player->getMaxHealth();
-            if (currentHealth < maxHealth) {
-                m_player->addRedHearts(1);
-                pickupText = "❤️ +1 血量";
-                textColor = Qt::red;
-            } else {
-                pickupText = "❤️ 血量已满";
-                textColor = QColor(255, 150, 150);
-            }
-            break;
+    // 根据效果类型应用效果
+    if (config.effectType == "heal") {
+        // 红心：增加血量
+        double currentHealth = m_player->getCurrentHealth();
+        double maxHealth = m_player->getMaxHealth();
+        int healValue = config.getValue();
+
+        if (currentHealth < maxHealth) {
+            m_player->addRedHearts(healValue);
+            textParams["value"] = QString::number(healValue);
+            pickupText = ItemEffectConfig::formatText(config.pickupText, textParams);
+        } else {
+            pickupText = config.pickupTextFull;
+            textColor = QColor(255, 150, 150);
         }
+    } else if (config.effectType == "black_heart") {
+        // 黑心：复活用
+        int value = config.getValue();
+        m_player->addBlackHearts(value);
+        textParams["value"] = QString::number(value);
+        pickupText = ItemEffectConfig::formatText(config.pickupText, textParams);
+    } else if (config.effectType == "blood_bag") {
+        // 血袋：增加血量上限和当前血量
+        int maxBonus = config.getMaxHealthBonus();
+        int currentBonus = config.getCurrentHealthBonus();
+        m_player->addRedContainers(maxBonus);
+        m_player->addRedHearts(currentBonus);
+        textParams["maxHealthBonus"] = QString::number(maxBonus);
+        textParams["currentHealthBonus"] = QString::number(currentBonus);
+        pickupText = ItemEffectConfig::formatText(config.pickupText, textParams);
+    } else if (config.effectType == "damage") {
+        // 伤害提升
+        int value = config.getValue();
+        int currentDamage = m_player->getBulletHurt();
+        m_player->setBulletHurt(currentDamage + value);
+        textParams["value"] = QString::number(value);
+        pickupText = ItemEffectConfig::formatText(config.pickupText, textParams) +
+                     QString(" (当前: %1)").arg(currentDamage + value);
+    } else if (config.effectType == "fire_rate") {
+        // 射速提升
+        int currentCooldown = m_player->getShootCooldown();
+        int baseCooldown = config.getBaseCooldown();
+        double multiplier = config.getMultiplier();
+        double maxMultiplier = config.getMaxMultiplier();
+        int minCooldown = static_cast<int>(baseCooldown / maxMultiplier);
 
-        case DroppedItemType::BLACK_HEART: {
-            // 黑心：增加一颗黑心（用于复活）
-            m_player->addBlackHearts(1);
-            pickupText = "🖤 +1 黑心";
-            textColor = QColor(80, 80, 80);
-            break;
+        int newCooldown = static_cast<int>(currentCooldown / multiplier);
+        if (newCooldown < minCooldown) {
+            newCooldown = minCooldown;
+            pickupText = config.pickupTextMax;
+        } else {
+            m_player->setShootCooldown(newCooldown);
+            pickupText = config.pickupText;
         }
+    } else if (config.effectType == "frost_chance") {
+        // 冰冻减速
+        int value = config.getValue();
+        int maxValue = config.getMaxValue();
+        int currentFrostChance = m_player->getFrostChance();
 
-        case DroppedItemType::BLOOD_BAG: {
-            // 血袋：增加2点血量上限和2点当前血量
-            m_player->addRedContainers(2);
-            m_player->addRedHearts(2);
-            pickupText = "💉 +2 血量上限 & +2 血量";
-            textColor = QColor(200, 50, 50);
-            break;
+        if (currentFrostChance >= maxValue) {
+            pickupText = config.pickupTextMax;
+            textColor = QColor(150, 200, 255);
+        } else {
+            m_player->addFrostChance(value);
+            textParams["value"] = QString::number(value);
+            pickupText = ItemEffectConfig::formatText(config.pickupText, textParams) +
+                         QString(" (当前: %1%%)").arg(currentFrostChance + value);
         }
+    } else if (config.effectType == "speed") {
+        // 移动速度（基础速度从 config.json 读取）
+        double currentSpeed = m_player->getSpeed();
+        double baseSpeed = ConfigManager::instance().getPlayerDouble("speed", 5.0);
+        double multiplier = config.getMultiplier();
+        double maxMultiplier = config.getMaxMultiplier();
+        double maxSpeed = baseSpeed * maxMultiplier;
 
-        case DroppedItemType::DAMAGE_BOOST: {
-            // 伤害提升：子弹伤害+1
-            int currentDamage = m_player->getBulletHurt();
-            m_player->setBulletHurt(currentDamage + 1);
-            pickupText = QString("⚔️ 伤害 +1 (当前: %1)").arg(currentDamage + 1);
-            textColor = QColor(255, 100, 100);
-            break;
+        double newSpeed = currentSpeed * multiplier;
+        if (newSpeed > maxSpeed) {
+            newSpeed = maxSpeed;
+            pickupText = config.pickupTextMax;
+        } else {
+            m_player->setSpeed(newSpeed);
+            pickupText = config.pickupText;
         }
-
-        case DroppedItemType::FIRE_RATE_BOOST: {
-            // 射速提升：射速x1.5（上限6倍，即冷却时间最低为初始的1/6）
-            int currentCooldown = m_player->getShootCooldown();
-            int baseCooldown = 150;              // 基础冷却时间
-            int minCooldown = baseCooldown / 6;  // 最低冷却时间（6倍射速）
-
-            int newCooldown = static_cast<int>(currentCooldown / 1.5);
-            if (newCooldown < minCooldown) {
-                newCooldown = minCooldown;
-                pickupText = "🔫 射速已达最高！";
-                textColor = QColor(255, 200, 100);
-            } else {
-                m_player->setShootCooldown(newCooldown);
-                pickupText = "🔫 射速提升!";
-                textColor = QColor(255, 200, 100);
-            }
-            break;
-        }
-
-        case DroppedItemType::FROST_SLOWDOWN: {
-            // 冰冻减速：增加20%寒冰子弹概率，最多60%
-            int currentFrostChance = m_player->getFrostChance();
-            if (currentFrostChance >= 60) {
-                pickupText = "❄️ 寒冰子弹概率已达最高";
-                textColor = QColor(150, 200, 255);
-            } else {
-                m_player->addFrostChance(20);
-                pickupText = QString("❄️ 寒冰概率 +20%% (当前: %1%%)").arg(currentFrostChance + 20);
-                textColor = QColor(100, 200, 255);
-            }
-            break;
-        }
-
-        case DroppedItemType::MOVEMENT_SPEED: {
-            // 移动速度：+20%（上限2.5倍）
-            double currentSpeed = m_player->getSpeed();
-            double baseSpeed = 5.0;             // 基础速度
-            double maxSpeed = baseSpeed * 2.5;  // 最大速度（250%）
-
-            double newSpeed = currentSpeed * 1.2;
-            if (newSpeed > maxSpeed) {
-                newSpeed = maxSpeed;
-                pickupText = "⚡ 移速已达最高！";
-                textColor = QColor(100, 200, 255);
-            } else {
-                m_player->setSpeed(newSpeed);
-                pickupText = "⚡ 移速提升!";
-                textColor = QColor(100, 200, 255);
-            }
-            break;
-        }
-
-        case DroppedItemType::SHIELD: {
-            // 护盾：增加一个护盾
-            m_player->addShield(1);
-            pickupText = "🛡️ +1 护盾";
-            textColor = QColor(100, 255, 150);
-            break;
-        }
-
-        case DroppedItemType::KEY: {
-            // 钥匙
-            m_player->addKeys(1);
-            pickupText = "🔑 获得一把钥匙";
-            textColor = QColor(255, 215, 0);
-            break;
-        }
-
-        default:
-            pickupText = "获得道具";
-            break;
+    } else if (config.effectType == "shield") {
+        // 护盾
+        int value = config.getValue();
+        m_player->addShield(value);
+        textParams["value"] = QString::number(value);
+        pickupText = ItemEffectConfig::formatText(config.pickupText, textParams);
+    } else if (config.effectType == "key") {
+        // 钥匙
+        int value = config.getValue();
+        m_player->addKeys(value);
+        pickupText = config.pickupText;
+    } else {
+        // 未知类型
+        pickupText = "获得道具";
     }
 
     // 显示拾取提示
     showPickupText(pickupText, textColor);
 
-    qDebug() << "DroppedItem: 玩家拾取了" << getItemName();
+    qDebug() << "DroppedItem: 玩家拾取了" << config.name;
+}
+
+QString DroppedItem::getItemConfigKey() const {
+    switch (m_type) {
+        case DroppedItemType::RED_HEART:
+            return "red_heart";
+        case DroppedItemType::BLACK_HEART:
+            return "black_heart";
+        case DroppedItemType::BLOOD_BAG:
+            return "blood_bag";
+        case DroppedItemType::DAMAGE_BOOST:
+            return "damage_boost";
+        case DroppedItemType::FIRE_RATE_BOOST:
+            return "fire_rate_boost";
+        case DroppedItemType::FROST_SLOWDOWN:
+            return "frost_slowdown";
+        case DroppedItemType::MOVEMENT_SPEED:
+            return "movement_speed";
+        case DroppedItemType::SHIELD:
+            return "shield";
+        case DroppedItemType::KEY:
+            return "key";
+        default:
+            return "unknown";
+    }
 }
 
 void DroppedItem::showPickupText(const QString& text, const QColor& color) {

@@ -8,6 +8,7 @@
 #include <QtGlobal>
 #include <cmath>
 #include "../core/configmanager.h"
+#include "../items/itemeffectconfig.h"
 #include "constants.h"
 #include "enemy.h"
 
@@ -70,7 +71,6 @@ Player::Player(const QPixmap& pic_player, double scale)
     speed = config.getPlayerDouble("speed", 5.0);
     shootCooldown = config.getPlayerInt("shoot_cooldown", 150);
     bulletHurt = config.getPlayerInt("bullet_hurt", 5);
-    crash_r = config.getPlayerInt("crash_radius", 40);
     m_teleportCooldownMs = config.getPlayerInt("teleport_cooldown", 5000);
     m_teleportDistance = config.getPlayerDouble("teleport_distance", 120.0);
     m_ultimateCooldownMs = config.getPlayerInt("ultimate_cooldown", 60000);
@@ -809,8 +809,12 @@ bool Player::tryBlackHeartRevive() {
 
     qDebug() << "触发黑心复活！黑心数:" << blackHearts;
 
-    // 计算恢复的血量（每个黑心 = 6点血量，最多填满血量上限）
-    int healAmount = blackHearts * 6;
+    // 从配置文件读取每个黑心转化的血量
+    ItemEffectData blackHeartConfig = ItemEffectConfig::instance().getItemEffect("black_heart");
+    int healPerHeart = blackHeartConfig.getHealPerHeart();
+
+    // 计算恢复的血量（每个黑心 = healPerHeart点血量，最多填满血量上限）
+    int healAmount = blackHearts * healPerHeart;
     double newHealth = qMin(static_cast<double>(healAmount), static_cast<double>(redContainers));
 
     // 清空黑心
@@ -829,7 +833,8 @@ bool Player::tryBlackHeartRevive() {
     // 发出血量变化信号
     emit healthChanged(redHearts, getMaxHealth());
 
-    qDebug() << "黑心复活成功！使用黑心:" << usedBlackHearts << "，恢复血量:" << newHealth;
+    qDebug() << "黑心复活成功！使用黑心:" << usedBlackHearts << "，恢复血量:" << newHealth
+             << "（每个黑心转化" << healPerHeart << "点血量）";
 
     return true;
 }

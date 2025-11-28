@@ -133,6 +133,8 @@ set(ITEM_SOURCES
         src/items/droppeditem.h
         src/items/droppeditemfactory.cpp
         src/items/droppeditemfactory.h
+        src/items/itemeffectconfig.cpp
+        src/items/itemeffectconfig.h
 )
 
 set(UI_SOURCES

@@ -3,6 +3,7 @@
 #include "core/configmanager.h"
 #include "core/configvalidator.h"
 #include "core/gamewindow.h"
+#include "items/itemeffectconfig.h"
 
 int main(int argc, char* argv[]) {
     // 禁用缩放，确保窗口大小在所有电脑上一致
@@ -15,6 +16,11 @@ int main(int argc, char* argv[]) {
     if (!ConfigManager::instance().loadConfig("assets/config.json")) {
         qCritical() << "无法加载配置文件，程序退出";
         return 1;
+    }
+
+    // 加载道具效果配置
+    if (!ItemEffectConfig::instance().loadConfig("assets/item_effects.json")) {
+        qWarning() << "无法加载道具效果配置文件，将使用默认值";
     }
 
     // 验证配置（仅在启用配置验证时）

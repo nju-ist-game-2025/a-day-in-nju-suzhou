@@ -232,10 +232,8 @@
       "usagiChestItems": [
         "black_heart",
         "red_heart",
-        "red_heart",
         "shield",
-        "damage_boost",
-        "movement_speed_boost"
+        "damage_boost"
       ],
       "hasChest": true,
       "isChestLocked": false,

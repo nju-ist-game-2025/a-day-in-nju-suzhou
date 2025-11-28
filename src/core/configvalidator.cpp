@@ -57,7 +57,6 @@ bool ConfigValidator::validatePlayerConfig() {
         {"health", 1, 100, true},
         {"shoot_cooldown", 50, 5000, true},
         {"bullet_hurt", 1, 100, true},
-        {"crash_radius", 10, 200, true},
         {"teleport_cooldown", 1000, 60000, true},
         {"ultimate_cooldown", 10000, 300000, true},
         {"ultimate_duration", 1000, 60000, true},
@@ -284,10 +283,62 @@ bool ConfigValidator::validateBossConfigs() {
                         logWarning(QString("Boss[%1][%2]缺失dash_charge_time").arg(boss.type, phase));
                 }
             } else if (boss.type == "teacher") {
+                if (phase == "phase1") {
+                    // 验证phase1子弹参数
+                    int barrageDamage = config.getBossInt(boss.type, phase, "normal_barrage_damage", -1);
+                    double barrageSpeed = config.getBossDouble(boss.type, phase, "normal_barrage_speed", -1.0);
+                    if (barrageDamage < 0)
+                        logWarning(QString("Boss[%1][%2]缺失normal_barrage_damage").arg(boss.type, phase));
+                    else
+                        logSuccess(QString("Boss[%1][%2] normal_barrage_damage=%3").arg(boss.type, phase).arg(barrageDamage));
+                    if (barrageSpeed < 0)
+                        logWarning(QString("Boss[%1][%2]缺失normal_barrage_speed").arg(boss.type, phase));
+                    else
+                        logSuccess(QString("Boss[%1][%2] normal_barrage_speed=%3").arg(boss.type, phase).arg(barrageSpeed));
+                }
                 if (phase == "phase2") {
                     double dashSpeed = config.getBossDouble(boss.type, phase, "dash_speed", -1);
                     if (dashSpeed < 0)
                         logWarning(QString("Boss[%1][%2]缺失dash_speed").arg(boss.type, phase));
+                }
+                if (phase == "phase3") {
+                    // 验证phase3子弹参数
+                    int formulaDamage = config.getBossInt(boss.type, phase, "formula_bomb_damage", -1);
+                    double formulaSpeed = config.getBossDouble(boss.type, phase, "formula_bomb_speed", -1.0);
+                    int splitMainDamage = config.getBossInt(boss.type, phase, "split_bullet_main_damage", -1);
+                    double splitMainSpeed = config.getBossDouble(boss.type, phase, "split_bullet_main_speed", -1.0);
+                    int splitSmallDamage = config.getBossInt(boss.type, phase, "split_bullet_small_damage", -1);
+                    double splitSmallSpeed = config.getBossDouble(boss.type, phase, "split_bullet_small_speed", -1.0);
+                    double splitSpreadAngle = config.getBossDouble(boss.type, phase, "split_bullet_spread_angle", -1.0);
+
+                    if (formulaDamage < 0)
+                        logWarning(QString("Boss[%1][%2]缺失formula_bomb_damage").arg(boss.type, phase));
+                    else
+                        logSuccess(QString("Boss[%1][%2] formula_bomb_damage=%3").arg(boss.type, phase).arg(formulaDamage));
+                    if (formulaSpeed < 0)
+                        logWarning(QString("Boss[%1][%2]缺失formula_bomb_speed").arg(boss.type, phase));
+                    else
+                        logSuccess(QString("Boss[%1][%2] formula_bomb_speed=%3").arg(boss.type, phase).arg(formulaSpeed));
+                    if (splitMainDamage < 0)
+                        logWarning(QString("Boss[%1][%2]缺失split_bullet_main_damage").arg(boss.type, phase));
+                    else
+                        logSuccess(QString("Boss[%1][%2] split_bullet_main_damage=%3").arg(boss.type, phase).arg(splitMainDamage));
+                    if (splitMainSpeed < 0)
+                        logWarning(QString("Boss[%1][%2]缺失split_bullet_main_speed").arg(boss.type, phase));
+                    else
+                        logSuccess(QString("Boss[%1][%2] split_bullet_main_speed=%3").arg(boss.type, phase).arg(splitMainSpeed));
+                    if (splitSmallDamage < 0)
+                        logWarning(QString("Boss[%1][%2]缺失split_bullet_small_damage").arg(boss.type, phase));
+                    else
+                        logSuccess(QString("Boss[%1][%2] split_bullet_small_damage=%3").arg(boss.type, phase).arg(splitSmallDamage));
+                    if (splitSmallSpeed < 0)
+                        logWarning(QString("Boss[%1][%2]缺失split_bullet_small_speed").arg(boss.type, phase));
+                    else
+                        logSuccess(QString("Boss[%1][%2] split_bullet_small_speed=%3").arg(boss.type, phase).arg(splitSmallSpeed));
+                    if (splitSpreadAngle < 0)
+                        logWarning(QString("Boss[%1][%2]缺失split_bullet_spread_angle").arg(boss.type, phase));
+                    else
+                        logSuccess(QString("Boss[%1][%2] split_bullet_spread_angle=%3").arg(boss.type, phase).arg(splitSpreadAngle));
                 }
             }
         }
