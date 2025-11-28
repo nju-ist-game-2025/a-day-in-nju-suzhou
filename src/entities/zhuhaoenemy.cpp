@@ -22,7 +22,7 @@ ZhuhaoEnemy::ZhuhaoEnemy(const QPixmap& pic, double scale)
       m_shootTimer(nullptr),
       m_bulletCount(BULLETS_PER_WAVE),
       m_bulletSpeed(DEFAULT_BULLET_SPEED) {
-    // 从配置文件读取朱昊属性
+    // 从配置文件读取祝昊属性
     ConfigManager& config = ConfigManager::instance();
     health = config.getEnemyInt("zhuhao", "health", 150);
     maxHealth = health;
@@ -53,7 +53,7 @@ ZhuhaoEnemy::ZhuhaoEnemy(const QPixmap& pic, double scale)
     // 随机决定顺时针或逆时针
     m_movingClockwise = QRandomGenerator::global()->bounded(2) == 0;
 
-    qDebug() << "创建朱昊精英怪 - 血量:" << health << "边缘移动速度:" << m_edgeSpeed;
+    qDebug() << "创建祝昊精英怪 - 血量:" << health << "边缘移动速度:" << m_edgeSpeed;
 }
 
 ZhuhaoEnemy::~ZhuhaoEnemy() {
@@ -110,7 +110,7 @@ void ZhuhaoEnemy::initializeAtRandomEdge() {
 
     // 将中心坐标转换回左上角坐标来设置位置
     setPos(centerX - halfWidth, centerY - halfHeight);
-    qDebug() << "朱昊初始化位置(中心):" << centerX << centerY << "当前边:" << m_currentEdge;
+    qDebug() << "祝昊初始化位置(中心):" << centerX << centerY << "当前边:" << m_currentEdge;
 }
 
 void ZhuhaoEnemy::onMoveTimer() {
@@ -343,7 +343,7 @@ void ZhuhaoEnemy::shootBarrage() {
     QPointF bulletStart(myPos.x() + boundingRect().width() / 2,
                         myPos.y() + boundingRect().height() / 2);
 
-    qDebug() << "朱昊发射360°弹幕 - 位置:" << bulletStart << "子弹数:" << m_bulletCount;
+    qDebug() << "祝昊发射360°弹幕 - 位置:" << bulletStart << "子弹数:" << m_bulletCount;
 
     for (int i = 0; i < m_bulletCount; ++i) {
         double angle = i * angleStep;

@@ -778,8 +778,8 @@ void Level::finishStory() {
         m_isEliteDialog = false;
 
         if (m_elitePhase2Triggered) {
-            // 第二阶段对话结束，生成朱浩并恢复战斗
-            qDebug() << "精英房间第二阶段对话结束，生成朱浩";
+            // 第二阶段对话结束，生成祝昊并恢复战斗
+            qDebug() << "精英房间第二阶段对话结束，生成祝昊";
             spawnZhuhaoEnemy();
 
             // 恢复所有敌人的定时器
@@ -3155,7 +3155,7 @@ void Level::checkEliteRoomPhase2() {
 void Level::startElitePhase2() {
     qDebug() << "开始精英房间第二阶段";
 
-    // 生成朱浩
+    // 生成祝昊
     spawnZhuhaoEnemy();
 
     // 恢复所有敌人的定时器
@@ -3163,21 +3163,21 @@ void Level::startElitePhase2() {
 }
 
 void Level::spawnZhuhaoEnemy() {
-    qDebug() << "生成朱浩敌人";
+    qDebug() << "生成祝昊敌人";
 
     if (!m_scene || !m_player) {
-        qWarning() << "无法生成朱浩：场景或玩家为空";
+        qWarning() << "无法生成祝昊：场景或玩家为空";
         return;
     }
 
-    // 加载朱浩图片
+    // 加载祝昊图片
     QPixmap zhuhaoPic("assets/enemy/level_3/zhuhao.png");
     if (zhuhaoPic.isNull()) {
-        qWarning() << "无法加载朱浩图片";
+        qWarning() << "无法加载祝昊图片";
         return;
     }
 
-    // 创建朱浩敌人 - 使用较小的缩放比例避免卡在地图外
+    // 创建祝昊敌人 - 使用较小的缩放比例避免卡在地图外
     ZhuhaoEnemy* zhuhao = new ZhuhaoEnemy(zhuhaoPic, 0.08);
     zhuhao->setPlayer(m_player);
 
@@ -3205,7 +3205,7 @@ void Level::spawnZhuhaoEnemy() {
     // 保存引用
     m_zhuhaoEnemy = zhuhao;
 
-    qDebug() << "朱浩已生成，位置:" << zhuhao->pos();
+    qDebug() << "祝昊已生成，位置:" << zhuhao->pos();
 }
 
 // ==================== G键进入下一关相关方法 ====================

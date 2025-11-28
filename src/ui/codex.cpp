@@ -662,7 +662,7 @@ void Codex::loadEnemyData() {
     m_enemyEntries.append(probabilityTheory);
 
     CodexEntry yanglin;
-    yanglin.name = "杨林";
+    yanglin.name = "凸老师";
     yanglin.imagePath = "assets/enemy/level_3/yanglin.png";
     yanglin.health = config.getEnemyInt("yanglin", "health", 200);
     yanglin.attackMethod = QString("近战接触攻击（%1点伤害）+ 旋转技能")
@@ -676,12 +676,12 @@ void Codex::loadEnemyData() {
                          .arg(static_cast<int>(config.getEnemyDouble("yanglin", "scale_per_hit", 0.05) * 100))
                          .arg(config.getEnemyDouble("yanglin", "max_scale", 2.0), 0, 'f', 1);
     yanglin.weakness = "";
-    yanglin.backstory = "杨林是凸优化考试中最可怕的大题。它庞大的身躯里装满了各种公式和定理，每一个都在等待着吞噬不及格的学生。\n\n传说中，能解出杨林的人会获得永恒的智慧。至今无人验证过这个传说。";
+    yanglin.backstory = "凸老师是凸优化考试中最可怕的大题。它庞大的身躯里装满了各种公式和定理，每一个都在等待着吞噬不及格的学生。\n\n传说中，能解出凸老师的人会获得永恒的智慧。至今无人验证过这个传说。";
     yanglin.isCharacter = false;
     m_enemyEntries.append(yanglin);
 
     CodexEntry zhuhao;
-    zhuhao.name = "朱昊";
+    zhuhao.name = "祝昊";
     zhuhao.imagePath = "assets/enemy/level_3/zhuhao.png";
     zhuhao.health = config.getEnemyInt("zhuhao", "health", 150);
     zhuhao.attackMethod = QString("远程弹幕攻击，360°全方位发射（每%1秒%2发）")
@@ -691,9 +691,28 @@ void Codex::loadEnemyData() {
     zhuhao.traits = QString("精英怪，沿地图边缘移动（速度%1）")
                         .arg(config.getEnemyDouble("zhuhao", "edge_move_speed", 3.0), 0, 'f', 1);
     zhuhao.weakness = "";
-    zhuhao.backstory = "朱昊喜欢沿着边缘走。不是因为他害怕站在中间，而是因为这样可以照顾到每一个角落。\n\n他发射的弹幕均匀地覆盖360度，一视同仁，绝不偏心。有人说这很公平，有人说这很可怕。朱昊觉得这只是基本的职业素养。\n\n「叽里咕噜」是他的口头禅，没人知道是什么意思。也许连他自己也不知道。";
+    zhuhao.backstory = "祝昊喜欢沿着边缘走。不是因为他害怕站在中间，而是因为这样可以照顾到每一个角落。\n\n他发射的弹幕均匀地覆盖360度，一视同仁，绝不偏心。有人说这很公平，有人说这很可怕。祝昊觉得这只是基本的职业素养。\n\n「叽里咕噜」是他的口头禅，没人知道是什么意思。也许连他自己也不知道。";
     zhuhao.isCharacter = false;
     m_enemyEntries.append(zhuhao);
+
+    // 沙鹰狙神（xuke）
+    CodexEntry xuke;
+    xuke.name = "沙鹰狙神";
+    xuke.imagePath = "assets/enemy/level_3/xuke.png";
+    xuke.health = config.getEnemyInt("xuke", "health", 15);
+    xuke.attackMethod = QString("远程精准射击（每%1ms一发，锁定玩家位置）")
+                            .arg(config.getEnemyInt("xuke", "shoot_cooldown", 800));
+    xuke.skills = QString("【沙漠之鹰】发射精准子弹：\n  · 普通子弹：%1点伤害，爆头%2点\n  · 强化子弹（每6发）：%3点伤害，爆头%4点\n【爆头判定】命中玩家头部（上20%区域）触发爆头伤害")
+                      .arg(config.getEnemyInt("xuke", "normal_damage", 1))
+                      .arg(config.getEnemyInt("xuke", "normal_headshot_damage", 3))
+                      .arg(config.getEnemyInt("xuke", "special_damage", 2))
+                      .arg(config.getEnemyInt("xuke", "special_headshot_damage", 8));
+    xuke.traits = QString("远程敌人，保持距离%1，全图视野，无接触伤害")
+                      .arg(config.getEnemyDouble("xuke", "preferred_distance", 250.0), 0, 'f', 0);
+    xuke.weakness = "";
+    xuke.backstory = "沙鹰狙神是教室里的新面孔。在某位传奇教授调离之后，他接手了概率论的教鞭。\n\n他不像前任那样喜欢用正态分布轰炸学生，而是更偏爱精准打击——一发入魂，直击要害。他的课堂上没有弹幕，只有致命的单点突破。\n\n每当他喊出「颗秒」的时候，就意味着有人的平时分被精准命中了。这两个字是他的招牌，也是无数学生的噩梦。\n\n「概率论的精髓不在于撒网，而在于瞄准。」——这是他的教学理念。";
+    xuke.isCharacter = false;
+    m_enemyEntries.append(xuke);
 
     CodexEntry invigilator;
     invigilator.name = "监考员";

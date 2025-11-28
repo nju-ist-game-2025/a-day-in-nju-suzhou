@@ -10,7 +10,7 @@ class Player;
 class ZhuhaoProjectile;
 
 /**
- * @brief 朱昊 - 第三关精英怪
+ * @brief 祝昊 - 第三关精英怪
  *
  * 特性：
  * - 远程攻击敌人，沿地图边缘移动
