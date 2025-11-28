@@ -90,6 +90,59 @@ void CodexCard::leaveEvent(QEvent* event) {
     QWidget::leaveEvent(event);
 }
 
+void CodexCard::setScale(double scale) {
+    // 缩放卡片大小
+    int cardWidth = static_cast<int>(BASE_CARD_WIDTH * scale);
+    int cardHeight = static_cast<int>(BASE_CARD_HEIGHT * scale);
+    setFixedSize(cardWidth, cardHeight);
+
+    // 缩放图片标签
+    int imageSize = static_cast<int>(BASE_IMAGE_SIZE * scale);
+    m_imageLabel->setFixedSize(imageSize, imageSize);
+
+    // 重新加载并缩放图片
+    QPixmap pixmap(m_entry.imagePath);
+    if (!pixmap.isNull()) {
+        int pixmapSize = static_cast<int>(BASE_PIXMAP_SIZE * scale);
+        pixmap = pixmap.scaled(pixmapSize, pixmapSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        m_imageLabel->setPixmap(pixmap);
+    }
+
+    // 缩放字体
+    int fontSize = static_cast<int>(BASE_FONT_SIZE * scale);
+    if (fontSize < 8)
+        fontSize = 8;
+    QFont nameFont;
+    nameFont.setFamily("Microsoft YaHei");
+    nameFont.setPointSize(fontSize);
+    nameFont.setBold(true);
+    m_nameLabel->setFont(nameFont);
+
+    // 缩放布局边距
+    int margin = static_cast<int>(5 * scale);
+    int spacing = static_cast<int>(5 * scale);
+    if (layout()) {
+        layout()->setContentsMargins(margin, margin, margin, margin);
+        if (QVBoxLayout* vLayout = qobject_cast<QVBoxLayout*>(layout())) {
+            vLayout->setSpacing(spacing);
+        }
+    }
+
+    // 缩放圆角
+    int borderRadius = static_cast<int>(15 * scale);
+    int imgBorderRadius = static_cast<int>(10 * scale);
+    setStyleSheet(QString(
+                      "CodexCard {"
+                      "   background-color: rgba(100, 149, 237, 220);"
+                      "   border: 2px solid rgba(70, 130, 220, 255);"
+                      "   border-radius: %1px;"
+                      "}")
+                      .arg(borderRadius));
+    m_imageLabel->setStyleSheet(QString(
+                                    "background-color: rgba(255,255,255,220); border-radius: %1px;")
+                                    .arg(imgBorderRadius));
+}
+
 // ==================== CodexDetailDialog 实现 ====================
 
 CodexDetailDialog::CodexDetailDialog(const CodexEntry& entry, QWidget* parent)
@@ -303,7 +356,7 @@ void Codex::setupUI() {
     mainLayout->setSpacing(20);
 
     // 标题
-    QLabel* titleLabel = new QLabel("游戏图鉴", this);
+    titleLabel = new QLabel("游戏图鉴", this);
     QFont titleFont;
     titleFont.setFamily("Microsoft YaHei");
     titleFont.setPointSize(28);
@@ -404,7 +457,8 @@ QWidget* Codex::createCategoryPage(const QList<CodexEntry>& entries) {
     for (const CodexEntry& entry : entries) {
         CodexCard* card = new CodexCard(entry, contentWidget);
         connect(card, &CodexCard::clicked, this, &Codex::showEntryDetail);
-        gridLayout->addWidget(card, row, col, Qt::AlignLeft | Qt::AlignTop);
+        gridLayout->addWidget(card, row, col, Qt::AlignCenter);  // 改为居中对齐
+        m_allCards.append(card);                                 // 保存卡片引用
 
         col++;
         if (col >= maxCols) {
@@ -413,12 +467,10 @@ QWidget* Codex::createCategoryPage(const QList<CodexEntry>& entries) {
         }
     }
 
-    // 设置列宽固定，让卡片左对齐
+    // 设置列宽均匀分布
     for (int i = 0; i < maxCols; ++i) {
-        gridLayout->setColumnStretch(i, 0);
+        gridLayout->setColumnStretch(i, 1);  // 所有列均匀拉伸
     }
-    // 最后添加一个弹性列，把所有内容推到左边
-    gridLayout->setColumnStretch(maxCols, 1);
 
     // 添加弹簧填充剩余垂直空间
     gridLayout->setRowStretch(row + 1, 1);
@@ -1056,8 +1108,8 @@ void Codex::loadMysteryData() {
             "【特殊效果】将它放在背包里，当你感到迷茫时，它会发出微弱但温暖的粉色光芒。\n\n"
             "（通关纪念·献给每一个独特的智科er）";
     } else {
-        ticket.name = "？？？";
-        ticket.imagePath = "assets/usagi/usagi_normal.png";  // 用乌萨奇的图作为占位符
+        ticket.name = "乌萨奇的神秘礼物";
+        ticket.imagePath = "assets/items/ticket_unlocked.png";  // 用乌萨奇的图作为占位符
         ticket.health = -1;
         ticket.isCharacter = true;
         ticket.skills =
@@ -1092,14 +1144,114 @@ void Codex::resizeEvent(QResizeEvent* event) {
         // 保持默认背景
     }
 
-    // 缩放UI元素
+    // 等比例缩放UI元素
     double scaleX = event->size().width() / 800.0;
     double scaleY = event->size().height() / 600.0;
     double scale = qMin(scaleX, scaleY);
 
+    // 缩放返回按钮
     int btnWidth = static_cast<int>(150 * scale);
     int btnHeight = static_cast<int>(40 * scale);
     backButton->setFixedSize(btnWidth, btnHeight);
+
+    // 缩放返回按钮字体
+    QFont btnFont;
+    btnFont.setFamily("Microsoft YaHei");
+    btnFont.setPointSize(static_cast<int>(14 * scale));
+    btnFont.setBold(true);
+    backButton->setFont(btnFont);
+
+    // 缩放标题字体
+    QFont titleFont;
+    titleFont.setFamily("Microsoft YaHei");
+    int titleSize = static_cast<int>(28 * scale);
+    if (titleSize < 14)
+        titleSize = 14;  // 避免太小
+    if (titleSize > 56)
+        titleSize = 56;  // 避免太大
+    titleFont.setPointSize(titleSize);
+    titleFont.setBold(true);
+    titleLabel->setFont(titleFont);
+
+    // 缩放标签页字体
+    int tabFontSize = static_cast<int>(14 * scale);
+    if (tabFontSize < 10)
+        tabFontSize = 10;
+    if (tabFontSize > 24)
+        tabFontSize = 24;
+    int tabPaddingV = static_cast<int>(10 * scale);
+    int tabPaddingH = static_cast<int>(25 * scale);
+    int tabMargin = static_cast<int>(5 * scale);
+    int tabRadius = static_cast<int>(10 * scale);
+    int borderWidth = static_cast<int>(2 * scale);
+    if (borderWidth < 1)
+        borderWidth = 1;
+
+    QString tabStyle = QString(
+                           "QTabWidget::pane {"
+                           "   border: %1px solid rgba(100, 149, 237, 200);"
+                           "   border-radius: %2px;"
+                           "   background-color: rgba(255, 255, 255, 230);"
+                           "}"
+                           "QTabBar::tab {"
+                           "   background: rgba(180, 200, 230, 220);"
+                           "   color: #1a1a1a;"
+                           "   padding: %3px %4px;"
+                           "   margin-right: %5px;"
+                           "   border-top-left-radius: %2px;"
+                           "   border-top-right-radius: %2px;"
+                           "   font-family: 'Microsoft YaHei';"
+                           "   font-size: %6px;"
+                           "   font-weight: bold;"
+                           "}"
+                           "QTabBar::tab:selected {"
+                           "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4a90d9, stop:1 #2980b9);"
+                           "   color: white;"
+                           "}"
+                           "QTabBar::tab:hover:!selected {"
+                           "   background: rgba(150, 180, 220, 240);"
+                           "}")
+                           .arg(borderWidth)
+                           .arg(tabRadius)
+                           .arg(tabPaddingV)
+                           .arg(tabPaddingH)
+                           .arg(tabMargin)
+                           .arg(tabFontSize);
+
+    tabWidget->setStyleSheet(tabStyle);
+
+    // 缩放布局边距
+    if (layout()) {
+        int margin = static_cast<int>(20 * scale);
+        int spacing = static_cast<int>(20 * scale);
+        layout()->setContentsMargins(margin, margin, margin, margin);
+        if (QVBoxLayout* vLayout = qobject_cast<QVBoxLayout*>(layout())) {
+            vLayout->setSpacing(spacing);
+        }
+    }
+
+    // 缩放所有卡片
+    for (CodexCard* card : m_allCards) {
+        if (card) {
+            card->setScale(scale);
+        }
+    }
+
+    // 缩放每个标签页内的网格布局间距
+    int gridMargin = static_cast<int>(30 * scale);
+    int gridSpacing = static_cast<int>(25 * scale);
+    for (int i = 0; i < tabWidget->count(); ++i) {
+        QWidget* page = tabWidget->widget(i);
+        if (QScrollArea* scrollArea = qobject_cast<QScrollArea*>(page)) {
+            if (QWidget* contentWidget = scrollArea->widget()) {
+                if (QGridLayout* gridLayout = qobject_cast<QGridLayout*>(contentWidget->layout())) {
+                    gridLayout->setContentsMargins(gridMargin, gridMargin, gridMargin, gridMargin);
+                    gridLayout->setHorizontalSpacing(gridSpacing);
+                    gridLayout->setVerticalSpacing(gridSpacing);
+                }
+            }
+        }
+    }
 }
 
 void Codex::showEvent(QShowEvent* event) {
@@ -1121,10 +1273,38 @@ void Codex::refreshMysteryData() {
     // 移除旧的标签页并创建新的
     QWidget* oldWidget = tabWidget->widget(mysteryTabIndex);
     tabWidget->removeTab(mysteryTabIndex);
+
+    // 从 m_allCards 中移除将被删除的卡片
     if (oldWidget) {
+        QList<CodexCard*> cardsToRemove;
+        for (CodexCard* card : m_allCards) {
+            if (card && card->parent() && card->window() == oldWidget->window()) {
+                // 检查卡片是否属于旧的标签页
+                QWidget* parent = card->parentWidget();
+                while (parent && parent != oldWidget) {
+                    parent = parent->parentWidget();
+                }
+                if (parent == oldWidget) {
+                    cardsToRemove.append(card);
+                }
+            }
+        }
+        for (CodexCard* card : cardsToRemove) {
+            m_allCards.removeOne(card);
+        }
         oldWidget->deleteLater();
     }
 
     // 创建新的标签页
     tabWidget->addTab(createCategoryPage(m_mysteryEntries), "神秘物品");
+
+    // 应用当前缩放到新创建的卡片
+    double scaleX = width() / 800.0;
+    double scaleY = height() / 600.0;
+    double scale = qMin(scaleX, scaleY);
+    for (CodexCard* card : m_allCards) {
+        if (card) {
+            card->setScale(scale);
+        }
+    }
 }

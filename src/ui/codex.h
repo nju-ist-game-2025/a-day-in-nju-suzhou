@@ -38,6 +38,7 @@ class CodexCard : public QWidget {
     Q_OBJECT
    public:
     explicit CodexCard(const CodexEntry& entry, QWidget* parent = nullptr);
+    void setScale(double scale);  // 缩放卡片
 
    signals:
 
@@ -54,6 +55,13 @@ class CodexCard : public QWidget {
     CodexEntry m_entry;
     QLabel* m_imageLabel;
     QLabel* m_nameLabel;
+
+    // 基础尺寸常量
+    static constexpr int BASE_CARD_WIDTH = 120;
+    static constexpr int BASE_CARD_HEIGHT = 150;
+    static constexpr int BASE_IMAGE_SIZE = 80;
+    static constexpr int BASE_PIXMAP_SIZE = 70;
+    static constexpr int BASE_FONT_SIZE = 10;
 };
 
 // 详细信息弹窗
@@ -103,6 +111,8 @@ class Codex : public QWidget {
 
     QTabWidget* tabWidget;
     QPushButton* backButton;
+    QLabel* titleLabel;            // 标题标签，用于缩放
+    QList<CodexCard*> m_allCards;  // 所有卡片，用于缩放
 
     QList<CodexEntry> m_bossEntries;
     QList<CodexEntry> m_enemyEntries;
