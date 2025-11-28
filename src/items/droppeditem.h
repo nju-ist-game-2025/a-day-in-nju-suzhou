@@ -22,7 +22,8 @@ enum class DroppedItemType {
     FROST_SLOWDOWN,   // 冰冻减速 - 增加20%寒冰子弹概率
     MOVEMENT_SPEED,   // 移动速度 - 移速+20%（上限3倍）
     SHIELD,           // 护盾 - 增加一个护盾
-    KEY               // 钥匙
+    KEY,              // 钥匙
+    TICKET            // 车票 - 通关奖励
 };
 
 /**
@@ -68,6 +69,12 @@ class DroppedItem : public QObject, public QGraphicsPixmapItem {
      * @brief 暂停道具（用于游戏暂停）
      */
     void setPaused(bool paused);
+
+   signals:
+    /**
+     * @brief 车票拾取信号（触发通关动画）
+     */
+    void ticketPickedUp();
 
    private slots:
     /**

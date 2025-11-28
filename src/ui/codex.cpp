@@ -6,6 +6,7 @@
 #include <QPixmap>
 #include <QResizeEvent>
 #include <QScrollArea>
+#include <QShowEvent>
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 #include "../items/itemeffectconfig.h"
@@ -282,6 +283,7 @@ Codex::Codex(QWidget* parent) : QWidget(parent) {
     loadUsagiData();
     loadItemData();
     loadMechanicsData();
+    loadMysteryData();
 
     // 创建各标签页
     tabWidget->addTab(createCategoryPage(m_bossEntries), "Boss");
@@ -290,6 +292,7 @@ Codex::Codex(QWidget* parent) : QWidget(parent) {
     tabWidget->addTab(createCategoryPage(m_usagiEntries), "乌萨奇");
     tabWidget->addTab(createCategoryPage(m_itemEntries), "道具");
     tabWidget->addTab(createCategoryPage(m_mechanicsEntries), "机制");
+    tabWidget->addTab(createCategoryPage(m_mysteryEntries), "神秘物品");
 }
 
 void Codex::setupUI() {
@@ -973,6 +976,101 @@ void Codex::loadMechanicsData() {
         "【通关条件】击败当前关卡的Boss即可进入下一关";
     levelMechanics.backstory = "智科er的一天从起床开始，经过洗衣房，最终在教室结束。\n\n这是每一个NJU学生都要经历的日常，只不过在这个游戏里，日常变成了冒险。";
     m_mechanicsEntries.append(levelMechanics);
+
+    // 游戏背景故事
+    CodexEntry gameStory;
+    gameStory.name = QString::fromUtf8("背景故事");
+    gameStory.imagePath = "assets/background/main.png";
+    gameStory.health = -1;
+    gameStory.isCharacter = true;
+    gameStory.skills = QString::fromUtf8(
+        "【时间】某个普通的周一早晨\n"
+        "【地点】南京大学苏州校区\n"
+        "【主角】一名智能科学与技术专业的学生\n"
+        "【目标】从起床到上课，完成这看似简单的日常");
+    gameStory.backstory = QString::fromUtf8(
+        "序章\n\n"
+        "在南京大学的某个角落，有一群被称为\"智科er\"的学生。他们每天的生活看起来平平无奇：上课、写作业、睡觉、洗衣服。\n\n"
+        "但没人知道的是，在这些日常的缝隙里，藏着一些不为人知的秘密。\n\n"
+        "第一章：梦魇\n\n"
+        "故事开始于一个普通的清晨。闹钟响了，但智科er没有起床。\n\n"
+        "\"再睡五分钟...\"\n\n"
+        "五分钟变成了十分钟，十分钟变成了一个小时。当意识逐渐模糊的时候，智科er发现自己陷入了一个无法醒来的梦境。\n\n"
+        "在梦里，闹钟长出了脚，枕头有了意识，而在最深处，有一个自称\"梦魇\"的存在正在等待着。它知道智科er所有的秘密——翘过的早九、摸过的鱼、没交的作业。\n\n"
+        "\"承认吧，你就是个废物。\"梦魇说。\n\n"
+        "但智科er不这么认为。\n\n"
+        "第二章：洗衣房\n\n"
+        "从梦中醒来后，智科er决定做一件正经事——洗衣服。\n\n"
+        "那堆在角落里放了一周的脏衣服已经开始散发异味了。但当智科er端着脏衣服走进洗衣房的时候，诡异的事情发生了。\n\n"
+        "那些臭袜子、内裤...它们活过来了。\n\n"
+        "\"我们受够了！\"袜子们喊道，\"一周不洗我们，现在又想把我们扔进冰水里！\"\n\n"
+        "而在洗衣房的最深处，一台被脏衣服污染的洗衣机正在疯狂地旋转，发出痛苦的咕噜声。\n\n"
+        "智科er必须打败它，才能让洗衣房恢复平静。\n\n"
+        "第三章：期末考试\n\n"
+        "终于熬过了日常的琐事，但最可怕的敌人还在前方——期末考试。\n\n"
+        "概率论、凸优化、数字系统...这些平时只在课本上出现的名词，现在化身为真实的怪物，在教室里游荡。\n\n"
+        "\"你上课睡觉的时候，我们都看在眼里！\"教材们异口同声地说。\n\n"
+        "而在教室的最深处，坐着一位传说中的存在——奶牛张。他手持概率论的教鞭，用正态分布弹幕和极大似然估计陷阱迎接每一个挑战者。\n\n"
+        "\"让我们开始今天的「随堂测验」吧。\"他微笑着说。\n\n"
+        "尾声：乌萨奇\n\n"
+        "每当一个Boss倒下，总会有一个神秘的身影从天而降。\n\n"
+        "她叫乌萨奇，没人知道她从哪里来，也没人知道她为什么总能算准时机出现。她喜欢说\"哇哦～\"，喜欢计算不可能的概率，据说连说悄悄话都要用音响。\n\n"
+        "\"通关概率只有0.01%哦～\"她总是这样说，\"但是，我相信你就是那个0.01%！\"\n\n"
+        "然后她会留下两个宝箱，消失在空气中。\n\n"
+        "下一关的冒险，又要开始了。\n\n"
+        "关于这个游戏\n\n"
+        "这是一个关于大学生活的荒诞冒险游戏。在这里，起床是一场战争，洗衣服是一场灾难，而期末考试...是真正的地狱。\n\n"
+        "选择你的角色——是追求极致输出的美少女，还是神秘优雅的高雅人士，亦或是眼神睿智的小蓝鲸，或者是能帮你找回一切的权服侠？\n\n"
+        "穿越梦境、洗衣房和教室，打败那些想要阻止你的敌人。\n\n"
+        "毕竟，能活着度过大学生活的人，才是真正的赢家。\n\n");
+    m_mechanicsEntries.append(gameStory);
+}
+
+void Codex::loadMysteryData() {
+    ConfigManager& config = ConfigManager::instance();
+    bool gameCompleted = config.isGameCompleted();
+
+    // 通关车票
+    CodexEntry ticket;
+    if (gameCompleted) {
+        ticket.name = "通关车票";
+        ticket.imagePath = "assets/items/ticket.png";
+        ticket.health = -1;
+        ticket.isCharacter = true;
+        ticket.skills =
+            "【物品类型】特殊纪念品\n"
+            "【获取方式】通关第三关后获得\n"
+            "【用途】证明你已经从智科er的日常中毕业了\n"
+            "【稀有度】★★★★★ 传说级";
+        ticket.backstory =
+            "一张皱巴巴的、边缘磨损的车票。它看起来在洗衣机里滚过，被高数课本压过，甚至沾上了熬夜时的咖啡渍。\n\n"
+            "出发站是\"南京大学苏州校区\"，字迹已经模糊得差不多了。\n\n"
+            "当你试图看清上面的目的地时，却发现那里是一片流动的光彩。\n\n"
+            "你盯着这张票根，突然想起了很多事：那个被闹钟追着跑的早晨，洗衣房里差点把你卷进去的洗衣机，还有奶牛张念出\"设X服从正态分布\"时你内心的绝望...\n\n"
+            "但你还是走到了这里。\n\n"
+            "并不是每个人都要成为输出爆炸的战士，也不是每个人都要做那只完美的学霸奶牛。你可以是角落里发呆的云，也可以是逆流而上的鱼。\n\n"
+            "生活有时真的很糟糕，就像那个永远醒不来的梦魇，或者那台永远修不好的洗衣机。但请别灰心。\n\n"
+            "看，那个神秘的家伙已经在你的票根上盖了章。\n\n"
+            "乌萨奇把车票塞进你手里的时候眨眨眼：\"目的地？随便你填哪里都行哦～反正哪怕概率只有0.01%，我也会陪你到的！\"\n\n"
+            "你把车票小心翼翼地收好。\n\n"
+            "【特殊效果】将它放在背包里，当你感到迷茫时，它会发出微弱但温暖的粉色光芒。\n\n"
+            "（通关纪念·献给每一个独特的智科er）";
+    } else {
+        ticket.name = "？？？";
+        ticket.imagePath = "assets/usagi/usagi_normal.png";  // 用乌萨奇的图作为占位符
+        ticket.health = -1;
+        ticket.isCharacter = true;
+        ticket.skills =
+            "【物品类型】未知\n"
+            "【获取方式】通关游戏后解锁\n"
+            "【当前状态】🔒 已锁定";
+        ticket.backstory =
+            "这个条目仍然是个谜...\n\n"
+            "乌萨奇神秘地笑了笑：\"想知道这是什么吗？那就先把游戏通关吧！\"\n\n"
+            "\"相信我，这份礼物值得你为之努力。每一个真正的勇者，都应该得到这份奖励。\"\n\n"
+            "也许，在击败所有Boss之后，你就能发现这个秘密了...";
+    }
+    m_mysteryEntries.append(ticket);
 }
 
 void Codex::returnToMenu() {
@@ -1002,4 +1100,31 @@ void Codex::resizeEvent(QResizeEvent* event) {
     int btnWidth = static_cast<int>(150 * scale);
     int btnHeight = static_cast<int>(40 * scale);
     backButton->setFixedSize(btnWidth, btnHeight);
+}
+
+void Codex::showEvent(QShowEvent* event) {
+    QWidget::showEvent(event);
+    // 每次显示图鉴时刷新神秘物品数据（以便通关后能看到解锁的车票）
+    refreshMysteryData();
+}
+
+void Codex::refreshMysteryData() {
+    // 获取神秘物品标签页的索引（最后一个标签页）
+    int mysteryTabIndex = tabWidget->count() - 1;
+    if (mysteryTabIndex < 0)
+        return;
+
+    // 重新加载神秘物品数据
+    m_mysteryEntries.clear();
+    loadMysteryData();
+
+    // 移除旧的标签页并创建新的
+    QWidget* oldWidget = tabWidget->widget(mysteryTabIndex);
+    tabWidget->removeTab(mysteryTabIndex);
+    if (oldWidget) {
+        oldWidget->deleteLater();
+    }
+
+    // 创建新的标签页
+    tabWidget->addTab(createCategoryPage(m_mysteryEntries), "神秘物品");
 }

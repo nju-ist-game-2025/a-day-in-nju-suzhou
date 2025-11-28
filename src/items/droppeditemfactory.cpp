@@ -133,9 +133,11 @@ void DroppedItemFactory::dropItemsScattered(ItemDropPool pool, const QPointF& po
     }
 }
 
-void DroppedItemFactory::dropSpecificItems(const QVector<DroppedItemType>& types, const QPointF& pos, Player* player, QGraphicsScene* scene) {
+QVector<DroppedItem*> DroppedItemFactory::dropSpecificItems(const QVector<DroppedItemType>& types, const QPointF& pos, Player* player, QGraphicsScene* scene) {
+    QVector<DroppedItem*> items;
+
     if (!player || !scene || types.isEmpty()) {
-        return;
+        return items;
     }
 
     int count = types.size();
@@ -155,8 +157,13 @@ void DroppedItemFactory::dropSpecificItems(const QVector<DroppedItemType>& types
             dropPos.setY(qBound(50.0, dropPos.y(), scene_bound_y - 50.0));
         }
 
-        createDroppedItem(types[i], dropPos, player, scene);
+        DroppedItem* item = createDroppedItem(types[i], dropPos, player, scene);
+        if (item) {
+            items.append(item);
+        }
     }
+
+    return items;
 }
 
 DroppedItemType DroppedItemFactory::getItemTypeFromName(const QString& name) {
@@ -170,7 +177,8 @@ DroppedItemType DroppedItemFactory::getItemTypeFromName(const QString& name) {
         {"movement_speed_boost", DroppedItemType::MOVEMENT_SPEED},
         {"movement_speed", DroppedItemType::MOVEMENT_SPEED},
         {"shield", DroppedItemType::SHIELD},
-        {"key", DroppedItemType::KEY}};
+        {"key", DroppedItemType::KEY},
+        {"ticket", DroppedItemType::TICKET}};
 
     QString lowerName = name.toLower();
     if (nameMap.contains(lowerName)) {

@@ -12,8 +12,8 @@
 #include "../world/levelconfig.h"
 
 class Player;
-
 class Chest;
+class DroppedItem;
 
 /**
  * @brief Usagi - 乌萨奇 NPC (Boss奖励机制管理器)
@@ -50,6 +50,12 @@ class Usagi : public QObject, public QGraphicsPixmapItem {
 
     // 请求显示对话（发送给Level处理）
     void requestShowDialog(const QStringList& dialog);
+
+    // 车票拾取信号（通关）- 废弃，改用ticketCreated
+    void ticketPickedUp();
+
+    // 车票创建信号（让Level直接连接车票）
+    void ticketCreated(DroppedItem* ticket);
 
    public slots:
 

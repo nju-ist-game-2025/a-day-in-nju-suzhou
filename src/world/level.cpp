@@ -3014,6 +3014,18 @@ void Level::startBossRewardSequence() {
     connect(m_usagi, &Usagi::requestShowDialog, this, &Level::onUsagiRequestShowDialog);
     connect(m_usagi, &Usagi::rewardSequenceCompleted, this, &Level::onUsagiRewardCompleted);
 
+    // 连接车票创建信号（第三关）- Level直接连接DroppedItem的信号，避免Usagi被销毁后信号丢失
+    connect(m_usagi, &Usagi::ticketCreated, this, [this](DroppedItem* ticket) {
+        qDebug() << "[Level] 收到Usagi的ticketCreated信号，直接连接车票";
+        if (ticket) {
+            connect(ticket, &DroppedItem::ticketPickedUp, this, [this]() {
+                qDebug() << "[Level] 车票被拾取！发送ticketPickedUp信号给GameView";
+                emit ticketPickedUp();
+            });
+            qDebug() << "[Level] 已直接连接车票的ticketPickedUp信号";
+        }
+    });
+
     // 启动奖励流程
     m_usagi->startRewardSequence();
 }
@@ -3033,16 +3045,20 @@ void Level::onUsagiRequestShowDialog(const QStringList& dialog) {
 }
 
 void Level::onUsagiRewardCompleted() {
-    qDebug() << "[Level] 乌萨奇奖励流程完成，激活G键进入下一关";
+    qDebug() << "[Level] 乌萨奇奖励流程完成";
 
     // 标记Boss房间已通关
     m_bossRoomCleared = true;
 
-    // 激活G键并显示提示
-    m_gKeyEnabled = true;
-    showGKeyHint();
-
-    qDebug() << "[Level] G键已激活，等待玩家按G进入下一关";
+    // 第三关不激活G键（因为拾取车票后会触发通关动画）
+    if (m_levelNumber != 3) {
+        // 激活G键并显示提示
+        m_gKeyEnabled = true;
+        showGKeyHint();
+        qDebug() << "[Level] G键已激活，等待玩家按G进入下一关";
+    } else {
+        qDebug() << "[Level] 第三关不激活G键，等待玩家拾取车票";
+    }
 
     m_rewardSequenceActive = false;
     m_usagi = nullptr;

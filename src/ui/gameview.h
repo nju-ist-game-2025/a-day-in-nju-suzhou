@@ -114,6 +114,8 @@ class GameView : public QWidget {
 
     void onBlackHeartRevive();  // 黑心复活时的处理
 
+    void onTicketPickedUp();  // 车票拾取时的处理
+
    signals:
 
     void backToMenu();

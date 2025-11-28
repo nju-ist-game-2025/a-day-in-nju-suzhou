@@ -152,6 +152,17 @@ class ConfigManager {
      */
     [[nodiscard]] QString getBossString(const QString& bossType, const QString& key, const QString& defaultValue = "") const;
 
+    // ============== 游戏进度配置 ==============
+    /**
+     * @brief 检查游戏是否已通关
+     */
+    [[nodiscard]] bool isGameCompleted() const;
+
+    /**
+     * @brief 设置游戏通关状态
+     */
+    void setGameCompleted(bool completed);
+
    private:
     ConfigManager() = default;
 

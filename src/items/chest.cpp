@@ -354,7 +354,16 @@ void BossChest::doOpen() {
         }
 
         QPointF chestPos = this->pos() + QPointF(boundingRect().width() / 2, boundingRect().height() / 2);
-        DroppedItemFactory::dropSpecificItems(customTypes, chestPos, m_player.data(), scene());
+        QVector<DroppedItem*> items = DroppedItemFactory::dropSpecificItems(customTypes, chestPos, m_player.data(), scene());
+
+        // 检查是否有车票，如果有则发出信号
+        for (DroppedItem* item : items) {
+            if (item && item->getType() == DroppedItemType::TICKET) {
+                emit ticketDropped(item);
+                qDebug() << "Boss宝箱掉落了车票！";
+            }
+        }
+
         qDebug() << "Boss宝箱掉落自定义物品:" << m_customItemNames.size() << "个";
     } else {
         // 默认行为：每个Boss宝箱掉落2个物品

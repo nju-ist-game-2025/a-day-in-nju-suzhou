@@ -110,6 +110,8 @@ class Level : public QObject {
     void dialogFinished();  // 对话结束
     void levelInitialized();
 
+    void ticketPickedUp();  // 车票拾取信号（通关）
+
    private:
     void initCurrentRoom(Room* room);
 

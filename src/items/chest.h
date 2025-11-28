@@ -118,6 +118,9 @@ class BossChest : public Chest {
      * @param itemNames 物品名称列表（如 "black_heart", "red_heart" 等）
      */
     void setCustomItems(const QVector<QString>& itemNames);
+
+   signals:
+    void ticketDropped(DroppedItem* ticket);  // 车票掉落信号
 };
 
 // 保留旧类名的别名，便于兼容

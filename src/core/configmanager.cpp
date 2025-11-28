@@ -357,3 +357,23 @@ bool ConfigManager::getLoggingDebug(bool defaultValue) const {
     QJsonObject loggingObj = configObject.value("logging").toObject();
     return loggingObj.value("debug").toBool(defaultValue);
 }
+
+bool ConfigManager::isGameCompleted() const {
+    if (!loaded) {
+        return false;
+    }
+    QJsonObject progressObj = configObject.value("progress").toObject();
+    return progressObj.value("game_completed").toBool(false);
+}
+
+void ConfigManager::setGameCompleted(bool completed) {
+    if (!loaded) {
+        qWarning() << "配置文件未加载，无法设置通关状态";
+        return;
+    }
+    QJsonObject progressObj = configObject.value("progress").toObject();
+    progressObj["game_completed"] = completed;
+    configObject["progress"] = progressObj;
+    saveConfig();
+    qDebug() << "游戏通关状态已保存:" << completed;
+}

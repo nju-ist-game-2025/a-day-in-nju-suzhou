@@ -93,6 +93,10 @@ class Codex : public QWidget {
 
     void loadMechanicsData();
 
+    void loadMysteryData();  // 神秘物品（车票等）
+
+    void refreshMysteryData();  // 刷新神秘物品数据（通关后更新）
+
     QWidget* createCategoryPage(const QList<CodexEntry>& entries);
 
     void showEntryDetail(const CodexEntry& entry);
@@ -106,9 +110,11 @@ class Codex : public QWidget {
     QList<CodexEntry> m_usagiEntries;
     QList<CodexEntry> m_itemEntries;
     QList<CodexEntry> m_mechanicsEntries;
+    QList<CodexEntry> m_mysteryEntries;  // 神秘物品
 
    protected:
     void resizeEvent(QResizeEvent* event) override;
+    void showEvent(QShowEvent* event) override;  // 显示时刷新数据
 };
 
 #endif  // CODEX_H

@@ -68,6 +68,8 @@ QString DroppedItem::getItemImagePath(DroppedItemType type) {
             return "assets/props/shield.png";
         case DroppedItemType::KEY:
             return "assets/props/key.png";
+        case DroppedItemType::TICKET:
+            return "assets/items/ticket.png";
         default:
             return "";
     }
@@ -93,6 +95,8 @@ QString DroppedItem::getItemName() const {
             return "护盾";
         case DroppedItemType::KEY:
             return "钥匙";
+        case DroppedItemType::TICKET:
+            return "车票";
         default:
             return "未知道具";
     }
@@ -322,6 +326,14 @@ void DroppedItem::applyEffect() {
         int value = config.getValue();
         m_player->addKeys(value);
         pickupText = config.pickupText;
+    } else if (m_type == DroppedItemType::TICKET) {
+        // 车票：通关奖励，不显示普通提示，而是触发通关动画
+        qDebug() << "DroppedItem: 车票applyEffect开始执行";
+        ConfigManager::instance().setGameCompleted(true);
+        qDebug() << "DroppedItem: 即将发送ticketPickedUp信号";
+        emit ticketPickedUp();
+        qDebug() << "DroppedItem: ticketPickedUp信号已发送";
+        return;  // 车票不显示普通提示，由通关动画处理
     } else {
         // 未知类型
         pickupText = "获得道具";
@@ -353,6 +365,8 @@ QString DroppedItem::getItemConfigKey() const {
             return "shield";
         case DroppedItemType::KEY:
             return "key";
+        case DroppedItemType::TICKET:
+            return "ticket";
         default:
             return "unknown";
     }

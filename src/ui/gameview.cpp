@@ -293,6 +293,7 @@ void GameView::initGame() {
         connect(level, &Level::levelCompleted, this, &GameView::onLevelCompleted);
         connect(level, &Level::dialogStarted, this, [this]() { m_isInStoryMode = true; });
         connect(level, &Level::dialogFinished, this, [this]() { m_isInStoryMode = false; });
+        connect(level, &Level::ticketPickedUp, this, &GameView::onTicketPickedUp);
         connect(player, &Player::playerDamaged, hud, &HUD::triggerDamageFlash);
 
         // 连接房间进入信号到HUD小地图更新 - 必须在创建level之后
@@ -539,6 +540,7 @@ void GameView::advanceToNextLevel() {
         connect(level, &Level::bossDoorsOpened, this, &GameView::onBossDoorsOpened);
         connect(level, &Level::dialogStarted, this, [this]() { m_isInStoryMode = true; });
         connect(level, &Level::dialogFinished, this, [this]() { m_isInStoryMode = false; });
+        connect(level, &Level::ticketPickedUp, this, &GameView::onTicketPickedUp);
     }
 
     // 更新HUD显示当前关卡
@@ -1160,4 +1162,86 @@ void GameView::onBlackHeartRevive() {
 
         animTimer->start(16);
     });
+}
+
+void GameView::onTicketPickedUp() {
+    qDebug() << "GameView: 收到车票拾取信号，开始通关动画";
+
+    // 暂停游戏
+    if (level)
+        level->setPaused(true);
+    if (player)
+        player->setPaused(true);
+
+    QRectF rect = scene->sceneRect();
+    int W = rect.width();
+    int H = rect.height();
+
+    // 创建半透明遮罩
+    QGraphicsRectItem* overlay = new QGraphicsRectItem(0, 0, W, H);
+    overlay->setBrush(QColor(0, 0, 0, 0));  // 初始透明
+    overlay->setPen(Qt::NoPen);
+    overlay->setZValue(29000);
+    scene->addItem(overlay);
+
+    // 加载车票图片
+    QPixmap ticketPix("assets/items/ticket.png");
+    if (ticketPix.isNull()) {
+        ticketPix = QPixmap(100, 60);
+        ticketPix.fill(QColor(255, 182, 193));  // 粉色占位符
+    }
+
+    QGraphicsPixmapItem* ticket = new QGraphicsPixmapItem(ticketPix);
+    ticket->setZValue(30000);
+    // 设置变换原点为图片中心
+    ticket->setTransformOriginPoint(ticketPix.width() / 2.0, ticketPix.height() / 2.0);
+    ticket->setScale(0.1);
+    // 初始位置：让图片中心对齐屏幕中心
+    ticket->setPos(W / 2.0 - ticketPix.width() / 2.0, H / 2.0 - ticketPix.height() / 2.0);
+    scene->addItem(ticket);
+
+    // 动画参数
+    int animDuration = 5000;
+    int totalSteps = animDuration / 16;
+    int* step = new int(0);
+
+    QTimer* animTimer = new QTimer(this);
+    connect(animTimer, &QTimer::timeout, this, [this, animTimer, step, totalSteps, ticket, overlay, ticketPix, W, H]() {
+        (*step)++;
+        double progress = static_cast<double>(*step) / totalSteps;
+
+        if (progress >= 1.0) {
+            animTimer->stop();
+            animTimer->deleteLater();
+            delete step;
+
+            // 动画完成，显示通关界面
+            if (ticket && scene->items().contains(ticket)) {
+                scene->removeItem(ticket);
+                delete ticket;
+            }
+            if (overlay && scene->items().contains(overlay)) {
+                scene->removeItem(overlay);
+                delete overlay;
+            }
+
+            // 显示胜利界面
+            showVictoryUI();
+            return;
+        }
+
+        // 背景渐暗（前30%时间内完成）
+        double overlayProgress = qMin(1.0, progress / 0.3);
+        int alpha = static_cast<int>(180 * overlayProgress);
+        overlay->setBrush(QColor(0, 0, 0, alpha));
+
+        // 车票放大动画（使用缓动函数，更平滑）
+        double easedProgress = 1.0 - qPow(1.0 - progress, 3);  // easeOutCubic
+        double targetScale = 0.8;
+        double currentScale = 0.1 + (targetScale - 0.1) * easedProgress;
+        ticket->setScale(currentScale);
+        // 位置不需要更新，因为TransformOriginPoint已设置为中心，缩放会围绕中心进行
+    });
+
+    animTimer->start(16);
 }

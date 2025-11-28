@@ -68,8 +68,9 @@ class DroppedItemFactory {
      * @param pos 中心位置
      * @param player 玩家引用
      * @param scene 场景
+     * @return 创建的物品列表
      */
-    static void dropSpecificItems(const QVector<DroppedItemType>& types, const QPointF& pos, Player* player, QGraphicsScene* scene);
+    static QVector<DroppedItem*> dropSpecificItems(const QVector<DroppedItemType>& types, const QPointF& pos, Player* player, QGraphicsScene* scene);
 
     /**
      * @brief 根据字符串名称获取物品类型

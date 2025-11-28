@@ -167,13 +167,15 @@ QStringList Usagi::generateCongratsDialog() {
             "「智科er」 \n 那我岂不是...",
             "【乌萨奇】\n『你就是那个传说中的欧皇！』",
             "【乌萨奇】\n『好啦好啦，这是你应得的奖励～』",
-            "【乌萨奇】\n『对了对了，告诉你一个秘密...』",
-            "【乌萨奇】\n『其实这只是第一个版本哦！』",
-            "【乌萨奇】\n『后续还会有更多的Boss和关卡等着你～』",
-            "「智科er」 \n 还有？！",
-            "【乌萨奇】\n『期待下次见面吧！拜拜～』",
-            "（乌萨奇开心地消失了）",
-            "（恭喜你通关了游戏！感谢游玩！）"};
+            "【乌萨奇】\n『诶嘿嘿，这次只有一个宝箱哦～』",
+            "「智科er」 \n 什么？怎么变少了？",
+            "【乌萨奇】\n『因为里面装的东西很特别～』",
+            "【乌萨奇】\n『是我亲手为你准备的...一张车票！』",
+            "「智科er」 \n 车票？去哪里的车票？",
+            "【乌萨奇】\n『目的地嘛...随便你填哪里都行哦～』",
+            "【乌萨奇】\n『反正哪怕概率只有0.01%，我也会陪你到的！』",
+            "【乌萨奇】\n『好了，去打开它吧！祝你旅途愉快～』",
+            "（乌萨奇开心地消失了）"};
     } else {
         dialog = {
             "【乌萨奇】\n『恭喜通关！』",
@@ -242,48 +244,74 @@ void Usagi::spawnRewardChests() {
         return;
     }
 
-    // 宝箱位置（画面中央左右两侧）
-    QPointF chest1Pos(300, 300);
-    QPointF chest2Pos(500, 300);
+    // 第三关只给一个宝箱，里面是车票
+    if (m_levelNumber == 3) {
+        QPointF chestPos(400, 300);  // 画面中央
 
-    // 创建两个Boss特供宝箱
-    BossChest* chest1 = new BossChest(m_player, chestPix, 1.0);
-    chest1->setPos(chest1Pos);
+        BossChest* chest = new BossChest(m_player, chestPix, 1.0);
+        chest->setPos(chestPos);
 
-    BossChest* chest2 = new BossChest(m_player, chestPix, 1.0);
-    chest2->setPos(chest2Pos);
+        // 设置车票作为唯一物品
+        QVector<QString> ticketItem = {"ticket"};
+        chest->setCustomItems(ticketItem);
 
-    // 使用新的物品掉落系统配置宝箱物品
-    if (!m_usagiChestItems.isEmpty()) {
-        // 将物品分配到两个宝箱
-        QVector<QString> chest1Items, chest2Items;
-        for (int i = 0; i < m_usagiChestItems.size(); ++i) {
-            if (i % 2 == 0) {
-                chest1Items.append(m_usagiChestItems[i]);
-            } else {
-                chest2Items.append(m_usagiChestItems[i]);
+        m_scene->addItem(chest);
+        m_rewardChests.append(QPointer<Chest>(chest));
+
+        connect(chest, &Chest::opened, this, &Usagi::onChestOpened);
+
+        // 连接车票掉落信号 - 发送给Level让它直接连接
+        connect(chest, &BossChest::ticketDropped, this, [this](DroppedItem* ticket) {
+            qDebug() << "[Usagi] 收到宝箱的ticketDropped信号，发送ticketCreated给Level";
+            if (ticket) {
+                emit ticketCreated(ticket);
             }
-        }
-        chest1->setCustomItems(chest1Items);
-        chest2->setCustomItems(chest2Items);
-        qDebug() << "[Usagi] 使用自定义物品配置，宝箱1:" << chest1Items.size() << "个，宝箱2:" << chest2Items.size() << "个";
+        });
+
+        qDebug() << "[Usagi] 第三关Boss特供宝箱已生成（车票）";
     } else {
-        // 没有配置物品时，使用默认的Boss宝箱掉落池
-        qDebug() << "[Usagi] 没有配置自定义物品，使用默认Boss宝箱掉落池";
+        // 前两关给两个宝箱
+        QPointF chest1Pos(300, 300);
+        QPointF chest2Pos(500, 300);
+
+        BossChest* chest1 = new BossChest(m_player, chestPix, 1.0);
+        chest1->setPos(chest1Pos);
+
+        BossChest* chest2 = new BossChest(m_player, chestPix, 1.0);
+        chest2->setPos(chest2Pos);
+
+        // 使用新的物品掉落系统配置宝箱物品
+        if (!m_usagiChestItems.isEmpty()) {
+            // 将物品分配到两个宝箱
+            QVector<QString> chest1Items, chest2Items;
+            for (int i = 0; i < m_usagiChestItems.size(); ++i) {
+                if (i % 2 == 0) {
+                    chest1Items.append(m_usagiChestItems[i]);
+                } else {
+                    chest2Items.append(m_usagiChestItems[i]);
+                }
+            }
+            chest1->setCustomItems(chest1Items);
+            chest2->setCustomItems(chest2Items);
+            qDebug() << "[Usagi] 使用自定义物品配置，宝箱1:" << chest1Items.size() << "个，宝箱2:" << chest2Items.size() << "个";
+        } else {
+            // 没有配置物品时，使用默认的Boss宝箱掉落池
+            qDebug() << "[Usagi] 没有配置自定义物品，使用默认Boss宝箱掉落池";
+        }
+
+        // 添加到场景
+        m_scene->addItem(chest1);
+        m_rewardChests.append(QPointer<Chest>(chest1));
+
+        m_scene->addItem(chest2);
+        m_rewardChests.append(QPointer<Chest>(chest2));
+
+        // 连接宝箱打开信号
+        connect(chest1, &Chest::opened, this, &Usagi::onChestOpened);
+        connect(chest2, &Chest::opened, this, &Usagi::onChestOpened);
+
+        qDebug() << "[Usagi] Boss特供宝箱已生成，共2个";
     }
-
-    // 添加到场景
-    m_scene->addItem(chest1);
-    m_rewardChests.append(QPointer<Chest>(chest1));
-
-    m_scene->addItem(chest2);
-    m_rewardChests.append(QPointer<Chest>(chest2));
-
-    // 连接宝箱打开信号
-    connect(chest1, &Chest::opened, this, &Usagi::onChestOpened);
-    connect(chest2, &Chest::opened, this, &Usagi::onChestOpened);
-
-    qDebug() << "[Usagi] Boss特供宝箱已生成，共2个";
 }
 
 void Usagi::onChestOpened(Chest* chest) {
