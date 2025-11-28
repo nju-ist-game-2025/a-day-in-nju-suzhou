@@ -78,6 +78,13 @@ class ConfigManager {
      */
     [[nodiscard]] bool isConfigValidationEnabled() const;
 
+    /**
+     * @brief 获取 logging.debug 配置
+     * @param defaultValue 默认值
+     * @return logging.debug
+     */
+    [[nodiscard]] bool getLoggingDebug(bool defaultValue = false) const;
+
     // ============== 玩家配置 ==============
     /**
      * @brief 获取玩家配置的整数值

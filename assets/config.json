@@ -3,6 +3,9 @@
         "enabled": false,
         "config_validation": false
     },
+    "logging": {
+        "debug": false
+    },
     "assets": {
         "background_main": "assets/background/main.png",
         "background_codex": "assets/background/codex.png",

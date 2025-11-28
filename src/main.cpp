@@ -3,6 +3,7 @@
 #include "core/configmanager.h"
 #include "core/configvalidator.h"
 #include "core/gamewindow.h"
+#include "core/logging.h"
 #include "items/itemeffectconfig.h"
 
 int main(int argc, char* argv[]) {
@@ -12,11 +13,25 @@ int main(int argc, char* argv[]) {
 #endif
 
     QApplication a(argc, argv);
+    // 可选：使用自定义消息处理程序过滤消息（可以更细粒度地控制，或在不同情况下切换）
+    // qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg){
+    //     if (type == QtDebugMsg) {
+    //         return; // 丢弃 debug 日志
+    //     }
+    //     QByteArray localMsg = msg.toLocal8Bit();
+    //     const char *file = context.file ? context.file : "";
+    //     const char *function = context.function ? context.function : "";
+    //     fprintf(stderr, "%s (%s:%u, %s)\n", localMsg.constData(), file, context.line, function);
+    // });
     // 加载配置文件
     if (!ConfigManager::instance().loadConfig("assets/config.json")) {
         qCritical() << "无法加载配置文件，程序退出";
         return 1;
     }
+
+    // 从配置读取 logging.debug 并初始化日志系统
+    bool enableQDebug = ConfigManager::instance().getLoggingDebug(false);
+    Logging::initializeLogging(enableQDebug);
 
     // 加载道具效果配置
     if (!ItemEffectConfig::instance().loadConfig("assets/item_effects.json")) {

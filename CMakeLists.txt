@@ -46,6 +46,7 @@ set(CORE_SOURCES
         src/core/configmanager.h
         src/core/configvalidator.cpp
         src/core/configvalidator.h
+        src/core/logging.cpp
 )
 
 set(ENTITY_SOURCES
@@ -201,6 +202,14 @@ target_link_libraries(game_final PRIVATE
 if (MINGW)
     target_link_options(game_final PRIVATE -Wl,--allow-multiple-definition)
 endif ()
+
+# Disable qDebug() output in Release/RelWithDebInfo builds by defining the
+# QT_NO_DEBUG_OUTPUT macro at compile-time. This will remove qDebug() logging
+# calls from the binary, reducing noise and improving performance.
+target_compile_definitions(game_final PRIVATE
+        $<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>
+        $<$<CONFIG:RelWithDebInfo>:QT_NO_DEBUG_OUTPUT>
+)
 
 # If user requested a Win32 GUI executable, handle platform-specific requirements.
 if (BUILD_WIN32_EXECUTABLE)

@@ -348,3 +348,12 @@ QString ConfigManager::getBossString(const QString& bossType, const QString& key
 
     return defaultValue;
 }
+
+bool ConfigManager::getLoggingDebug(bool defaultValue) const {
+    if (!loaded) {
+        qWarning() << "配置文件未加载";
+        return defaultValue;
+    }
+    QJsonObject loggingObj = configObject.value("logging").toObject();
+    return loggingObj.value("debug").toBool(defaultValue);
+}
