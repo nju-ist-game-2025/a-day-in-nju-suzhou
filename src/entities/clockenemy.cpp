@@ -5,24 +5,26 @@
 #include <QGraphicsTextItem>
 #include <QPointer>
 #include <QTimer>
+#include "../core/configmanager.h"
 #include "player.h"
 
-ClockEnemy::ClockEnemy(const QPixmap &pic, double scale)
-        : Enemy(pic, scale) {
-    // 时钟怪物的基础属性（与普通敌人相同）
-    setHealth(10);
-    setContactDamage(2);
-    setVisionRange(250.0);
-    setAttackRange(40.0);
-    setAttackCooldown(1000);
-    setSpeed(2.0);
+ClockEnemy::ClockEnemy(const QPixmap& pic, double scale)
+    : Enemy(pic, scale) {
+    // 从配置文件读取时钟怪物属性
+    ConfigManager& config = ConfigManager::instance();
+    setHealth(config.getEnemyInt("clock_normal", "health", 10));
+    setContactDamage(config.getEnemyInt("clock_normal", "contact_damage", 2));
+    setVisionRange(config.getEnemyDouble("clock_normal", "vision_range", 250.0));
+    setAttackRange(config.getEnemyDouble("clock_normal", "attack_range", 40.0));
+    setAttackCooldown(config.getEnemyInt("clock_normal", "attack_cooldown", 1000));
+    setSpeed(config.getEnemyDouble("clock_normal", "speed", 2.0));
 
     // 使用Z字形移动模式，增加躲避难度
     setMovementPattern(MOVE_ZIGZAG);
-    setZigzagAmplitude(60.0);
+    setZigzagAmplitude(config.getEnemyDouble("clock_normal", "zigzag_amplitude", 60.0));
 }
 
-void ClockEnemy::onContactWithPlayer(Player *p) {
+void ClockEnemy::onContactWithPlayer(Player* p) {
     Q_UNUSED(p);
     // 接触时触发惊吓效果
     applyScareEffect();
@@ -63,7 +65,7 @@ void ClockEnemy::applyScareEffect() {
     player->setEffectCooldown(true);
 
     // 显示"惊吓！！"文字提示
-    QGraphicsTextItem *scareText = new QGraphicsTextItem("惊吓！！");
+    QGraphicsTextItem* scareText = new QGraphicsTextItem("惊吓！！");
     QFont font;
     font.setPointSize(16);
     font.setBold(true);
@@ -80,7 +82,7 @@ void ClockEnemy::applyScareEffect() {
     QPointer<Player> playerPtr = player;
 
     // 创建文字跟随定时器，让文字跟随玩家移动
-    QTimer *followTimer = new QTimer();
+    QTimer* followTimer = new QTimer();
     QObject::connect(followTimer, &QTimer::timeout, [playerPtr, scareText]() {
         if (playerPtr && scareText && scareText->scene()) {
             scareText->setPos(playerPtr->pos().x(), playerPtr->pos().y() - 40);

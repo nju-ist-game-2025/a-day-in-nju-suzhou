@@ -6,28 +6,33 @@
 #include <QPainter>
 #include <QRandomGenerator>
 #include <QtMath>
-#include "player.h"
 #include "../core/audiomanager.h"
+#include "../core/configmanager.h"
 #include "../ui/explosion.h"
+#include "player.h"
 
 // ==================== ZhuhaoEnemy 实现 ====================
 
-ZhuhaoEnemy::ZhuhaoEnemy(const QPixmap &pic, double scale)
-        : Enemy(pic, scale),
-          m_moveTimer(nullptr),
-          m_edgeSpeed(EDGE_MOVE_SPEED),
-          m_movingClockwise(true),
-          m_currentEdge(0),
-          m_shootTimer(nullptr),
-          m_bulletCount(BULLETS_PER_WAVE),
-          m_bulletSpeed(DEFAULT_BULLET_SPEED) {
-    // 设置属性
-    health = 150;
-    maxHealth = 150;
-    contactDamage = 3;
-    visionRange = 9999.0; // 全图视野
-    attackRange = 9999.0; // 全图攻击范围
-    speed = 0;            // 不使用普通移动
+ZhuhaoEnemy::ZhuhaoEnemy(const QPixmap& pic, double scale)
+    : Enemy(pic, scale),
+      m_moveTimer(nullptr),
+      m_edgeSpeed(EDGE_MOVE_SPEED),
+      m_movingClockwise(true),
+      m_currentEdge(0),
+      m_shootTimer(nullptr),
+      m_bulletCount(BULLETS_PER_WAVE),
+      m_bulletSpeed(DEFAULT_BULLET_SPEED) {
+    // 从配置文件读取朱昊属性
+    ConfigManager& config = ConfigManager::instance();
+    health = config.getEnemyInt("zhuhao", "health", 150);
+    maxHealth = health;
+    contactDamage = config.getEnemyInt("zhuhao", "contact_damage", 3);
+    visionRange = 9999.0;  // 全图视野
+    attackRange = 9999.0;  // 全图攻击范围
+    speed = 0;             // 不使用普通移动
+    m_edgeSpeed = config.getEnemyDouble("zhuhao", "edge_move_speed", EDGE_MOVE_SPEED);
+    m_bulletSpeed = config.getEnemyDouble("zhuhao", "bullet_speed", DEFAULT_BULLET_SPEED);
+    m_bulletCount = config.getEnemyInt("zhuhao", "bullets_per_wave", BULLETS_PER_WAVE);
 
     // 设置移动模式为静止（我们自己控制移动）
     setMovementPattern(MOVE_NONE);
@@ -38,7 +43,7 @@ ZhuhaoEnemy::ZhuhaoEnemy(const QPixmap &pic, double scale)
     // 创建移动定时器
     m_moveTimer = new QTimer(this);
     connect(m_moveTimer, &QTimer::timeout, this, &ZhuhaoEnemy::onMoveTimer);
-    m_moveTimer->start(16); // 约60fps
+    m_moveTimer->start(16);  // 约60fps
 
     // 创建射击定时器
     m_shootTimer = new QTimer(this);
@@ -76,25 +81,25 @@ void ZhuhaoEnemy::initializeAtRandomEdge() {
     double centerX, centerY;
 
     switch (edge) {
-        case 0: // 上边缘
+        case 0:  // 上边缘
             centerX = QRandomGenerator::global()->bounded(static_cast<int>(MAP_LEFT + 50),
                                                           static_cast<int>(MAP_RIGHT - 50));
             centerY = MAP_TOP;
             m_currentEdge = 0;
             break;
-        case 1: // 右边缘
+        case 1:  // 右边缘
             centerX = MAP_RIGHT;
             centerY = QRandomGenerator::global()->bounded(static_cast<int>(MAP_TOP + 50),
                                                           static_cast<int>(MAP_BOTTOM - 50));
             m_currentEdge = 1;
             break;
-        case 2: // 下边缘
+        case 2:  // 下边缘
             centerX = QRandomGenerator::global()->bounded(static_cast<int>(MAP_LEFT + 50),
                                                           static_cast<int>(MAP_RIGHT - 50));
             centerY = MAP_BOTTOM;
             m_currentEdge = 2;
             break;
-        case 3: // 左边缘
+        case 3:  // 左边缘
         default:
             centerX = MAP_LEFT;
             centerY = QRandomGenerator::global()->bounded(static_cast<int>(MAP_TOP + 50),
@@ -134,72 +139,72 @@ void ZhuhaoEnemy::moveAlongEdge() {
 
     if (m_movingClockwise) {
         switch (m_currentEdge) {
-            case 0: // 上边，向右移动
+            case 0:  // 上边，向右移动
                 newCenterX += m_edgeSpeed;
                 newCenterY = MAP_TOP;
                 if (newCenterX >= MAP_RIGHT) {
                     newCenterX = MAP_RIGHT;
-                    m_currentEdge = 1; // 切换到右边
+                    m_currentEdge = 1;  // 切换到右边
                 }
                 break;
-            case 1: // 右边，向下移动
+            case 1:  // 右边，向下移动
                 newCenterY += m_edgeSpeed;
                 newCenterX = MAP_RIGHT;
                 if (newCenterY >= MAP_BOTTOM) {
                     newCenterY = MAP_BOTTOM;
-                    m_currentEdge = 2; // 切换到下边
+                    m_currentEdge = 2;  // 切换到下边
                 }
                 break;
-            case 2: // 下边，向左移动
+            case 2:  // 下边，向左移动
                 newCenterX -= m_edgeSpeed;
                 newCenterY = MAP_BOTTOM;
                 if (newCenterX <= MAP_LEFT) {
                     newCenterX = MAP_LEFT;
-                    m_currentEdge = 3; // 切换到左边
+                    m_currentEdge = 3;  // 切换到左边
                 }
                 break;
-            case 3: // 左边，向上移动
+            case 3:  // 左边，向上移动
                 newCenterY -= m_edgeSpeed;
                 newCenterX = MAP_LEFT;
                 if (newCenterY <= MAP_TOP) {
                     newCenterY = MAP_TOP;
-                    m_currentEdge = 0; // 切换到上边
+                    m_currentEdge = 0;  // 切换到上边
                 }
                 break;
         }
     } else {
         // 逆时针
         switch (m_currentEdge) {
-            case 0: // 上边，向左移动
+            case 0:  // 上边，向左移动
                 newCenterX -= m_edgeSpeed;
                 newCenterY = MAP_TOP;
                 if (newCenterX <= MAP_LEFT) {
                     newCenterX = MAP_LEFT;
-                    m_currentEdge = 3; // 切换到左边
+                    m_currentEdge = 3;  // 切换到左边
                 }
                 break;
-            case 3: // 左边，向下移动
+            case 3:  // 左边，向下移动
                 newCenterY += m_edgeSpeed;
                 newCenterX = MAP_LEFT;
                 if (newCenterY >= MAP_BOTTOM) {
                     newCenterY = MAP_BOTTOM;
-                    m_currentEdge = 2; // 切换到下边
+                    m_currentEdge = 2;  // 切换到下边
                 }
                 break;
-            case 2: // 下边，向右移动
+            case 2:  // 下边，向右移动
                 newCenterX += m_edgeSpeed;
                 newCenterY = MAP_BOTTOM;
                 if (newCenterX >= MAP_RIGHT) {
                     newCenterX = MAP_RIGHT;
-                    m_currentEdge = 1; // 切换到右边
+                    m_currentEdge = 1;  // 切换到右边
                 }
                 break;
-            case 1: // 右边，向上移动
+            case 1:  // 右边，向上移动
                 newCenterY -= m_edgeSpeed;
                 newCenterX = MAP_RIGHT;
                 if (newCenterY <= MAP_TOP) {
                     newCenterY = MAP_TOP;
-                    m_currentEdge = 0; // 切换到上边
+                    m_currentEdge = 0;  // 切换到上边
                 }
                 break;
         }
@@ -220,18 +225,18 @@ void ZhuhaoEnemy::updateZhuhaoFacing() {
     bool shouldFaceRight = true;
 
     switch (m_currentEdge) {
-        case 0: // 上边
+        case 0:  // 上边
             // 顺时针向右移动，逆时针向左移动
             shouldFaceRight = m_movingClockwise;
             break;
-        case 2: // 下边
+        case 2:  // 下边
             // 顺时针向左移动，逆时针向右移动
             shouldFaceRight = !m_movingClockwise;
             break;
-        case 1: // 右边 - 朝向地图内部(左)
+        case 1:  // 右边 - 朝向地图内部(左)
             shouldFaceRight = false;
             break;
-        case 3: // 左边 - 朝向地图内部(右)
+        case 3:  // 左边 - 朝向地图内部(右)
             shouldFaceRight = true;
             break;
     }
@@ -307,15 +312,15 @@ double ZhuhaoEnemy::getInwardAngle() {
         case EDGE_TOP:
         case CORNER_TOP_LEFT:
         case CORNER_TOP_RIGHT:
-            return M_PI / 2; // 向下 (90度)
+            return M_PI / 2;  // 向下 (90度)
         case EDGE_BOTTOM:
         case CORNER_BOTTOM_LEFT:
         case CORNER_BOTTOM_RIGHT:
-            return -M_PI / 2; // 向上 (-90度 或 270度)
+            return -M_PI / 2;  // 向上 (-90度 或 270度)
         case EDGE_LEFT:
-            return 0; // 向右 (0度)
+            return 0;  // 向右 (0度)
         case EDGE_RIGHT:
-            return M_PI; // 向左 (180度)
+            return M_PI;  // 向左 (180度)
     }
     return 0;
 }
@@ -332,7 +337,7 @@ void ZhuhaoEnemy::shootBarrage() {
         return;
 
     // 360°均匀发射
-    double angleStep = 2 * M_PI / m_bulletCount; // 360° / 12 = 30°每发
+    double angleStep = 2 * M_PI / m_bulletCount;  // 360° / 12 = 30°每发
 
     QPointF myPos = pos();
     QPointF bulletStart(myPos.x() + boundingRect().width() / 2,
@@ -359,8 +364,8 @@ void ZhuhaoEnemy::shootBarrage() {
                 break;
         }
 
-        ZhuhaoProjectile *projectile = new ZhuhaoProjectile(
-                bulletType, bulletStart, angle, m_bulletSpeed, scene());
+        ZhuhaoProjectile* projectile = new ZhuhaoProjectile(
+            bulletType, bulletStart, angle, m_bulletSpeed, scene());
 
         scene()->addItem(projectile);
     }
@@ -399,16 +404,16 @@ void ZhuhaoEnemy::resumeTimers() {
 
 // ==================== ZhuhaoProjectile 实现 ====================
 
-ZhuhaoProjectile::ZhuhaoProjectile(BulletType type, QPointF startPos, double angle, double speed, QGraphicsScene *scene)
-        : QObject(nullptr),
-          QGraphicsPixmapItem(),
-          m_type(type),
-          m_angle(angle),
-          m_speed(speed),
-          m_moveTimer(nullptr),
-          m_collisionTimer(nullptr),
-          m_isPaused(false),
-          m_isDestroying(false) {
+ZhuhaoProjectile::ZhuhaoProjectile(BulletType type, QPointF startPos, double angle, double speed, QGraphicsScene* scene)
+    : QObject(nullptr),
+      QGraphicsPixmapItem(),
+      m_type(type),
+      m_angle(angle),
+      m_speed(speed),
+      m_moveTimer(nullptr),
+      m_collisionTimer(nullptr),
+      m_isPaused(false),
+      m_isDestroying(false) {
     Q_UNUSED(scene);
 
     // 计算移动方向
@@ -535,9 +540,9 @@ void ZhuhaoProjectile::checkCollision() {
     if (m_isPaused || m_isDestroying || !scene())
         return;
 
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item: collisions) {
-        Player *player = dynamic_cast<Player *>(item);
+    QList<QGraphicsItem*> collisions = collidingItems();
+    for (QGraphicsItem* item : collisions) {
+        Player* player = dynamic_cast<Player*>(item);
         if (player) {
             applyEffect(player);
 
@@ -554,7 +559,7 @@ void ZhuhaoProjectile::checkCollision() {
     }
 }
 
-void ZhuhaoProjectile::applyEffect(Player *player) {
+void ZhuhaoProjectile::applyEffect(Player* player) {
     if (!player || !scene())
         return;
 
@@ -567,12 +572,12 @@ void ZhuhaoProjectile::applyEffect(Player *player) {
                 player->setCanMove(false);
 
                 // 显示"昏睡ZZZ"文字提示（与枕头一致）
-                QGraphicsTextItem *sleepText = new QGraphicsTextItem("昏睡ZZZ");
+                QGraphicsTextItem* sleepText = new QGraphicsTextItem("昏睡ZZZ");
                 QFont font;
                 font.setPointSize(16);
                 font.setBold(true);
                 sleepText->setFont(font);
-                sleepText->setDefaultTextColor(QColor(128, 128, 128)); // 灰色，与枕头一致
+                sleepText->setDefaultTextColor(QColor(128, 128, 128));  // 灰色，与枕头一致
                 sleepText->setPos(player->pos().x(), player->pos().y() - 40);
                 sleepText->setZValue(200);
                 scene()->addItem(sleepText);
@@ -606,7 +611,7 @@ void ZhuhaoProjectile::applyEffect(Player *player) {
             if (!player->isEffectOnCooldown()) {
                 player->setEffectCooldown(true);
                 QPointer<Player> playerPtr = player;
-                QGraphicsScene *currentScene = scene();
+                QGraphicsScene* currentScene = scene();
 
                 if (QRandomGenerator::global()->bounded(100) < 50) {
                     // 50%昏迷效果（与枕头一致）
@@ -614,12 +619,12 @@ void ZhuhaoProjectile::applyEffect(Player *player) {
                         player->setCanMove(false);
 
                         // 显示"昏睡ZZZ"文字提示（与枕头一致）
-                        QGraphicsTextItem *sleepText = new QGraphicsTextItem("昏睡ZZZ");
+                        QGraphicsTextItem* sleepText = new QGraphicsTextItem("昏睡ZZZ");
                         QFont font;
                         font.setPointSize(16);
                         font.setBold(true);
                         sleepText->setFont(font);
-                        sleepText->setDefaultTextColor(QColor(128, 128, 128)); // 灰色，与枕头一致
+                        sleepText->setDefaultTextColor(QColor(128, 128, 128));  // 灰色，与枕头一致
                         sleepText->setPos(player->pos().x(), player->pos().y() - 40);
                         sleepText->setZValue(200);
                         currentScene->addItem(sleepText);
@@ -646,12 +651,12 @@ void ZhuhaoProjectile::applyEffect(Player *player) {
                     // 50%惊吓效果（与闹钟一致：移动速度增加但受伤提升150%）
                     if (!player->isScared()) {
                         // 显示"惊吓！！"文字提示
-                        QGraphicsTextItem *scareText = new QGraphicsTextItem("惊吓！！");
+                        QGraphicsTextItem* scareText = new QGraphicsTextItem("惊吓！！");
                         QFont font;
                         font.setPointSize(16);
                         font.setBold(true);
                         scareText->setFont(font);
-                        scareText->setDefaultTextColor(QColor(128, 128, 128)); // 灰色，与闹钟一致
+                        scareText->setDefaultTextColor(QColor(128, 128, 128));  // 灰色，与闹钟一致
                         scareText->setPos(player->pos().x(), player->pos().y() - 40);
                         scareText->setZValue(200);
                         currentScene->addItem(scareText);
@@ -659,7 +664,7 @@ void ZhuhaoProjectile::applyEffect(Player *player) {
                         // 应用惊吓效果
                         player->setScared(true);
 
-                        QTimer *followTimer = new QTimer();
+                        QTimer* followTimer = new QTimer();
                         QObject::connect(followTimer, &QTimer::timeout, [playerPtr, scareText]() {
                             if (playerPtr && scareText && scareText->scene()) {
                                 scareText->setPos(playerPtr->pos().x(), playerPtr->pos().y() - 40);
@@ -704,15 +709,15 @@ void ZhuhaoProjectile::applyEffect(Player *player) {
             if (!player->isEffectOnCooldown() && !player->isScared()) {
                 player->setEffectCooldown(true);
                 QPointer<Player> playerPtr = player;
-                QGraphicsScene *currentScene = scene();
+                QGraphicsScene* currentScene = scene();
 
                 // 显示"惊吓！！"文字提示
-                QGraphicsTextItem *scareText = new QGraphicsTextItem("惊吓！！");
+                QGraphicsTextItem* scareText = new QGraphicsTextItem("惊吓！！");
                 QFont font;
                 font.setPointSize(16);
                 font.setBold(true);
                 scareText->setFont(font);
-                scareText->setDefaultTextColor(QColor(128, 128, 128)); // 灰色，与闹钟一致
+                scareText->setDefaultTextColor(QColor(128, 128, 128));  // 灰色，与闹钟一致
                 scareText->setPos(player->pos().x(), player->pos().y() - 40);
                 scareText->setZValue(200);
                 currentScene->addItem(scareText);
@@ -720,7 +725,7 @@ void ZhuhaoProjectile::applyEffect(Player *player) {
                 // 应用惊吓效果（与闹钟一致：移动速度增加但受伤提升150%）
                 player->setScared(true);
 
-                QTimer *followTimer = new QTimer();
+                QTimer* followTimer = new QTimer();
                 QObject::connect(followTimer, &QTimer::timeout, [playerPtr, scareText]() {
                     if (playerPtr && scareText && scareText->scene()) {
                         scareText->setPos(playerPtr->pos().x(), playerPtr->pos().y() - 40);

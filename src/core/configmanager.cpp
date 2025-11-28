@@ -5,12 +5,12 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 
-ConfigManager &ConfigManager::instance() {
+ConfigManager& ConfigManager::instance() {
     static ConfigManager instance;
     return instance;
 }
 
-bool ConfigManager::loadConfig(const QString &configPath) {
+bool ConfigManager::loadConfig(const QString& configPath) {
     QFile configFile(configPath);
     if (!configFile.open(QIODevice::ReadOnly)) {
         qWarning() << "无法打开配置文件:" << configPath;
@@ -39,7 +39,7 @@ bool ConfigManager::loadConfig(const QString &configPath) {
     return true;
 }
 
-QString ConfigManager::getAssetPath(const QString &assetName) const {
+QString ConfigManager::getAssetPath(const QString& assetName) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return {};
@@ -49,7 +49,7 @@ QString ConfigManager::getAssetPath(const QString &assetName) const {
     return assets.value(assetName).toString();
 }
 
-void ConfigManager::setAssetPath(const QString &assetName, const QString &path) {
+void ConfigManager::setAssetPath(const QString& assetName, const QString& path) {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return;
@@ -60,7 +60,7 @@ void ConfigManager::setAssetPath(const QString &assetName, const QString &path) 
     configObject["assets"] = assets;
 }
 
-bool ConfigManager::saveConfig(const QString &configPath) {
+bool ConfigManager::saveConfig(const QString& configPath) {
     if (!loaded) {
         qWarning() << "配置文件未加载，无法保存";
         return false;
@@ -80,7 +80,7 @@ bool ConfigManager::saveConfig(const QString &configPath) {
     return true;
 }
 
-int ConfigManager::getSize(const QString &sizeName) const {
+int ConfigManager::getSize(const QString& sizeName) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return 0;
@@ -90,7 +90,7 @@ int ConfigManager::getSize(const QString &sizeName) const {
     return sizes.value(sizeName).toInt();
 }
 
-int ConfigManager::getEntitySize(const QString &category, const QString &typeName) const {
+int ConfigManager::getEntitySize(const QString& category, const QString& typeName) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return 0;
@@ -126,7 +126,7 @@ int ConfigManager::getEntitySize(const QString &category, const QString &typeNam
     return sizes.value(fallbackKey).toInt();
 }
 
-int ConfigManager::getBulletSize(const QString &bulletType) const {
+int ConfigManager::getBulletSize(const QString& bulletType) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return 20;  // 默认子弹大小
@@ -157,7 +157,7 @@ int ConfigManager::getBulletSize(const QString &bulletType) const {
     return 20;  // 最终默认值
 }
 
-int ConfigManager::getGameInt(const QString &key) const {
+int ConfigManager::getGameInt(const QString& key) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return 0;
@@ -167,7 +167,7 @@ int ConfigManager::getGameInt(const QString &key) const {
     return game.value(key).toInt();
 }
 
-double ConfigManager::getGameDouble(const QString &key) const {
+double ConfigManager::getGameDouble(const QString& key) const {
     if (!loaded) {
         qWarning() << "配置文件未加载";
         return 0.0;
@@ -185,4 +185,166 @@ bool ConfigManager::isDevModeEnabled() const {
 
     QJsonObject devMode = configObject.value("developer_mode").toObject();
     return devMode.value("enabled").toBool(false);
+}
+
+bool ConfigManager::isConfigValidationEnabled() const {
+    if (!loaded) {
+        qWarning() << "配置文件未加载";
+        return false;
+    }
+
+    QJsonObject devMode = configObject.value("developer_mode").toObject();
+    return devMode.value("config_validation").toBool(false);
+}
+
+// ============== 玩家配置实现 ==============
+
+int ConfigManager::getPlayerInt(const QString& key, int defaultValue) const {
+    if (!loaded) {
+        qWarning() << "配置文件未加载";
+        return defaultValue;
+    }
+
+    QJsonObject playerConfig = configObject.value("player").toObject();
+    QJsonObject defaultConfig = playerConfig.value("default").toObject();
+
+    if (defaultConfig.contains(key)) {
+        return defaultConfig.value(key).toInt(defaultValue);
+    }
+
+    return defaultValue;
+}
+
+double ConfigManager::getPlayerDouble(const QString& key, double defaultValue) const {
+    if (!loaded) {
+        qWarning() << "配置文件未加载";
+        return defaultValue;
+    }
+
+    QJsonObject playerConfig = configObject.value("player").toObject();
+    QJsonObject defaultConfig = playerConfig.value("default").toObject();
+
+    if (defaultConfig.contains(key)) {
+        return defaultConfig.value(key).toDouble(defaultValue);
+    }
+
+    return defaultValue;
+}
+
+// ============== 敌人配置实现 ==============
+
+int ConfigManager::getEnemyInt(const QString& enemyType, const QString& key, int defaultValue) const {
+    if (!loaded) {
+        qWarning() << "配置文件未加载";
+        return defaultValue;
+    }
+
+    QJsonObject enemiesConfig = configObject.value("enemies").toObject();
+
+    if (enemiesConfig.contains(enemyType)) {
+        QJsonObject enemyConfig = enemiesConfig.value(enemyType).toObject();
+        if (enemyConfig.contains(key)) {
+            return enemyConfig.value(key).toInt(defaultValue);
+        }
+    }
+
+    return defaultValue;
+}
+
+double ConfigManager::getEnemyDouble(const QString& enemyType, const QString& key, double defaultValue) const {
+    if (!loaded) {
+        qWarning() << "配置文件未加载";
+        return defaultValue;
+    }
+
+    QJsonObject enemiesConfig = configObject.value("enemies").toObject();
+
+    if (enemiesConfig.contains(enemyType)) {
+        QJsonObject enemyConfig = enemiesConfig.value(enemyType).toObject();
+        if (enemyConfig.contains(key)) {
+            return enemyConfig.value(key).toDouble(defaultValue);
+        }
+    }
+
+    return defaultValue;
+}
+
+QString ConfigManager::getEnemyString(const QString& enemyType, const QString& key, const QString& defaultValue) const {
+    if (!loaded) {
+        qWarning() << "配置文件未加载";
+        return defaultValue;
+    }
+
+    QJsonObject enemiesConfig = configObject.value("enemies").toObject();
+
+    if (enemiesConfig.contains(enemyType)) {
+        QJsonObject enemyConfig = enemiesConfig.value(enemyType).toObject();
+        if (enemyConfig.contains(key)) {
+            return enemyConfig.value(key).toString(defaultValue);
+        }
+    }
+
+    return defaultValue;
+}
+
+// ============== Boss配置实现 ==============
+
+int ConfigManager::getBossInt(const QString& bossType, const QString& phase, const QString& key, int defaultValue) const {
+    if (!loaded) {
+        qWarning() << "配置文件未加载";
+        return defaultValue;
+    }
+
+    QJsonObject bossesConfig = configObject.value("bosses").toObject();
+
+    if (bossesConfig.contains(bossType)) {
+        QJsonObject bossConfig = bossesConfig.value(bossType).toObject();
+        if (bossConfig.contains(phase)) {
+            QJsonObject phaseConfig = bossConfig.value(phase).toObject();
+            if (phaseConfig.contains(key)) {
+                return phaseConfig.value(key).toInt(defaultValue);
+            }
+        }
+    }
+
+    return defaultValue;
+}
+
+double ConfigManager::getBossDouble(const QString& bossType, const QString& phase, const QString& key, double defaultValue) const {
+    if (!loaded) {
+        qWarning() << "配置文件未加载";
+        return defaultValue;
+    }
+
+    QJsonObject bossesConfig = configObject.value("bosses").toObject();
+
+    if (bossesConfig.contains(bossType)) {
+        QJsonObject bossConfig = bossesConfig.value(bossType).toObject();
+        if (bossConfig.contains(phase)) {
+            QJsonObject phaseConfig = bossConfig.value(phase).toObject();
+            if (phaseConfig.contains(key)) {
+                return phaseConfig.value(key).toDouble(defaultValue);
+            }
+        }
+    }
+
+    return defaultValue;
+}
+
+QString ConfigManager::getBossString(const QString& bossType, const QString& key, const QString& defaultValue) const {
+    if (!loaded) {
+        qWarning() << "配置文件未加载";
+        return defaultValue;
+    }
+
+    QJsonObject bossesConfig = configObject.value("bosses").toObject();
+
+    if (bossesConfig.contains(bossType)) {
+        QJsonObject bossConfig = bossesConfig.value(bossType).toObject();
+        if (bossConfig.contains(key)) {
+            return bossConfig.value(key).toString(defaultValue);
+        }
+    }
+
+    return defaultValue;
 }

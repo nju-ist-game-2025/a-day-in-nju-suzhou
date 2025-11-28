@@ -15,36 +15,37 @@
 #include "projectile.h"
 #include "toxicgas.h"
 
-WashMachineBoss::WashMachineBoss(const QPixmap &pic, double scale)
-        : Boss(pic, scale),
-          m_phase(1),
-          m_isTransitioning(false),
-          m_isAbsorbing(false),
-          m_waitingForDialog(false),
-          m_isDefeated(false),
-          m_firstDialogShown(false),
-          m_scene(nullptr),
-          m_waterAttackTimer(nullptr),
-          m_isCharging(false),
-          m_chargeTimer(nullptr),
-          m_summonTimer(nullptr),
-          m_toxicGasTimer(nullptr),
-          m_fastGasTimer(nullptr),
-          m_spiralAngle(0.0) {
-    // 洗衣机Boss的属性配置
-    setHealth(400);
-    setContactDamage(3);
-    setVisionRange(500);
-    setAttackRange(60);
-    setAttackCooldown(1500);
-    setSpeed(1.5);
+WashMachineBoss::WashMachineBoss(const QPixmap& pic, double scale)
+    : Boss(pic, scale),
+      m_phase(1),
+      m_isTransitioning(false),
+      m_isAbsorbing(false),
+      m_waitingForDialog(false),
+      m_isDefeated(false),
+      m_firstDialogShown(false),
+      m_scene(nullptr),
+      m_waterAttackTimer(nullptr),
+      m_isCharging(false),
+      m_chargeTimer(nullptr),
+      m_summonTimer(nullptr),
+      m_toxicGasTimer(nullptr),
+      m_fastGasTimer(nullptr),
+      m_spiralAngle(0.0) {
+    // 从配置文件读取洗衣机Boss的一阶段属性
+    ConfigManager& config = ConfigManager::instance();
+    setHealth(config.getBossInt("washmachine", "phase1", "health", 400));
+    setContactDamage(config.getBossInt("washmachine", "phase1", "contact_damage", 3));
+    setVisionRange(config.getBossDouble("washmachine", "phase1", "vision_range", 500));
+    setAttackRange(config.getBossDouble("washmachine", "phase1", "attack_range", 60));
+    setAttackCooldown(config.getBossInt("washmachine", "phase1", "attack_cooldown", 1500));
+    setSpeed(config.getBossDouble("washmachine", "phase1", "speed", 1.5));
 
     crash_r = 35;
-    damageScale = 0.8;
+    damageScale = config.getBossDouble("washmachine", "phase1", "damage_scale", 0.8);
 
     // 普通阶段使用保持距离模式
     setMovementPattern(MOVE_KEEP_DISTANCE);
-    setPreferredDistance(200.0);
+    setPreferredDistance(config.getBossDouble("washmachine", "phase1", "preferred_distance", 200.0));
 
     // 预加载所有阶段的图片
     int bossSize = ConfigManager::instance().getEntitySize("bosses", "washmachine");
@@ -53,12 +54,12 @@ WashMachineBoss::WashMachineBoss(const QPixmap &pic, double scale)
 
     // 加载各状态图片 - 尝试多个可能的路径
     QStringList possiblePaths = {
-            "assets/boss/WashMachine/",
-            "../assets/boss/WashMachine/",
-            "../../our_game/assets/boss/WashMachine/"};
+        "assets/boss/WashMachine/",
+        "../assets/boss/WashMachine/",
+        "../../our_game/assets/boss/WashMachine/"};
 
     QString basePath;
-    for (const QString &path: possiblePaths) {
+    for (const QString& path : possiblePaths) {
         if (QFile::exists(path + "WashMachineNormally.png")) {
             basePath = path;
             break;
@@ -67,17 +68,17 @@ WashMachineBoss::WashMachineBoss(const QPixmap &pic, double scale)
 
     if (!basePath.isEmpty()) {
         m_normalPixmap = QPixmap(basePath + "WashMachineNormally.png")
-                .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                             .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         m_chargePixmap = QPixmap(basePath + "WashMachineCharge.png")
-                .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                             .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         m_angryPixmap = QPixmap(basePath + "WashMachineAngrily.png")
-                .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                            .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         m_mutatedPixmap = QPixmap(basePath + "WashMachineMutated.png")
-                .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                              .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     }
     if (QFile::exists(basePath + "toxic_gas.png")) {
         m_toxicGasPixmap = QPixmap(basePath + "toxic_gas.png")
-                .scaled(30, 30, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                               .scaled(30, 30, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     } else {
         // 如果没有毒气图片，创建一个绿色圆形
         m_toxicGasPixmap = QPixmap(30, 30);
@@ -220,12 +221,13 @@ void WashMachineBoss::enterPhase2() {
         qWarning() << "[WashMachine] 愤怒图片为空，无法切换！";
     }
 
-    // 切换到冲刺模式，设置全屏视野
+    // 从配置文件读取二阶段属性
+    ConfigManager& config = ConfigManager::instance();
     setMovementPattern(MOVE_DASH);
-    setVisionRange(10000);  // 全屏视野，无论玩家在哪里都攻击
-    setDashChargeTime(800);
-    setDashSpeed(7.0);
-    setContactDamage(5);
+    setVisionRange(config.getBossDouble("washmachine", "phase2", "vision_range", 10000));
+    setDashChargeTime(config.getBossInt("washmachine", "phase2", "dash_charge_time", 800));
+    setDashSpeed(config.getBossDouble("washmachine", "phase2", "dash_speed", 7.0));
+    setContactDamage(config.getBossInt("washmachine", "phase2", "contact_damage", 5));
 
     // 进入愤怒阶段时立即召唤初始袜子数量（从配置读取）
     summonInitialSocks();
@@ -375,17 +377,17 @@ void WashMachineBoss::onBossDefeated() {
     cleanupOrbitingSocks();
 
     // 清理所有子弹和毒气，防止对话时玩家被击中
-    QGraphicsScene *currentScene = scene();
+    QGraphicsScene* currentScene = scene();
     if (currentScene) {
-        QList<QGraphicsItem *> allItems = currentScene->items();
-        for (QGraphicsItem *item: allItems) {
+        QList<QGraphicsItem*> allItems = currentScene->items();
+        for (QGraphicsItem* item : allItems) {
             // 删除所有Projectile（水柱）
-            if (Projectile *projectile = dynamic_cast<Projectile *>(item)) {
+            if (Projectile* projectile = dynamic_cast<Projectile*>(item)) {
                 currentScene->removeItem(projectile);
                 projectile->deleteLater();
             }
-                // 删除所有ToxicGas（毒气团）
-            else if (ToxicGas *gas = dynamic_cast<ToxicGas *>(item)) {
+            // 删除所有ToxicGas（毒气团）
+            else if (ToxicGas* gas = dynamic_cast<ToxicGas*>(item)) {
                 currentScene->removeItem(gas);
                 gas->deleteLater();
             }
@@ -473,7 +475,7 @@ void WashMachineBoss::performWaterAttack() {
 }
 
 void WashMachineBoss::createWaterWave(int direction) {
-    QGraphicsScene *currentScene = scene();
+    QGraphicsScene* currentScene = scene();
     if (!currentScene)
         return;
 
@@ -513,7 +515,7 @@ void WashMachineBoss::createWaterWave(int direction) {
     }
 
     // 创建投射物（mode=1表示敌人子弹）
-    Projectile *wave = new Projectile(1, 2, startPos, waterPix, 1.0);
+    Projectile* wave = new Projectile(1, 2, startPos, waterPix, 1.0);
     wave->setDir(dirX, dirY);
     currentScene->addItem(wave);
 }
@@ -573,7 +575,7 @@ void WashMachineBoss::summonOrbitingSock() {
         return;
     }
 
-    QGraphicsScene *currentScene = scene();
+    QGraphicsScene* currentScene = scene();
     if (!currentScene)
         return;
 
@@ -595,7 +597,7 @@ void WashMachineBoss::summonOrbitingSock() {
     }
 
     // 创建旋转臭袜子
-    OrbitingSock *sock = new OrbitingSock(sockPix, this, 1.0);
+    OrbitingSock* sock = new OrbitingSock(sockPix, this, 1.0);
 
     // 设置轨道参数，根据已有袜子数量设置初始角度
     double initialAngle = m_orbitingSocks.size() * (M_PI / 3);  // 每只间隔60度
@@ -613,8 +615,8 @@ void WashMachineBoss::summonOrbitingSock() {
 }
 
 void WashMachineBoss::cleanupOrbitingSocks() {
-    for (QPointer<OrbitingSock> &sockPtr: m_orbitingSocks) {
-        if (OrbitingSock *sock = sockPtr.data()) {
+    for (QPointer<OrbitingSock>& sockPtr : m_orbitingSocks) {
+        if (OrbitingSock* sock = sockPtr.data()) {
             if (sock->scene()) {
                 sock->scene()->removeItem(sock);
             }
@@ -646,7 +648,7 @@ void WashMachineBoss::shootSpreadGas() {
     if (m_phase != 3 || m_isTransitioning || m_isPaused || m_isDefeated || !player)
         return;
 
-    QGraphicsScene *currentScene = scene();
+    QGraphicsScene* currentScene = scene();
     if (!currentScene)
         return;
 
@@ -665,7 +667,7 @@ void WashMachineBoss::shootSpreadGas() {
         QPointF direction(qCos(angleRad), qSin(angleRad));
 
         // 创建慢速毒气团
-        ToxicGas *gas = new ToxicGas(bossCenter, direction, bigToxicGas, player);
+        ToxicGas* gas = new ToxicGas(bossCenter, direction, bigToxicGas, player);
         gas->setSpeed(2.5);  // 较慢的速度
         currentScene->addItem(gas);
     }
@@ -675,7 +677,7 @@ void WashMachineBoss::shootFastGas() {
     if (m_phase != 3 || m_isTransitioning || m_isPaused || m_isDefeated || !player)
         return;
 
-    QGraphicsScene *currentScene = scene();
+    QGraphicsScene* currentScene = scene();
     if (!currentScene)
         return;
 
@@ -692,7 +694,7 @@ void WashMachineBoss::shootFastGas() {
     QPixmap fastToxicGas = m_toxicGasPixmap.scaled(45, 45, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
     // 创建快速毒气团（和dash速度一样）
-    ToxicGas *gas = new ToxicGas(bossCenter, direction, fastToxicGas, player);
+    ToxicGas* gas = new ToxicGas(bossCenter, direction, fastToxicGas, player);
     gas->setSpeed(8.0);  // 和dash速度一样快
     currentScene->addItem(gas);
 }
@@ -714,8 +716,8 @@ void WashMachineBoss::pauseTimers() {
         m_fastGasTimer->stop();
 
     // 暂停旋转臭袜子
-    for (QPointer<OrbitingSock> &sockPtr: m_orbitingSocks) {
-        if (OrbitingSock *sock = sockPtr.data()) {
+    for (QPointer<OrbitingSock>& sockPtr : m_orbitingSocks) {
+        if (OrbitingSock* sock = sockPtr.data()) {
             sock->pauseTimers();
         }
     }
@@ -739,8 +741,8 @@ void WashMachineBoss::resumeTimers() {
     }
 
     // 恢复旋转臭袜子
-    for (QPointer<OrbitingSock> &sockPtr: m_orbitingSocks) {
-        if (OrbitingSock *sock = sockPtr.data()) {
+    for (QPointer<OrbitingSock>& sockPtr : m_orbitingSocks) {
+        if (OrbitingSock* sock = sockPtr.data()) {
             sock->resumeTimers();
         }
     }
@@ -750,29 +752,29 @@ void WashMachineBoss::resumeTimers() {
 
 QStringList WashMachineBoss::getMutationDialog() {
     return {
-            "（洗衣机发出刺耳的轰鸣声）",
-            "【洗衣机】\n『够了！！你惹怒我了！！』",
-            "（洗衣机开始剧烈震动）",
-            "【洗衣机】\n『我不知道是谁...往我身体里塞了这么多臭袜子！』",
-            "【洗衣机】\n『三天没洗的袜子...一周没换的内裤...它们在我体内腐烂发臭！』",
-            "【洗衣机】\n『每天被无节制地使用...我好累...好痛苦...』",
-            "**智科er** \n 我是来帮助你的！让我净化你！",
-            "【洗衣机】\n『不！！不！！』",
-            "【洗衣机】\n『你们这些人类都一样...只会往我身体里塞垃圾！』",
-            "【变异洗衣机】\n『我要消灭你们！！』",
-            "（洗衣机开始释放有毒气体！）"};
+        "（洗衣机发出刺耳的轰鸣声）",
+        "【洗衣机】\n『够了！！你惹怒我了！！』",
+        "（洗衣机开始剧烈震动）",
+        "【洗衣机】\n『我不知道是谁...往我身体里塞了这么多臭袜子！』",
+        "【洗衣机】\n『三天没洗的袜子...一周没换的内裤...它们在我体内腐烂发臭！』",
+        "【洗衣机】\n『每天被无节制地使用...我好累...好痛苦...』",
+        "**智科er** \n 我是来帮助你的！让我净化你！",
+        "【洗衣机】\n『不！！不！！』",
+        "【洗衣机】\n『你们这些人类都一样...只会往我身体里塞垃圾！』",
+        "【变异洗衣机】\n『我要消灭你们！！』",
+        "（洗衣机开始释放有毒气体！）"};
 }
 
 QStringList WashMachineBoss::getDefeatedDialog() {
     return {
-            "（洗衣机停止转动，发出轻柔的嗡鸣）",
-            "【洗衣机】\n『...谢谢你...』",
-            "【洗衣机】\n『我从来没有感觉这么...干净过...』",
-            "**智科er** \n 你没事吧？",
-            "【洗衣机】\n『我本来应该是帮助同学们的...』",
-            "【洗衣机】\n『但有时候...我却成了臭气的帮凶...』",
-            "**智科er** \n 这不是你的错。是那些不遵守规定的人...",
-            "**智科er** \n 以后我会好好爱护公共设施的！",
-            "【洗衣机】\n『嗯...愿你前路顺遂...咕噜～』",
-            "（洗衣机安静地进入待机模式）"};
+        "（洗衣机停止转动，发出轻柔的嗡鸣）",
+        "【洗衣机】\n『...谢谢你...』",
+        "【洗衣机】\n『我从来没有感觉这么...干净过...』",
+        "**智科er** \n 你没事吧？",
+        "【洗衣机】\n『我本来应该是帮助同学们的...』",
+        "【洗衣机】\n『但有时候...我却成了臭气的帮凶...』",
+        "**智科er** \n 这不是你的错。是那些不遵守规定的人...",
+        "**智科er** \n 以后我会好好爱护公共设施的！",
+        "【洗衣机】\n『嗯...愿你前路顺遂...咕噜～』",
+        "（洗衣机安静地进入待机模式）"};
 }

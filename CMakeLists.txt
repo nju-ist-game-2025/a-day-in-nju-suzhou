@@ -44,6 +44,8 @@ set(CORE_SOURCES
         src/core/resourcefactory.h
         src/core/configmanager.cpp
         src/core/configmanager.h
+        src/core/configvalidator.cpp
+        src/core/configvalidator.h
 )
 
 set(ENTITY_SOURCES

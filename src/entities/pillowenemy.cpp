@@ -5,21 +5,25 @@
 #include <QGraphicsTextItem>
 #include <QPointer>
 #include <QTimer>
+#include "../core/configmanager.h"
 #include "player.h"
 
-PillowEnemy::PillowEnemy(const QPixmap &pic, double scale)
-        : Enemy(pic, scale) {
+PillowEnemy::PillowEnemy(const QPixmap& pic, double scale)
+    : Enemy(pic, scale) {
+    // 从配置文件读取枕头怪属性
+    ConfigManager& config = ConfigManager::instance();
+
     // 设置移动模式为绕圈移动
     setMovementPattern(MOVE_CIRCLE);
 
     // 设置绕圈半径和速度等参数
-    setCircleRadius(200.0);  // 绕圈半径
-    setSpeed(3.0);           // 移动速度
-    setHealth(20);           // 生命值
-    setContactDamage(2);     // 接触伤害
+    setCircleRadius(config.getEnemyDouble("pillow", "circle_radius", 200.0));
+    setSpeed(config.getEnemyDouble("pillow", "speed", 3.0));
+    setHealth(config.getEnemyInt("pillow", "health", 20));
+    setContactDamage(config.getEnemyInt("pillow", "contact_damage", 2));
 }
 
-void PillowEnemy::onContactWithPlayer(Player *p) {
+void PillowEnemy::onContactWithPlayer(Player* p) {
     Q_UNUSED(p);
     // 接触时100%触发昏睡效果
     applySleepEffect();
@@ -60,7 +64,7 @@ void PillowEnemy::applySleepEffect() {
     player->setEffectCooldown(true);
 
     // 显示"昏睡ZZZ"文字提示
-    QGraphicsTextItem *sleepText = new QGraphicsTextItem("昏睡ZZZ");
+    QGraphicsTextItem* sleepText = new QGraphicsTextItem("昏睡ZZZ");
     QFont font;
     font.setPointSize(16);
     font.setBold(true);

@@ -5,18 +5,16 @@
 #include <QRandomGenerator>
 #include <QtMath>
 #include "../core/audiomanager.h"
+#include "../core/configmanager.h"
 #include "../ui/explosion.h"
 #include "nightmareboss.h"
 #include "player.h"
 
-ClockBoom::ClockBoom(const QPixmap &normalPic, const QPixmap &redPic, double scale)
-        : Enemy(normalPic, scale), m_triggered(false), m_exploded(false), m_normalPixmap(
-        normalPic.scaled(normalPic.width() * scale, normalPic.height() * scale, Qt::KeepAspectRatio,
-                         Qt::SmoothTransformation)), m_redPixmap(
-        redPic.scaled(redPic.width() * scale, redPic.height() * scale, Qt::KeepAspectRatio, Qt::SmoothTransformation)),
-          m_isRed(false) {
-    // ClockBoom的特殊属性
-    setHealth(6);         // 6点血，可以被攻击摧毁
+ClockBoom::ClockBoom(const QPixmap& normalPic, const QPixmap& redPic, double scale)
+    : Enemy(normalPic, scale), m_triggered(false), m_exploded(false), m_normalPixmap(normalPic.scaled(normalPic.width() * scale, normalPic.height() * scale, Qt::KeepAspectRatio, Qt::SmoothTransformation)), m_redPixmap(redPic.scaled(redPic.width() * scale, redPic.height() * scale, Qt::KeepAspectRatio, Qt::SmoothTransformation)), m_isRed(false) {
+    // 从配置文件读取ClockBoom属性
+    ConfigManager& config = ConfigManager::instance();
+    setHealth(config.getEnemyInt("clock_boom", "health", 6));
     setContactDamage(0);  // 碰撞不造成伤害
     setVisionRange(0);    // 无视野
     setAttackRange(0);    // 无攻击范围
@@ -186,7 +184,7 @@ void ClockBoom::explode(bool dealDamage) {
 
     // 创建爆炸动画 - 立即创建以确保显示
     if (scene()) {
-        auto *explosion = new Explosion();
+        auto* explosion = new Explosion();
         explosion->setPos(this->pos());
         scene()->addItem(explosion);
         explosion->startAnimation();
@@ -213,26 +211,26 @@ void ClockBoom::damageNearbyEntities() {
     // 使用空间查询代替遍历所有物品
     QRectF searchRect(bombPos.x() - explosionRadius, bombPos.y() - explosionRadius,
                       explosionRadius * 2, explosionRadius * 2);
-    QList<QGraphicsItem *> nearbyItems = scene()->items(searchRect);
+    QList<QGraphicsItem*> nearbyItems = scene()->items(searchRect);
 
     // 性能优化：先进行一次类型筛选，减少重复的dynamic_cast
-    Player *targetPlayer = nullptr;
-    QVector<Enemy *> targetEnemies;
+    Player* targetPlayer = nullptr;
+    QVector<Enemy*> targetEnemies;
     targetEnemies.reserve(nearbyItems.size() / 2);  // 预分配避免频繁扩容
 
-    for (QGraphicsItem *item: nearbyItems) {
+    for (QGraphicsItem* item : nearbyItems) {
         // 跳过自己
         if (item == this)
             continue;
 
         // 先尝试转换为Enemy（更常见），如果失败再尝试Player
-        if (Enemy *enemy = dynamic_cast<Enemy *>(item)) {
+        if (Enemy* enemy = dynamic_cast<Enemy*>(item)) {
             // 跳过其他 ClockBoom（同类不互相伤害）
-            if (dynamic_cast<ClockBoom *>(enemy))
+            if (dynamic_cast<ClockBoom*>(enemy))
                 continue;
             targetEnemies.append(enemy);
         } else if (!targetPlayer) {  // 只需要找到一次玩家
-            targetPlayer = dynamic_cast<Player *>(item);
+            targetPlayer = dynamic_cast<Player*>(item);
         }
     }
 
@@ -248,7 +246,7 @@ void ClockBoom::damageNearbyEntities() {
         }
     }
 
-    for (Enemy *enemy: targetEnemies) {
+    for (Enemy* enemy : targetEnemies) {
         QPointF itemPos = enemy->pos();
         double dx = itemPos.x() - bombPos.x();
         double dy = itemPos.y() - bombPos.y();
@@ -256,7 +254,7 @@ void ClockBoom::damageNearbyEntities() {
 
         if (distanceSquared <= radiusSquared) {
             // 对NightmareBoss造成50点伤害的特判
-            if (dynamic_cast<NightmareBoss *>(enemy)) {
+            if (dynamic_cast<NightmareBoss*>(enemy)) {
                 enemy->takeDamage(50);
                 qDebug() << "ClockBoom对梦魇Boss造成50点爆炸伤害";
             } else {

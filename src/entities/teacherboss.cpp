@@ -15,36 +15,37 @@
 #include "player.h"
 #include "projectile.h"
 
-TeacherBoss::TeacherBoss(const QPixmap &pic, double scale)
-        : Boss(pic, scale),
-          m_phase(1),
-          m_isTransitioning(false),
-          m_waitingForDialog(false),
-          m_isDefeated(false),
-          m_firstDialogShown(false),  // 初始化为未播放，等待Level通知
-          m_isFlyingOut(false),
-          m_isFlyingIn(false),
-          m_flyTimer(nullptr),
-          m_scene(nullptr),
-          m_normalBarrageTimer(nullptr),
-          m_rollCallTimer(nullptr),
-          m_examPaperTimer(nullptr),
-          m_mleTrapTimer(nullptr),
-          m_summonInvigilatorTimer(nullptr),
-          m_failWarningTimer(nullptr),
-          m_formulaBombTimer(nullptr),
-          m_splitBulletTimer(nullptr) {
-    // 设置Boss属性
-    setHealth(500);           // 500血量
-    setContactDamage(3);      // 接触伤害
-    setVisionRange(1000);     // 全图视野
-    setAttackRange(70);       // 攻击判定范围
-    setAttackCooldown(1200);  // 攻击冷却
-    setSpeed(1.5);            // 移动速度
+TeacherBoss::TeacherBoss(const QPixmap& pic, double scale)
+    : Boss(pic, scale),
+      m_phase(1),
+      m_isTransitioning(false),
+      m_waitingForDialog(false),
+      m_isDefeated(false),
+      m_firstDialogShown(false),  // 初始化为未播放，等待Level通知
+      m_isFlyingOut(false),
+      m_isFlyingIn(false),
+      m_flyTimer(nullptr),
+      m_scene(nullptr),
+      m_normalBarrageTimer(nullptr),
+      m_rollCallTimer(nullptr),
+      m_examPaperTimer(nullptr),
+      m_mleTrapTimer(nullptr),
+      m_summonInvigilatorTimer(nullptr),
+      m_failWarningTimer(nullptr),
+      m_formulaBombTimer(nullptr),
+      m_splitBulletTimer(nullptr) {
+    // 从配置文件读取奶牛张Boss的一阶段属性
+    ConfigManager& config = ConfigManager::instance();
+    setHealth(config.getBossInt("teacher", "phase1", "health", 500));
+    setContactDamage(config.getBossInt("teacher", "phase1", "contact_damage", 3));
+    setVisionRange(config.getBossDouble("teacher", "phase1", "vision_range", 1000));
+    setAttackRange(config.getBossDouble("teacher", "phase1", "attack_range", 70));
+    setAttackCooldown(config.getBossInt("teacher", "phase1", "attack_cooldown", 1200));
+    setSpeed(config.getBossDouble("teacher", "phase1", "speed", 1.5));
 
     // 第一阶段使用保持距离模式
     setMovementPattern(MOVE_KEEP_DISTANCE);
-    setPreferredDistance(200.0);
+    setPreferredDistance(config.getBossDouble("teacher", "phase1", "preferred_distance", 200.0));
 
     // 加载图片资源
     loadTextures();
@@ -116,19 +117,19 @@ void TeacherBoss::loadTextures() {
         bossSize = 80;
 
     QStringList possiblePaths = {
-            "assets/boss/Teacher/",
-            "../assets/boss/Teacher/",
-            "../../our_game/assets/boss/Teacher/"};
+        "assets/boss/Teacher/",
+        "../assets/boss/Teacher/",
+        "../../our_game/assets/boss/Teacher/"};
 
-    for (const QString &basePath: possiblePaths) {
+    for (const QString& basePath : possiblePaths) {
         if (QFile::exists(basePath + "cow.png")) {
             // 加载各阶段图片
             m_normalPixmap = QPixmap(basePath + "cow.png")
-                    .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                                 .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             m_angryPixmap = QPixmap(basePath + "cowAngry.png")
-                    .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                                .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             m_finalPixmap = QPixmap(basePath + "cowFinal.png")
-                    .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                                .scaled(bossSize, bossSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
             // 加载弹幕图片（放大尺寸）
             m_formulaBulletPixmap = QPixmap(basePath + "formula_bullet.png");
@@ -257,12 +258,13 @@ void TeacherBoss::enterPhase2() {
         flash();
     }
 
-    // 切换到冲刺模式
+    // 从配置文件读取二阶段属性
+    ConfigManager& config = ConfigManager::instance();
     setMovementPattern(MOVE_DASH);
-    setVisionRange(10000);
-    setDashChargeTime(800);
-    setDashSpeed(6.0);
-    setContactDamage(4);
+    setVisionRange(config.getBossDouble("teacher", "phase2", "vision_range", 10000));
+    setDashChargeTime(config.getBossInt("teacher", "phase2", "dash_charge_time", 800));
+    setDashSpeed(config.getBossDouble("teacher", "phase2", "dash_speed", 6.0));
+    setContactDamage(config.getBossInt("teacher", "phase2", "contact_damage", 4));
 
     // 暂停并显示对话，开始背景是teacher1_dia
     m_waitingForDialog = true;
@@ -445,9 +447,9 @@ void TeacherBoss::onBossDefeated() {
 
     // 清理场上的弹幕
     if (m_scene) {
-        QList<QGraphicsItem *> allItems = m_scene->items();
-        for (QGraphicsItem *item: allItems) {
-            if (Projectile *proj = dynamic_cast<Projectile *>(item)) {
+        QList<QGraphicsItem*> allItems = m_scene->items();
+        for (QGraphicsItem* item : allItems) {
+            if (Projectile* proj = dynamic_cast<Projectile*>(item)) {
                 m_scene->removeItem(proj);
                 proj->deleteLater();
             }
@@ -455,7 +457,7 @@ void TeacherBoss::onBossDefeated() {
     }
 
     AudioManager::instance().playSound("enemy_death");
-    
+
     // 击败对话：使用teacher3_dia背景，从对话开始渐变到teacher1_dia（使用渐变动画）
     emit requestFadeDialogBackground("assets/background/teacher1_dia.png", 2000);
     emit requestShowDialog(getDefeatedDialog(), "assets/background/teacher3_dia.png");
@@ -547,12 +549,12 @@ void TeacherBoss::fireNormalDistributionBarrage() {
         double angle = randomNormal(baseAngle, stddevRadians);
 
         // 创建弹幕 - 使用formula_bullet.png图片
-        Projectile *bullet = new Projectile(
-                1,  // 敌人发出
-                1,  // 伤害
-                bossCenter,
-                m_formulaBulletPixmap,
-                1.0);
+        Projectile* bullet = new Projectile(
+            1,  // 敌人发出
+            1,  // 伤害
+            bossCenter,
+            m_formulaBulletPixmap,
+            1.0);
 
         // 设置方向 - 降低速度（参考毒气速度4.0）
         double bulletSpeed = 0.8;
@@ -578,15 +580,15 @@ void TeacherBoss::performRollCall() {
     for (int i = 0; i < beamCount; ++i) {
         // 在玩家附近随机位置生成
         QPointF offset(
-                QRandomGenerator::global()->bounded(-80, 80),
-                QRandomGenerator::global()->bounded(-80, 80));
+            QRandomGenerator::global()->bounded(-80, 80),
+            QRandomGenerator::global()->bounded(-80, 80));
         QPointF beamPos = playerPos + offset;
 
         // 限制在场景内
         beamPos.setX(qBound(50.0, beamPos.x(), 750.0));
         beamPos.setY(qBound(50.0, beamPos.y(), 550.0));
 
-        ChalkBeam *beam = new ChalkBeam(beamPos, m_chalkBeamPixmap, m_scene);
+        ChalkBeam* beam = new ChalkBeam(beamPos, m_chalkBeamPixmap, m_scene);
         m_scene->addItem(beam);
         beam->startWarning();
     }
@@ -646,7 +648,7 @@ void TeacherBoss::throwExamPaper() {
     }
 
     // 创建考卷
-    ExamPaper *paper = new ExamPaper(bossCenter, direction, m_examPaperPixmap, player);
+    ExamPaper* paper = new ExamPaper(bossCenter, direction, m_examPaperPixmap, player);
     m_scene->addItem(paper);
 
     AudioManager::instance().playSound("enemy_attack");
@@ -679,7 +681,7 @@ void TeacherBoss::placeMleTrap() {
     predictedPos.setY(qBound(50.0, predictedPos.y(), 550.0));
 
     // 创建陷阱
-    MleTrap *trap = new MleTrap(predictedPos, player);
+    MleTrap* trap = new MleTrap(predictedPos, player);
     m_scene->addItem(trap);
 
     qDebug() << "[TeacherBoss] 放置极大似然估计陷阱，位置:" << predictedPos;
@@ -691,14 +693,14 @@ void TeacherBoss::summonInvigilator() {
 
     // 尝试多个可能的路径加载监考员图片
     QStringList possiblePaths = {
-            "assets/boss/Teacher/",
-            "../assets/boss/Teacher/",
-            "../../our_game/assets/boss/Teacher/"};
+        "assets/boss/Teacher/",
+        "../assets/boss/Teacher/",
+        "../../our_game/assets/boss/Teacher/"};
 
     QPixmap normalPix;
     QPixmap angryPix;
 
-    for (const QString &basePath: possiblePaths) {
+    for (const QString& basePath : possiblePaths) {
         if (QFile::exists(basePath + "invigilatorNormal.png")) {
             normalPix = QPixmap(basePath + "invigilatorNormal.png");
             angryPix = QPixmap(basePath + "invigilatorAngry.png");
@@ -722,10 +724,10 @@ void TeacherBoss::summonInvigilator() {
 
     // 在Boss附近生成监考员
     QPointF spawnPos = pos() + QPointF(
-            QRandomGenerator::global()->bounded(-50, 50),
-            QRandomGenerator::global()->bounded(-50, 50));
+                                   QRandomGenerator::global()->bounded(-50, 50),
+                                   QRandomGenerator::global()->bounded(-50, 50));
 
-    Invigilator *invigilator = new Invigilator(normalPix, angryPix, this, 1.0);
+    Invigilator* invigilator = new Invigilator(normalPix, angryPix, this, 1.0);
     invigilator->setPos(spawnPos);
     invigilator->setPlayer(player);
     m_scene->addItem(invigilator);
@@ -736,7 +738,7 @@ void TeacherBoss::summonInvigilator() {
 }
 
 void TeacherBoss::cleanupInvigilators() {
-    for (QPointer<Invigilator> &inv: m_invigilators) {
+    for (QPointer<Invigilator>& inv : m_invigilators) {
         if (inv) {
             if (inv->scene()) {
                 inv->scene()->removeItem(inv);
@@ -796,7 +798,7 @@ void TeacherBoss::performFailWarning() {
     // 复用随机点名机制，但缩短警告时间
     QPointF playerPos = player->pos();
 
-    ChalkBeam *beam = new ChalkBeam(playerPos, m_chalkBeamPixmap, m_scene);
+    ChalkBeam* beam = new ChalkBeam(playerPos, m_chalkBeamPixmap, m_scene);
     beam->setWarningTime(1000);  // 1秒警告时间
     m_scene->addItem(beam);
     beam->startWarning();
@@ -817,12 +819,12 @@ void TeacherBoss::fireFormulaBomb() {
     for (int i = 0; i < bulletCount; ++i) {
         double angle = startAngle + (2 * M_PI * i / bulletCount);
 
-        Projectile *bullet = new Projectile(
-                1,
-                1,
-                bossCenter,
-                m_formulaBulletPixmap,
-                1.0);
+        Projectile* bullet = new Projectile(
+            1,
+            1,
+            bossCenter,
+            m_formulaBulletPixmap,
+            1.0);
 
         // 降低速度（原来4*10=40，现在2.5*10=25）
         double vx = qCos(angle) * 2.5;
@@ -857,12 +859,12 @@ void TeacherBoss::fireSplitBullet() {
     // 创建大弹幕（使用缩放的final_bullet.png）
     QPixmap bigBullet = m_finalBulletPixmap.scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-    Projectile *mainBullet = new Projectile(
-            1,
-            2,  // 大弹伤害更高
-            bossCenter,
-            bigBullet,
-            1.0);
+    Projectile* mainBullet = new Projectile(
+        1,
+        2,  // 大弹伤害更高
+        bossCenter,
+        bigBullet,
+        1.0);
 
     // 设置速度（参考毒气速度4.0，setDir需乘10）
     double bulletSpeed = 0.5;  // 主弹慢速飞行
@@ -881,7 +883,7 @@ void TeacherBoss::fireSplitBullet() {
     double splitDist = splitDistance;
 
     // 创建检查定时器
-    QTimer *checkTimer = new QTimer(this);
+    QTimer* checkTimer = new QTimer(this);
     connect(checkTimer, &QTimer::timeout, this,
             [bulletPtr, scenePtr, startPos, dir, smallPix, splitDist, checkTimer]() {
                 if (!bulletPtr || !scenePtr) {
@@ -914,12 +916,12 @@ void TeacherBoss::fireSplitBullet() {
                     for (int i = 0; i < 5; ++i) {
                         double angle = baseAngle - spreadAngle + (spreadAngle * 2 * i / 4);
 
-                        Projectile *smallBullet = new Projectile(
-                                1,
-                                1,
-                                splitPos,
-                                smallPix,
-                                1.0);
+                        Projectile* smallBullet = new Projectile(
+                            1,
+                            1,
+                            splitPos,
+                            smallPix,
+                            1.0);
 
                         // 分裂后速度略快于毒气（毒气4.0，这里约5-6）
                         double svx = qCos(angle) * 0.6;
@@ -990,51 +992,51 @@ void TeacherBoss::resumeTimers() {
 
 QStringList TeacherBoss::getInitialDialog() {
     return {
-            "【奶牛张】\n『哦？又来了一位勇敢的同学？』",
-            "【奶牛张】\n『让我看看...根据极大似然估计，你通过这场考试的概率是...』",
-            "【奶牛张】\n『嗯，不太乐观啊！』",
-            "**智科er** \n 老师，我只是想通过这一关...",
-            "【奶牛张】\n『通过？哈哈，这让我想起了那次期中考试...』",
-            "【奶牛张】\n『全班的成绩呈完美的正态分布，均值μ=62，方差σ²=144...』",
-            "【奶牛张】\n『多么美丽的数据啊！』",
-            "**智科er** \n （那不就是大家都差点挂科吗...）",
-            "【奶牛张】\n『好了，让我们开始今天的「随堂测验」吧！』"};
+        "【奶牛张】\n『哦？又来了一位勇敢的同学？』",
+        "【奶牛张】\n『让我看看...根据极大似然估计，你通过这场考试的概率是...』",
+        "【奶牛张】\n『嗯，不太乐观啊！』",
+        "**智科er** \n 老师，我只是想通过这一关...",
+        "【奶牛张】\n『通过？哈哈，这让我想起了那次期中考试...』",
+        "【奶牛张】\n『全班的成绩呈完美的正态分布，均值μ=62，方差σ²=144...』",
+        "【奶牛张】\n『多么美丽的数据啊！』",
+        "**智科er** \n （那不就是大家都差点挂科吗...）",
+        "【奶牛张】\n『好了，让我们开始今天的「随堂测验」吧！』"};
 }
 
 QStringList TeacherBoss::getPhase2Dialog() {
     return {
-            "【奶牛张】\n『看来你还挺能扛的...』",
-            "【奶牛张】\n『那么，是时候进行【期中考试】了！』",
-            "**智科er** \n 什么？！",
-            "【奶牛张】\n『别紧张，这只是一场...』",
-            "【奶牛张】\n『「友好」的测验』"};
+        "【奶牛张】\n『看来你还挺能扛的...』",
+        "【奶牛张】\n『那么，是时候进行【期中考试】了！』",
+        "**智科er** \n 什么？！",
+        "【奶牛张】\n『别紧张，这只是一场...』",
+        "【奶牛张】\n『「友好」的测验』"};
 }
 
 QStringList TeacherBoss::getPhase3Dialog() {
     return {
-            "【奶牛张】\n『哈...哈哈...』",
-            "【奶牛张】\n『你知道吗，我要被调到北京去了。』",
-            "**智科er** \n 恭喜老师高升？",
-            "【奶牛张】\n『高升？哈哈，喜忧参半吧！』",
-            "【奶牛张】\n『喜的是，终于可以离开这里...』",
-            "【奶牛张】\n『忧的是，我还没来得及...』",
-            "【奶牛张】\n『让你们见识真正的概率论！』",
-            "**智科er** \n （不妙...）",
-            "【奶牛张】\n『在我离开之前，让你体验一下什么叫做...』",
-            "【奶牛张】\n『【方差爆炸】！』"};
+        "【奶牛张】\n『哈...哈哈...』",
+        "【奶牛张】\n『你知道吗，我要被调到北京去了。』",
+        "**智科er** \n 恭喜老师高升？",
+        "【奶牛张】\n『高升？哈哈，喜忧参半吧！』",
+        "【奶牛张】\n『喜的是，终于可以离开这里...』",
+        "【奶牛张】\n『忧的是，我还没来得及...』",
+        "【奶牛张】\n『让你们见识真正的概率论！』",
+        "**智科er** \n （不妙...）",
+        "【奶牛张】\n『在我离开之前，让你体验一下什么叫做...』",
+        "【奶牛张】\n『【方差爆炸】！』"};
 }
 
 QStringList TeacherBoss::getDefeatedDialog() {
     return {
-            "【奶牛张】\n『咳咳...没想到，你真的通过了...』",
-            "【奶牛张】\n『看来我的极大似然估计...出了点偏差。』",
-            "**智科er** \n 老师，您...",
-            "【奶牛张】\n『没关系，这是一个很好的样本数据。』",
-            "【奶牛张】\n『我会把它记录下来，用于改进我的模型。』",
-            "【奶牛张】\n『去吧，勇敢的同学...』",
-            "【奶牛张】\n『记住，生活就像概率论...』",
-            "【奶牛张】\n『充满不确定性，但总有规律可循。』",
-            "**智科er** \n 老师，北京那边...",
-            "【奶牛张】\n『哈哈，喜忧参半吧！再见了。』",
-            "（奶牛张化作一道光消散）"};
+        "【奶牛张】\n『咳咳...没想到，你真的通过了...』",
+        "【奶牛张】\n『看来我的极大似然估计...出了点偏差。』",
+        "**智科er** \n 老师，您...",
+        "【奶牛张】\n『没关系，这是一个很好的样本数据。』",
+        "【奶牛张】\n『我会把它记录下来，用于改进我的模型。』",
+        "【奶牛张】\n『去吧，勇敢的同学...』",
+        "【奶牛张】\n『记住，生活就像概率论...』",
+        "【奶牛张】\n『充满不确定性，但总有规律可循。』",
+        "**智科er** \n 老师，北京那边...",
+        "【奶牛张】\n『哈哈，喜忧参半吧！再见了。』",
+        "（奶牛张化作一道光消散）"};
 }

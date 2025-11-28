@@ -1,6 +1,7 @@
 {
     "developer_mode": {
-        "enabled": true
+        "enabled": true,
+        "config_validation": false
     },
     "assets": {
         "background_main": "assets/background/main.png",
@@ -44,18 +45,23 @@
             "sock_normal": 50,
             "sock_angrily": 60,
             "sock_shooter": 50,
+            "orbiting_sock": 40,
             "pants": 55,
             "walker": 45,
             "yanglin": 200,
             "zhuhao": 30,
             "xuke": 80,
-            "probability_theory": 100
+            "probability_theory": 100,
+            "invigilator": 50,
+            "digital_system": 60,
+            "optimization": 60
         },
         "bosses": {
             "default": 150,
             "nightmare": 200,
             "nightmare2": 230,
-            "washmachine": 160
+            "washmachine": 160,
+            "teacher": 80
         },
         "bullets": {
             "default": 50,
@@ -70,8 +76,314 @@
     "game": {
         "scene_width": 800,
         "scene_height": 600,
-        "player_speed": 4.0,
+        "player_speed": 5.0,
         "enemy_speed": 2.0,
         "bullet_speed": 9.0
+    },
+    "player": {
+        "default": {
+            "health": 8,
+            "speed": 5.0,
+            "shoot_cooldown": 150,
+            "bullet_hurt": 5,
+            "crash_radius": 40,
+            "teleport_cooldown": 5000,
+            "teleport_distance": 120.0,
+            "ultimate_cooldown": 60000,
+            "ultimate_duration": 10000,
+            "ultimate_damage_multiplier": 2.0,
+            "ultimate_bullet_scale": 2.0
+        }
+    },
+    "enemies": {
+        "clock_normal": {
+            "health": 10,
+            "contact_damage": 2,
+            "vision_range": 250.0,
+            "attack_range": 40.0,
+            "attack_cooldown": 1000,
+            "speed": 2.0,
+            "move_pattern": "zigzag",
+            "zigzag_amplitude": 60.0,
+            "scare_duration": 3000
+        },
+        "clock_boom": {
+            "health": 6,
+            "contact_damage": 0,
+            "speed": 0,
+            "explosion_radius": 150.0,
+            "explosion_damage_player": 2,
+            "explosion_damage_enemy": 6,
+            "explosion_damage_nightmare": 50,
+            "countdown_time": 2500,
+            "blink_interval": 500
+        },
+        "pillow": {
+            "health": 20,
+            "contact_damage": 2,
+            "vision_range": 250.0,
+            "attack_range": 40.0,
+            "attack_cooldown": 1000,
+            "speed": 3.0,
+            "move_pattern": "circle",
+            "circle_radius": 200.0,
+            "sleep_duration": 1500,
+            "sleep_cooldown": 3000
+        },
+        "sock_normal": {
+            "health": 10,
+            "contact_damage": 1,
+            "vision_range": 250.0,
+            "attack_range": 40.0,
+            "attack_cooldown": 1000,
+            "speed": 2.0,
+            "move_pattern": "diagonal",
+            "poison_chance": 50,
+            "poison_duration": 3,
+            "poison_cooldown": 3000
+        },
+        "sock_angrily": {
+            "health": 18,
+            "contact_damage": 2,
+            "vision_range": 250.0,
+            "attack_range": 40.0,
+            "attack_cooldown": 1000,
+            "speed": 3.0,
+            "move_pattern": "dash",
+            "dash_charge_time": 1200,
+            "dash_speed": 5.0,
+            "poison_chance": 50,
+            "poison_duration": 3
+        },
+        "sock_shooter": {
+            "health": 10,
+            "contact_damage": 0,
+            "vision_range": 350.0,
+            "attack_range": 350.0,
+            "speed": 1.0,
+            "move_pattern": "keep_distance",
+            "preferred_distance": 200.0,
+            "shoot_cooldown": 1500,
+            "bullet_damage": 1,
+            "bullet_speed": 6.0
+        },
+        "pants": {
+            "health": 20,
+            "contact_damage": 2,
+            "vision_range": 300.0,
+            "attack_range": 50.0,
+            "attack_cooldown": 1000,
+            "speed": 2.5,
+            "move_pattern": "zigzag",
+            "zigzag_amplitude": 70.0,
+            "spinning_cooldown": 20000,
+            "spinning_duration": 5000,
+            "spinning_speed_multiplier": 2.0,
+            "spinning_circle_radius": 80.0,
+            "spinning_damage": 3
+        },
+        "walker": {
+            "health": 8,
+            "contact_damage": 0,
+            "vision_range": 9999.0,
+            "speed": 3.0,
+            "direction_change_interval": 2000,
+            "trail_spawn_interval": 300,
+            "trail_duration": 5000,
+            "encourage_duration": 3.0,
+            "poison_duration": 3.0
+        },
+        "yanglin": {
+            "health": 200,
+            "contact_damage": 5,
+            "vision_range": 9999.0,
+            "attack_range": 60.0,
+            "attack_cooldown": 800,
+            "speed": 2.0,
+            "move_pattern": "direct",
+            "damage_scale": 1.0,
+            "spinning_cooldown": 30000,
+            "spinning_duration": 5000,
+            "spinning_speed_multiplier": 2.0,
+            "spinning_damage": 4,
+            "base_spinning_radius": 120.0,
+            "first_spinning_delay": 10000,
+            "rotation_speed": 15.0,
+            "scale_per_hit": 0.05,
+            "max_scale": 2.0
+        },
+        "zhuhao": {
+            "health": 150,
+            "contact_damage": 3,
+            "vision_range": 9999.0,
+            "attack_range": 9999.0,
+            "speed": 0,
+            "edge_move_speed": 3.0,
+            "shoot_cooldown": 2500,
+            "bullets_per_wave": 12,
+            "bullet_speed": 4.0
+        },
+        "xuke": {
+            "health": 15,
+            "contact_damage": 0,
+            "vision_range": 9999.0,
+            "attack_range": 9999.0,
+            "speed": 1.0,
+            "move_pattern": "keep_distance",
+            "preferred_distance": 250.0,
+            "shoot_cooldown": 800,
+            "bullet_speed": 7.0,
+            "normal_damage": 1,
+            "normal_headshot_damage": 3,
+            "special_damage": 2,
+            "special_headshot_damage": 8
+        },
+        "probability_theory": {
+            "health": 50,
+            "contact_damage": 2,
+            "speed": 0,
+            "initial_scale": 0.3,
+            "growth_duration": 60000,
+            "blink_interval": 300,
+            "explode_delay": 2500,
+            "heal_amount": 2,
+            "heal_interval": 500
+        },
+        "invigilator": {
+            "health": 15,
+            "contact_damage": 1,
+            "vision_range": 200.0,
+            "attack_range": 30.0,
+            "speed": 2.0,
+            "patrol_radius": 100.0,
+            "detection_range": 150.0
+        },
+        "orbiting_sock": {
+            "health": 15,
+            "contact_damage": 2,
+            "vision_range": 300.0,
+            "attack_range": 40.0,
+            "attack_cooldown": 800,
+            "speed": 0,
+            "orbit_radius": 100.0,
+            "orbit_speed": 0.05
+        },
+        "digital_system": {
+            "health": 25,
+            "contact_damage": 3,
+            "circle_radius": 180.0,
+            "speed": 2.5
+        },
+        "optimization": {
+            "health": 25,
+            "contact_damage": 3,
+            "circle_radius": 180.0,
+            "speed": 2.5
+        }
+    },
+    "bosses": {
+        "nightmare": {
+            "phase1": {
+                "health": 250,
+                "contact_damage": 3,
+                "vision_range": 1000.0,
+                "attack_range": 70.0,
+                "attack_cooldown": 1200,
+                "speed": 1.0,
+                "crash_radius": 35,
+                "damage_scale": 0.7,
+                "move_pattern": "dash",
+                "dash_charge_time": 1000,
+                "dash_speed": 6.0
+            },
+            "phase2": {
+                "health": 300,
+                "contact_damage": 5,
+                "vision_range": 500.0,
+                "speed": 1.2,
+                "dash_speed": 6.2,
+                "dash_charge_time": 700,
+                "nightmare_wrap_interval": 20000,
+                "nightmare_descent_interval": 60000,
+                "wrap_duration": 3000,
+                "vision_radius": 120
+            }
+        },
+        "washmachine": {
+            "phase1": {
+                "health": 400,
+                "contact_damage": 3,
+                "vision_range": 500.0,
+                "attack_range": 60.0,
+                "attack_cooldown": 1500,
+                "speed": 1.5,
+                "crash_radius": 35,
+                "damage_scale": 0.8,
+                "move_pattern": "keep_distance",
+                "preferred_distance": 200.0,
+                "water_attack_interval": 3000,
+                "charge_time": 1000
+            },
+            "phase2": {
+                "health_threshold": 0.7,
+                "contact_damage": 5,
+                "move_pattern": "dash",
+                "dash_charge_time": 800,
+                "dash_speed": 7.0,
+                "summon_interval": 10000,
+                "initial_socks_on_angry": 3,
+                "max_orbiting_socks": 6
+            },
+            "phase3": {
+                "health_threshold": 0.4,
+                "contact_damage": 6,
+                "dash_charge_time": 600,
+                "dash_speed": 8.0,
+                "spread_gas_interval": 5000,
+                "fast_gas_interval": 1500,
+                "spread_gas_count": 16,
+                "spread_gas_speed": 2.5,
+                "fast_gas_speed": 8.0
+            }
+        },
+        "teacher": {
+            "phase1": {
+                "health": 500,
+                "contact_damage": 3,
+                "vision_range": 1000.0,
+                "attack_range": 70.0,
+                "attack_cooldown": 1200,
+                "speed": 1.5,
+                "move_pattern": "keep_distance",
+                "preferred_distance": 200.0,
+                "normal_barrage_interval": 4000,
+                "normal_barrage_count": 15,
+                "normal_barrage_stddev": 15.0,
+                "roll_call_interval": 8000,
+                "roll_call_count": 3
+            },
+            "phase2": {
+                "health_threshold": 0.6,
+                "contact_damage": 4,
+                "move_pattern": "dash",
+                "dash_charge_time": 800,
+                "dash_speed": 6.0,
+                "exam_paper_interval": 5000,
+                "mle_trap_interval": 10000,
+                "summon_invigilator_interval": 15000
+            },
+            "phase3": {
+                "health_threshold": 0.3,
+                "contact_damage": 5,
+                "move_pattern": "keep_distance",
+                "preferred_distance": 180.0,
+                "speed": 3.0,
+                "fail_warning_interval": 6000,
+                "formula_bomb_interval": 4000,
+                "formula_bomb_count": 12,
+                "split_bullet_interval": 8000,
+                "split_bullet_count": 5
+            }
+        }
     }
 }

@@ -3,19 +3,20 @@
 #include <QDebug>
 #include <QRandomGenerator>
 #include <QTimer>
+#include "../core/configmanager.h"
 #include "player.h"
 #include "statuseffect.h"
 
 // 静态成员初始化
-QMap<Player *, qint64> SockEnemy::s_playerPoisonCooldowns;
+QMap<Player*, qint64> SockEnemy::s_playerPoisonCooldowns;
 
 // 袜子怪物基类
-SockEnemy::SockEnemy(const QPixmap &pic, double scale)
-        : Enemy(pic, scale) {
-    // 基础袜子怪物属性
+SockEnemy::SockEnemy(const QPixmap& pic, double scale)
+    : Enemy(pic, scale) {
+    // 基础袜子怪物属性（从config读取）
 }
 
-bool SockEnemy::canApplyPoisonTo(Player *player) {
+bool SockEnemy::canApplyPoisonTo(Player* player) {
     if (!player)
         return false;
 
@@ -30,7 +31,7 @@ bool SockEnemy::canApplyPoisonTo(Player *player) {
     return true;
 }
 
-void SockEnemy::markPoisonCooldownStart(Player *player) {
+void SockEnemy::markPoisonCooldownStart(Player* player) {
     // 中毒结束后开始3秒冷却
     s_playerPoisonCooldowns[player] = QDateTime::currentMSecsSinceEpoch() + POISON_COOLDOWN_MS;
 }
@@ -70,7 +71,7 @@ void SockEnemy::applyPoisonEffect() {
     if (QRandomGenerator::global()->bounded(2) == 0) {
         // 中毒效果：每秒扣0.5颗心，持续3秒共扣1.5心
         int duration = qMin(3, static_cast<int>(player->getCurrentHealth()));
-        PoisonEffect *effect = new PoisonEffect(player, duration, 1);
+        PoisonEffect* effect = new PoisonEffect(player, duration, 1);
         effect->applyTo(player);
 
         // 中毒结束后开始冷却（duration秒后 + 3秒冷却）
@@ -88,33 +89,35 @@ void SockEnemy::applyPoisonEffect() {
 }
 
 // 普通袜子怪物 - 使用斜向移动躲避子弹
-SockNormal::SockNormal(const QPixmap &pic, double scale)
-        : SockEnemy(pic, scale) {
-    // 普通袜子的属性（与基础敌人相同）
-    setHealth(10);
-    setContactDamage(1);
-    setVisionRange(250.0);
-    setAttackRange(40.0);
-    setAttackCooldown(1000);
-    setSpeed(2.0);
+SockNormal::SockNormal(const QPixmap& pic, double scale)
+    : SockEnemy(pic, scale) {
+    // 从配置文件读取普通袜子属性
+    ConfigManager& config = ConfigManager::instance();
+    setHealth(config.getEnemyInt("sock_normal", "health", 10));
+    setContactDamage(config.getEnemyInt("sock_normal", "contact_damage", 1));
+    setVisionRange(config.getEnemyDouble("sock_normal", "vision_range", 250.0));
+    setAttackRange(config.getEnemyDouble("sock_normal", "attack_range", 40.0));
+    setAttackCooldown(config.getEnemyInt("sock_normal", "attack_cooldown", 1000));
+    setSpeed(config.getEnemyDouble("sock_normal", "speed", 2.0));
 
     // 使用斜向移动模式，斜着接近玩家以躲避直线子弹
     setMovementPattern(MOVE_DIAGONAL);
 }
 
 // 愤怒袜子怪物 - 移速和伤害提升150%，使用冲刺攻击
-SockAngrily::SockAngrily(const QPixmap &pic, double scale)
-        : SockEnemy(pic, scale) {
-    // 愤怒袜子的属性（伤害和移速提升150%）
-    setHealth(18);
-    setContactDamage(2);
-    setVisionRange(250.0);
-    setAttackRange(40.0);
-    setAttackCooldown(1000);
-    setSpeed(2.0 + 2.0 * 0.5);
+SockAngrily::SockAngrily(const QPixmap& pic, double scale)
+    : SockEnemy(pic, scale) {
+    // 从配置文件读取愤怒袜子属性
+    ConfigManager& config = ConfigManager::instance();
+    setHealth(config.getEnemyInt("sock_angrily", "health", 18));
+    setContactDamage(config.getEnemyInt("sock_angrily", "contact_damage", 2));
+    setVisionRange(config.getEnemyDouble("sock_angrily", "vision_range", 250.0));
+    setAttackRange(config.getEnemyDouble("sock_angrily", "attack_range", 40.0));
+    setAttackCooldown(config.getEnemyInt("sock_angrily", "attack_cooldown", 1000));
+    setSpeed(config.getEnemyDouble("sock_angrily", "speed", 3.0));
 
     // 使用冲刺模式，蓄力后快速冲向玩家
     setMovementPattern(MOVE_DASH);
-    setDashChargeTime(1200);  // 1.2秒蓄力
-    setDashSpeed(5.0);        // 高速冲刺
+    setDashChargeTime(config.getEnemyInt("sock_angrily", "dash_charge_time", 1200));
+    setDashSpeed(config.getEnemyDouble("sock_angrily", "dash_speed", 5.0));
 }

@@ -2,22 +2,26 @@
 #include <QDebug>
 #include <QGraphicsScene>
 #include <QtMath>
+#include "../core/configmanager.h"
 #include "washmachineboss.h"
 
-OrbitingSock::OrbitingSock(const QPixmap &pic, WashMachineBoss *master, double scale)
-        : SockEnemy(pic, scale),
-          m_master(master),
-          m_orbitAngle(0.0),
-          m_orbitRadius(100.0),
-          m_orbitSpeed(0.05),  // 约2秒一圈 (2*PI / (2000ms / 16ms) ≈ 0.05)
-          m_orbitTimer(nullptr) {
-    // 设置臭袜子属性
-    setHealth(15);
-    setContactDamage(2);
-    setVisionRange(300.0);
-    setAttackRange(40.0);
-    setAttackCooldown(800);
+OrbitingSock::OrbitingSock(const QPixmap& pic, WashMachineBoss* master, double scale)
+    : SockEnemy(pic, scale),
+      m_master(master),
+      m_orbitAngle(0.0),
+      m_orbitRadius(100.0),
+      m_orbitSpeed(0.05),
+      m_orbitTimer(nullptr) {
+    // 从配置文件读取轨道袜子属性
+    ConfigManager& config = ConfigManager::instance();
+    setHealth(config.getEnemyInt("orbiting_sock", "health", 15));
+    setContactDamage(config.getEnemyInt("orbiting_sock", "contact_damage", 2));
+    setVisionRange(config.getEnemyDouble("orbiting_sock", "vision_range", 300.0));
+    setAttackRange(config.getEnemyDouble("orbiting_sock", "attack_range", 40.0));
+    setAttackCooldown(config.getEnemyInt("orbiting_sock", "attack_cooldown", 800));
     setSpeed(0);  // 不需要主动移动，靠轨道运动
+    m_orbitRadius = config.getEnemyDouble("orbiting_sock", "orbit_radius", 100.0);
+    m_orbitSpeed = config.getEnemyDouble("orbiting_sock", "orbit_speed", 0.05);
 
     // 标记为召唤的敌人，不触发bonus
     setIsSummoned(true);

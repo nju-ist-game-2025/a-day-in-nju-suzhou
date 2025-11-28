@@ -6,28 +6,30 @@
 #include <QTransform>
 #include <QtMath>
 #include "../core/audiomanager.h"
+#include "../core/configmanager.h"
 #include "../ui/explosion.h"
 #include "player.h"
 
-YanglinEnemy::YanglinEnemy(const QPixmap &pic, double scale)
-        : ScalingEnemy(pic, scale),
-          m_isSpinning(false),
-          m_spinningCooldownTimer(nullptr),
-          m_spinningUpdateTimer(nullptr),
-          m_spinningDurationTimer(nullptr),
-          m_firstSpinningTimer(nullptr),
-          m_rotationAngle(0.0),
-          m_originalSpeed(2.0),
-          m_isReturningToNormal(false),
-          m_lastSpinningDamageTime(0) {
-    // 杨林属性接近Boss一阶段 - 直接设置成员变量
-    health = 200;  // 高血量
-    maxHealth = 200;
-    contactDamage = 5;     // 高接触伤害
-    visionRange = 9999.0;  // 全图视野！
-    attackRange = 60.0;    // 攻击范围
-    attackCooldown = 800;  // 攻击冷却
-    speed = 2.0;           // 移速
+YanglinEnemy::YanglinEnemy(const QPixmap& pic, double scale)
+    : ScalingEnemy(pic, scale),
+      m_isSpinning(false),
+      m_spinningCooldownTimer(nullptr),
+      m_spinningUpdateTimer(nullptr),
+      m_spinningDurationTimer(nullptr),
+      m_firstSpinningTimer(nullptr),
+      m_rotationAngle(0.0),
+      m_originalSpeed(2.0),
+      m_isReturningToNormal(false),
+      m_lastSpinningDamageTime(0) {
+    // 从配置文件读取杨林属性
+    ConfigManager& config = ConfigManager::instance();
+    health = config.getEnemyInt("yanglin", "health", 200);
+    maxHealth = health;
+    contactDamage = config.getEnemyInt("yanglin", "contact_damage", 5);
+    visionRange = config.getEnemyDouble("yanglin", "vision_range", 9999.0);
+    attackRange = config.getEnemyDouble("yanglin", "attack_range", 60.0);
+    attackCooldown = config.getEnemyInt("yanglin", "attack_cooldown", 800);
+    speed = config.getEnemyDouble("yanglin", "speed", 2.0);
     m_originalSpeed = speed;
 
     // 确保变换原点在中心（继承自ScalingEnemy，但重新设置确保正确）

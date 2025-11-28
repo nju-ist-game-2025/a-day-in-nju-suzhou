@@ -11,28 +11,33 @@
 #include "statuseffect.h"
 
 // ========== PoisonTrail 静态成员初始化 ==========
-QMap<Player *, qint64> PoisonTrail::s_playerPoisonCooldowns;
-QMap<Enemy *, qint64> PoisonTrail::s_enemyEncourageCooldowns;
+QMap<Player*, qint64> PoisonTrail::s_playerPoisonCooldowns;
+QMap<Enemy*, qint64> PoisonTrail::s_enemyEncourageCooldowns;
 
 // ========== Walker 实现 ==========
 
-Walker::Walker(const QPixmap &pic, double scale)
-        : Enemy(pic, scale),
-          m_directionTimer(nullptr),
-          m_trailTimer(nullptr),
-          m_currentDirection(1.0, 0.0),
-          m_walkerSpeed(DEFAULT_WALKER_SPEED),
-          m_dirChangeInterval(DEFAULT_DIR_CHANGE_INTERVAL),
-          m_trailSpawnInterval(DEFAULT_TRAIL_SPAWN_INTERVAL),
-          m_trailDuration(DEFAULT_TRAIL_DURATION),
-          m_encourageDuration(DEFAULT_ENCOURAGE_DURATION),
-          m_poisonDuration(DEFAULT_POISON_DURATION) {
-    // 设置基础属性
-    setHealth(8);                          // 血量适中
-    setContactDamage(0);                   // 无接触伤害！
-    setVisionRange(DEFAULT_VISION_RANGE);  // 超大视野范围（全图游走）
-    setAttackRange(0);                     // 无攻击范围（不主动攻击）
-    setSpeed(m_walkerSpeed);               // 快速移动
+Walker::Walker(const QPixmap& pic, double scale)
+    : Enemy(pic, scale),
+      m_directionTimer(nullptr),
+      m_trailTimer(nullptr),
+      m_currentDirection(1.0, 0.0),
+      m_walkerSpeed(DEFAULT_WALKER_SPEED),
+      m_dirChangeInterval(DEFAULT_DIR_CHANGE_INTERVAL),
+      m_trailSpawnInterval(DEFAULT_TRAIL_SPAWN_INTERVAL),
+      m_trailDuration(DEFAULT_TRAIL_DURATION),
+      m_encourageDuration(DEFAULT_ENCOURAGE_DURATION),
+      m_poisonDuration(DEFAULT_POISON_DURATION) {
+    // 从配置文件读取Walker属性
+    ConfigManager& config = ConfigManager::instance();
+    setHealth(config.getEnemyInt("walker", "health", 8));
+    setContactDamage(0);  // 无接触伤害！
+    setVisionRange(config.getEnemyDouble("walker", "vision_range", DEFAULT_VISION_RANGE));
+    setAttackRange(0);  // 无攻击范围（不主动攻击）
+    m_walkerSpeed = config.getEnemyDouble("walker", "speed", DEFAULT_WALKER_SPEED);
+    setSpeed(m_walkerSpeed);
+    m_trailDuration = config.getEnemyInt("walker", "trail_duration", DEFAULT_TRAIL_DURATION);
+    m_poisonDuration = config.getEnemyInt("walker", "poison_duration", DEFAULT_POISON_DURATION);
+    m_encourageDuration = config.getEnemyInt("walker", "encourage_duration", DEFAULT_ENCOURAGE_DURATION);
 
     // 设置碰撞半径
     setCrashR(20);
@@ -132,7 +137,7 @@ void Walker::spawnPoisonTrail() {
     QRectF rect = boundingRect();
     QPointF center = pos() + QPointF(rect.width() / 2.0, rect.height() / 2.0);
 
-    PoisonTrail *trail = new PoisonTrail(center, m_trailDuration, m_encourageDuration, m_poisonDuration);
+    PoisonTrail* trail = new PoisonTrail(center, m_trailDuration, m_encourageDuration, m_poisonDuration);
     trail->setScene(scene());
     scene()->addItem(trail);
 
@@ -193,15 +198,15 @@ void Walker::executeMovement() {
 
 // ========== PoisonTrail 实现 ==========
 
-PoisonTrail::PoisonTrail(const QPointF &center, int duration, double encourageDur, double poisonDur, QObject *parent)
-        : QObject(parent),
-          QGraphicsEllipseItem(-TRAIL_RADIUS, -TRAIL_RADIUS, TRAIL_RADIUS * 2, TRAIL_RADIUS * 2),
-          m_fadeTimer(nullptr),
-          m_checkTimer(nullptr),
-          m_totalDuration(duration),
-          m_elapsedTime(0),
-          m_encourageDuration(encourageDur),
-          m_poisonDuration(poisonDur) {
+PoisonTrail::PoisonTrail(const QPointF& center, int duration, double encourageDur, double poisonDur, QObject* parent)
+    : QObject(parent),
+      QGraphicsEllipseItem(-TRAIL_RADIUS, -TRAIL_RADIUS, TRAIL_RADIUS * 2, TRAIL_RADIUS * 2),
+      m_fadeTimer(nullptr),
+      m_checkTimer(nullptr),
+      m_totalDuration(duration),
+      m_elapsedTime(0),
+      m_encourageDuration(encourageDur),
+      m_poisonDuration(poisonDur) {
     // 设置位置
     setPos(center);
 
@@ -234,7 +239,7 @@ PoisonTrail::~PoisonTrail() {
     }
 }
 
-void PoisonTrail::setScene(QGraphicsScene *scene) {
+void PoisonTrail::setScene(QGraphicsScene* scene) {
     Q_UNUSED(scene);
     // 场景设置已通过 scene()->addItem() 完成
 }
@@ -283,20 +288,20 @@ void PoisonTrail::checkCollisions() {
         return;
 
     // 获取与毒痕重叠的所有物品
-    QList<QGraphicsItem *> collidingItems = this->collidingItems();
+    QList<QGraphicsItem*> collidingItems = this->collidingItems();
 
-    for (QGraphicsItem *item: collidingItems) {
+    for (QGraphicsItem* item : collidingItems) {
         // 检查是否是玩家
-        if (Player *player = dynamic_cast<Player *>(item)) {
+        if (Player* player = dynamic_cast<Player*>(item)) {
             if (canApplyPoisonTo(player)) {
                 applyPoisonToPlayer(player);
                 markPoisonApplied(player);
             }
         }
-            // 检查是否是敌人（非Walker）
-        else if (Enemy *enemy = dynamic_cast<Enemy *>(item)) {
+        // 检查是否是敌人（非Walker）
+        else if (Enemy* enemy = dynamic_cast<Enemy*>(item)) {
             // 排除Walker类型
-            if (dynamic_cast<Walker *>(enemy) == nullptr) {
+            if (dynamic_cast<Walker*>(enemy) == nullptr) {
                 if (canApplyEncourageTo(enemy)) {
                     applyEncourageToEnemy(enemy);
                     markEncourageApplied(enemy);
@@ -306,7 +311,7 @@ void PoisonTrail::checkCollisions() {
     }
 }
 
-bool PoisonTrail::canApplyPoisonTo(Player *player) {
+bool PoisonTrail::canApplyPoisonTo(Player* player) {
     if (!player)
         return false;
 
@@ -321,7 +326,7 @@ bool PoisonTrail::canApplyPoisonTo(Player *player) {
     return true;
 }
 
-bool PoisonTrail::canApplyEncourageTo(Enemy *enemy) {
+bool PoisonTrail::canApplyEncourageTo(Enemy* enemy) {
     if (!enemy)
         return false;
 
@@ -336,11 +341,11 @@ bool PoisonTrail::canApplyEncourageTo(Enemy *enemy) {
     return true;
 }
 
-void PoisonTrail::markPoisonApplied(Player *player) {
+void PoisonTrail::markPoisonApplied(Player* player) {
     s_playerPoisonCooldowns[player] = QDateTime::currentMSecsSinceEpoch();
 }
 
-void PoisonTrail::markEncourageApplied(Enemy *enemy) {
+void PoisonTrail::markEncourageApplied(Enemy* enemy) {
     s_enemyEncourageCooldowns[enemy] = QDateTime::currentMSecsSinceEpoch();
 }
 
@@ -349,7 +354,7 @@ void PoisonTrail::clearCooldowns() {
     s_enemyEncourageCooldowns.clear();
 }
 
-void PoisonTrail::applyPoisonToPlayer(Player *player) {
+void PoisonTrail::applyPoisonToPlayer(Player* player) {
     if (!player)
         return;
 
@@ -375,20 +380,20 @@ void PoisonTrail::applyPoisonToPlayer(Player *player) {
         duration = 1;
 
     // 伤害1 = 每秒扣0.5颗心（持续3秒共扣1.5心）
-    PoisonEffect *effect = new PoisonEffect(player, duration, 1);
+    PoisonEffect* effect = new PoisonEffect(player, duration, 1);
     effect->applyTo(player);
 
     // 显示毒痕中毒提示（位置稍微偏移避免重叠）
     StatusEffect::showFloatText(player->scene(), QString("中毒！"), player->pos() + QPointF(0, -15), QColor(0, 100, 30));
 }
 
-void PoisonTrail::applyEncourageToEnemy(Enemy *enemy) {
+void PoisonTrail::applyEncourageToEnemy(Enemy* enemy) {
     if (!enemy)
         return;
 
     qDebug() << "Walker毒痕：对敌人施加鼓舞效果 (+50%移速)";
 
     // +50%移速效果，持续3秒，使用专用的EncourageEffect（自带文字提示）
-    EncourageEffect *effect = new EncourageEffect(m_encourageDuration, 1.5);
+    EncourageEffect* effect = new EncourageEffect(m_encourageDuration, 1.5);
     effect->applyTo(enemy);
 }

@@ -5,28 +5,30 @@
 #include <QPainter>
 #include <QTransform>
 #include <QtMath>
+#include "../core/configmanager.h"
 #include "player.h"
 
-PantsEnemy::PantsEnemy(const QPixmap &pic, double scale)
-        : Enemy(pic, scale),
-          m_isSpinning(false),
-          m_spinningCooldownTimer(nullptr),
-          m_spinningUpdateTimer(nullptr),
-          m_spinningDurationTimer(nullptr),
-          m_spinningCircle(nullptr),
-          m_currentFrameIndex(0),
-          m_lastSpinningDamageTime(0) {
-    // 设置基础属性
-    setHealth(20);            // 生命值
-    setContactDamage(2);      // 普通接触伤害
-    setVisionRange(300.0);    // 视野范围
-    setAttackRange(50.0);     // 攻击范围
-    setAttackCooldown(1000);  // 攻击冷却
-    setSpeed(2.5);            // 基础移速
+PantsEnemy::PantsEnemy(const QPixmap& pic, double scale)
+    : Enemy(pic, scale),
+      m_isSpinning(false),
+      m_spinningCooldownTimer(nullptr),
+      m_spinningUpdateTimer(nullptr),
+      m_spinningDurationTimer(nullptr),
+      m_spinningCircle(nullptr),
+      m_currentFrameIndex(0),
+      m_lastSpinningDamageTime(0) {
+    // 从配置文件读取内裤怪属性
+    ConfigManager& config = ConfigManager::instance();
+    setHealth(config.getEnemyInt("pants", "health", 20));
+    setContactDamage(config.getEnemyInt("pants", "contact_damage", 2));
+    setVisionRange(config.getEnemyDouble("pants", "vision_range", 300.0));
+    setAttackRange(config.getEnemyDouble("pants", "attack_range", 50.0));
+    setAttackCooldown(config.getEnemyInt("pants", "attack_cooldown", 1000));
+    setSpeed(config.getEnemyDouble("pants", "speed", 2.5));
 
     // 设置移动模式为 Z 字形
     setMovementPattern(MOVE_ZIGZAG);
-    setZigzagAmplitude(70.0);
+    setZigzagAmplitude(config.getEnemyDouble("pants", "zigzag_amplitude", 70.0));
 
     // 保存原始图片和移速
     m_originalPixmap = pixmap();
@@ -133,8 +135,8 @@ void PantsEnemy::startSpinning() {
     // 创建旋转伤害圆（浅灰色填充）
     double circleRadius = SPINNING_CIRCLE_RADIUS;
     m_spinningCircle = new QGraphicsEllipseItem(
-            -circleRadius, -circleRadius,
-            circleRadius * 2, circleRadius * 2);
+        -circleRadius, -circleRadius,
+        circleRadius * 2, circleRadius * 2);
 
     // 设置浅灰色半透明填充
     QColor fillColor(180, 180, 180, 120);  // 浅灰色，半透明
@@ -237,7 +239,7 @@ void PantsEnemy::checkSpinningDamage() {
     }
 }
 
-void PantsEnemy::onContactWithPlayer(Player *p) {
+void PantsEnemy::onContactWithPlayer(Player* p) {
     Q_UNUSED(p);
     // 普通接触伤害由基类处理，这里不需要额外效果
     // 旋转伤害由 checkSpinningDamage() 单独处理

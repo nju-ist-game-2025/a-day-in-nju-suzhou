@@ -7,6 +7,7 @@
 #include <QRandomGenerator>
 #include <QtGlobal>
 #include <cmath>
+#include "../core/configmanager.h"
 #include "constants.h"
 #include "enemy.h"
 
@@ -59,8 +60,22 @@ void spawnTeleportEffect(QGraphicsScene* scene, const QPointF& center) {
 }  // namespace
 
 Player::Player(const QPixmap& pic_player, double scale)
-    : redContainers(8), redHearts(8.0), blackHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(5), isDead(false), keys(1), m_frostChance(0), m_shieldCount(0), m_shieldSprite(nullptr) {  // 默认150毫秒射击冷却，子弹伤害默认5
+    : redContainers(8), redHearts(8.0), blackHearts(0), shootCooldown(150), lastShootTime(0), bulletHurt(5), isDead(false), keys(1), m_frostChance(0), m_shieldCount(0), m_shieldSprite(nullptr) {
     setTransformationMode(Qt::SmoothTransformation);
+
+    // 从配置文件读取玩家属性
+    ConfigManager& config = ConfigManager::instance();
+    redContainers = config.getPlayerInt("health", 8);
+    redHearts = static_cast<double>(redContainers);
+    speed = config.getPlayerDouble("speed", 5.0);
+    shootCooldown = config.getPlayerInt("shoot_cooldown", 150);
+    bulletHurt = config.getPlayerInt("bullet_hurt", 5);
+    crash_r = config.getPlayerInt("crash_radius", 40);
+    m_teleportCooldownMs = config.getPlayerInt("teleport_cooldown", 5000);
+    m_teleportDistance = config.getPlayerDouble("teleport_distance", 120.0);
+    m_ultimateCooldownMs = config.getPlayerInt("ultimate_cooldown", 60000);
+    m_ultimateDurationMs = config.getPlayerInt("ultimate_duration", 10000);
+    m_bulletScaleMultiplier = config.getPlayerDouble("ultimate_bullet_scale", 2.0);
 
     // 加载寒冰子弹图片并缩放到与普通子弹相同大小
     QPixmap frostPic("assets/items/bullet_frost.png");
@@ -90,7 +105,6 @@ Player::Player(const QPixmap& pic_player, double scale)
 
     xdir = 0;
     ydir = 0;
-    speed = 5.0;
     shootSpeed = 1.0;
     shootType = 0;
     damageScale = 1.0;
@@ -98,8 +112,7 @@ Player::Player(const QPixmap& pic_player, double scale)
     curr_ydir = 1;           // 默认向下
     this->setPos(400, 300);  // 初始位置,根据实际需要后续修改
 
-    hurt = 1;      // 后续可修改
-    crash_r = 40;  // 增大碰撞半径以匹配新的角色大小
+    hurt = 1;  // 后续可修改
 
     bombs = 1;
 

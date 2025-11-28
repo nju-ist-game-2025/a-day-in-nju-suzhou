@@ -6,28 +6,32 @@
 #include "player.h"
 #include "projectile.h"
 
-SockShooter::SockShooter(const QPixmap &pic, double scale)
-        : Enemy(pic, scale),
-          m_shootTimer(nullptr),
-          m_facingRight(true),
-          m_bulletDamage(DEFAULT_BULLET_DAMAGE),
-          m_shootCooldown(DEFAULT_SHOOT_COOLDOWN),
-          m_bulletSpeed(DEFAULT_BULLET_SPEED),
-          m_bulletScale(DEFAULT_BULLET_SCALE) {
-    // 设置基础属性
-    setHealth(10);                         // 血量
-    setContactDamage(0);                  // 无接触伤害！纯远程敌人
-    setVisionRange(DEFAULT_VISION_RANGE); // 较大的视野范围
-    setAttackRange(DEFAULT_VISION_RANGE); // 攻击范围等于视野范围（可以远距离射击）
-    setAttackCooldown(m_shootCooldown);   // 攻击冷却
-    setSpeed(1.0);                        // 移动速度慢，减少抖动
+SockShooter::SockShooter(const QPixmap& pic, double scale)
+    : Enemy(pic, scale),
+      m_shootTimer(nullptr),
+      m_facingRight(true),
+      m_bulletDamage(DEFAULT_BULLET_DAMAGE),
+      m_shootCooldown(DEFAULT_SHOOT_COOLDOWN),
+      m_bulletSpeed(DEFAULT_BULLET_SPEED),
+      m_bulletScale(DEFAULT_BULLET_SCALE) {
+    // 从配置文件读取射击袜子属性
+    ConfigManager& config = ConfigManager::instance();
+    setHealth(config.getEnemyInt("sock_shooter", "health", 10));
+    setContactDamage(config.getEnemyInt("sock_shooter", "contact_damage", 0));
+    setVisionRange(config.getEnemyDouble("sock_shooter", "vision_range", DEFAULT_VISION_RANGE));
+    setAttackRange(config.getEnemyDouble("sock_shooter", "attack_range", DEFAULT_VISION_RANGE));
+    m_shootCooldown = config.getEnemyInt("sock_shooter", "shoot_cooldown", DEFAULT_SHOOT_COOLDOWN);
+    setAttackCooldown(m_shootCooldown);
+    setSpeed(config.getEnemyDouble("sock_shooter", "speed", 1.0));
+    m_bulletDamage = config.getEnemyInt("sock_shooter", "bullet_damage", DEFAULT_BULLET_DAMAGE);
+    m_bulletSpeed = config.getEnemyDouble("sock_shooter", "bullet_speed", DEFAULT_BULLET_SPEED);
 
     // 设置碰撞半径（确保可以被玩家子弹击中）
     setCrashR(25);
 
     // 使用保持距离移动模式（远程敌人专用）
     setMovementPattern(MOVE_KEEP_DISTANCE);
-    setPreferredDistance(DEFAULT_KEEP_DISTANCE);
+    setPreferredDistance(config.getEnemyDouble("sock_shooter", "preferred_distance", DEFAULT_KEEP_DISTANCE));
 
     // 加载子弹图片
     loadBulletPixmap();
@@ -54,7 +58,7 @@ void SockShooter::loadBulletPixmap() {
     // 从配置文件获取子弹大小
     int bulletSize = ConfigManager::instance().getBulletSize("sock_shooter");
     if (bulletSize <= 0)
-        bulletSize = 25; // 默认值
+        bulletSize = 25;  // 默认值
 
     // 加载子弹图片
     QPixmap originalBullet("assets/items/bullet_sock_shooter.png");
@@ -101,9 +105,9 @@ void SockShooter::updateFacingDirection() {
     // 设置 xdir 让 Entity 基类的 updateFacing() 处理图片翻转
     // 玩家在右边时 xdir > 0，在左边时 xdir < 0
     if (dx > 0) {
-        xdir = 1; // 触发向右朝向
+        xdir = 1;  // 触发向右朝向
     } else if (dx < 0) {
-        xdir = -1; // 触发向左朝向
+        xdir = -1;  // 触发向左朝向
     }
 }
 
@@ -143,13 +147,13 @@ void SockShooter::shootBullet() {
 
     // 创建子弹（mode=1 表示敌人子弹，会伤害玩家）
     // 不再额外缩放，因为 loadBulletPixmap 已经缩放好了
-    Projectile *bullet = new Projectile(1, m_bulletDamage, center,
+    Projectile* bullet = new Projectile(1, m_bulletDamage, center,
                                         m_bulletPixmap, 1.0);
 
     // 设置子弹方向（只向水平方向发射）
     // 面朝方向决定子弹方向：右=正X，左=负X
     int bulletDirX = m_facingRight ? static_cast<int>(m_bulletSpeed) : -static_cast<int>(m_bulletSpeed);
-    int bulletDirY = 0; // Y方向始终为0，只水平发射
+    int bulletDirY = 0;  // Y方向始终为0，只水平发射
 
     bullet->setDir(bulletDirX, bulletDirY);
 

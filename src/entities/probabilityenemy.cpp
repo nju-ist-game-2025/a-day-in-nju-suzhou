@@ -5,33 +5,29 @@
 #include <QPainter>
 #include <QtMath>
 #include "../core/audiomanager.h"
+#include "../core/configmanager.h"
 #include "../ui/explosion.h"
 #include "player.h"
 
 // HealTextController 实现
-HealTextController::HealTextController(Enemy *target, QGraphicsTextItem *textItem, QObject *parent)
-    : QObject(parent), m_target(target), m_textItem(textItem), m_updateTimer(nullptr)
-{
+HealTextController::HealTextController(Enemy* target, QGraphicsTextItem* textItem, QObject* parent)
+    : QObject(parent), m_target(target), m_textItem(textItem), m_updateTimer(nullptr) {
     // 创建位置更新定时器
     m_updateTimer = new QTimer(this);
     connect(m_updateTimer, &QTimer::timeout, this, &HealTextController::updatePosition);
-    m_updateTimer->start(16); // 约60fps更新位置
+    m_updateTimer->start(16);  // 约60fps更新位置
 
     // 1.5秒后清理
     QTimer::singleShot(1500, this, &HealTextController::cleanup);
 }
 
-HealTextController::~HealTextController()
-{
-    if (m_updateTimer)
-    {
+HealTextController::~HealTextController() {
+    if (m_updateTimer) {
         m_updateTimer->stop();
     }
     // 确保文字被移除
-    if (m_textItem)
-    {
-        if (m_textItem->scene())
-        {
+    if (m_textItem) {
+        if (m_textItem->scene()) {
             m_textItem->scene()->removeItem(m_textItem);
         }
         delete m_textItem;
@@ -39,24 +35,18 @@ HealTextController::~HealTextController()
     }
 }
 
-void HealTextController::updatePosition()
-{
-    if (m_target && m_target->scene() && m_textItem)
-    {
+void HealTextController::updatePosition() {
+    if (m_target && m_target->scene() && m_textItem) {
         m_textItem->setPos(m_target->pos().x() + 20, m_target->pos().y() - 30);
     }
 }
 
-void HealTextController::cleanup()
-{
-    if (m_updateTimer)
-    {
+void HealTextController::cleanup() {
+    if (m_updateTimer) {
         m_updateTimer->stop();
     }
-    if (m_textItem)
-    {
-        if (m_textItem->scene())
-        {
+    if (m_textItem) {
+        if (m_textItem->scene()) {
             m_textItem->scene()->removeItem(m_textItem);
         }
         delete m_textItem;
@@ -66,7 +56,7 @@ void HealTextController::cleanup()
 }
 
 // ProbabilityEnemy 实现
-ProbabilityEnemy::ProbabilityEnemy(const QPixmap &pic, double scale)
+ProbabilityEnemy::ProbabilityEnemy(const QPixmap& pic, double scale)
     : Enemy(pic, scale),
       m_growthTimer(nullptr),
       m_blinkTimer(nullptr),
@@ -78,29 +68,26 @@ ProbabilityEnemy::ProbabilityEnemy(const QPixmap &pic, double scale)
       m_originalPixmap(pic),
       m_currentScale(INITIAL_SCALE_RATIO),
       m_initialScale(INITIAL_SCALE_RATIO),
-      m_elapsedTime(0)
-{
+      m_elapsedTime(0) {
     // 计算最大缩放比例：使图片高度等于场景高度
     m_maxScale = SCENE_HEIGHT / static_cast<double>(pic.height());
 
-    // 概率论的特殊属性
-    setHealth(50);       // 较高血量，不容易被打死
-    setContactDamage(2); // 碰撞造成2点伤害
-    setVisionRange(0);   // 无视野
-    setAttackRange(0);   // 无攻击范围
-    setSpeed(0);         // 不移动
+    // 从配置文件读取概率论属性
+    ConfigManager& config = ConfigManager::instance();
+    setHealth(config.getEnemyInt("probability_theory", "health", 50));
+    setContactDamage(config.getEnemyInt("probability_theory", "contact_damage", 2));
+    setVisionRange(0);  // 无视野
+    setAttackRange(0);  // 无攻击范围
+    setSpeed(0);        // 不移动
 
     // 停止所有继承的定时器（因为不需要移动、AI和攻击检测）
-    if (aiTimer)
-    {
+    if (aiTimer) {
         aiTimer->stop();
     }
-    if (moveTimer)
-    {
+    if (moveTimer) {
         moveTimer->stop();
     }
-    if (attackTimer)
-    {
+    if (attackTimer) {
         attackTimer->stop();
     }
 
@@ -130,87 +117,74 @@ ProbabilityEnemy::ProbabilityEnemy(const QPixmap &pic, double scale)
              << "最大缩放:" << m_maxScale << "成长时间:" << GROWTH_DURATION_MS << "ms";
 }
 
-ProbabilityEnemy::~ProbabilityEnemy()
-{
-    if (m_growthTimer)
-    {
+ProbabilityEnemy::~ProbabilityEnemy() {
+    if (m_growthTimer) {
         m_growthTimer->stop();
         delete m_growthTimer;
         m_growthTimer = nullptr;
     }
-    if (m_blinkTimer)
-    {
+    if (m_blinkTimer) {
         m_blinkTimer->stop();
         delete m_blinkTimer;
         m_blinkTimer = nullptr;
     }
-    if (m_explodeTimer)
-    {
+    if (m_explodeTimer) {
         m_explodeTimer->stop();
         delete m_explodeTimer;
         m_explodeTimer = nullptr;
     }
-    if (m_contactTimer)
-    {
+    if (m_contactTimer) {
         m_contactTimer->stop();
         delete m_contactTimer;
         m_contactTimer = nullptr;
     }
 }
 
-void ProbabilityEnemy::move()
-{
+void ProbabilityEnemy::move() {
     // 概率论不移动
 }
 
-void ProbabilityEnemy::attackPlayer()
-{
+void ProbabilityEnemy::attackPlayer() {
     // 概率论不主动攻击
 }
 
-bool ProbabilityEnemy::hasContactingEnemies() const
-{
+bool ProbabilityEnemy::hasContactingEnemies() const {
     if (!scene())
         return false;
 
     // 检测是否有其他敌人与概率论接触
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item : collisions)
-    {
-        Enemy *enemy = dynamic_cast<Enemy *>(item);
+    QList<QGraphicsItem*> collisions = collidingItems();
+    for (QGraphicsItem* item : collisions) {
+        Enemy* enemy = dynamic_cast<Enemy*>(item);
         if (!enemy)
             continue;
 
         // 跳过其他概率论敌人
-        if (dynamic_cast<const ProbabilityEnemy *>(enemy))
+        if (dynamic_cast<const ProbabilityEnemy*>(enemy))
             continue;
 
         // 使用像素级碰撞检测
-        if (Entity::pixelCollision(const_cast<ProbabilityEnemy *>(this), enemy))
-        {
+        if (Entity::pixelCollision(const_cast<ProbabilityEnemy*>(this), enemy)) {
             return true;
         }
     }
     return false;
 }
 
-void ProbabilityEnemy::takeDamage(int damage)
-{
+void ProbabilityEnemy::takeDamage(int damage) {
     if (m_exploded)
         return;
 
-    flash(); // 显示受击闪烁
+    flash();  // 显示受击闪烁
     health -= qMax(1, damage);
 
-    if (health <= 0)
-    {
+    if (health <= 0) {
         // 被打死时，显示死亡特效但不造成范围伤害
         explode(false);
     }
 }
 
-void ProbabilityEnemy::onGrowthUpdate()
-{
+void ProbabilityEnemy::onGrowthUpdate() {
     if (m_isBlinking || m_exploded)
         return;
 
@@ -223,8 +197,7 @@ void ProbabilityEnemy::onGrowthUpdate()
 
     // 计算当前缩放比例（线性插值）
     double progress = static_cast<double>(m_elapsedTime) / static_cast<double>(GROWTH_DURATION_MS);
-    if (progress >= 1.0)
-    {
+    if (progress >= 1.0) {
         progress = 1.0;
         m_currentScale = m_maxScale;
 
@@ -233,9 +206,7 @@ void ProbabilityEnemy::onGrowthUpdate()
         startBlinking();
 
         qDebug() << "ProbabilityEnemy 成长完成，开始闪烁";
-    }
-    else
-    {
+    } else {
         // 线性插值计算当前缩放
         m_currentScale = m_initialScale + (m_maxScale - m_initialScale) * progress;
     }
@@ -244,8 +215,7 @@ void ProbabilityEnemy::onGrowthUpdate()
     updateScale();
 }
 
-void ProbabilityEnemy::updateScale()
-{
+void ProbabilityEnemy::updateScale() {
     // 计算新的图片大小
     int newWidth = static_cast<int>(m_originalPixmap.width() * m_currentScale);
     int newHeight = static_cast<int>(m_originalPixmap.height() * m_currentScale);
@@ -266,12 +236,9 @@ void ProbabilityEnemy::updateScale()
     painter.end();
 
     // 更新显示
-    if (!m_isRed)
-    {
+    if (!m_isRed) {
         QGraphicsPixmapItem::setPixmap(m_normalPixmap);
-    }
-    else
-    {
+    } else {
         QGraphicsPixmapItem::setPixmap(m_redPixmap);
     }
 
@@ -282,8 +249,7 @@ void ProbabilityEnemy::updateScale()
     setCrashR(qMax(newWidth, newHeight) / 2);
 }
 
-void ProbabilityEnemy::startBlinking()
-{
+void ProbabilityEnemy::startBlinking() {
     m_isBlinking = true;
 
     // 开始闪烁（每300ms切换一次）
@@ -295,55 +261,45 @@ void ProbabilityEnemy::startBlinking()
     qDebug() << "ProbabilityEnemy 开始闪烁，" << EXPLODE_DELAY << "ms 后爆炸";
 }
 
-void ProbabilityEnemy::onBlinkTimeout()
-{
+void ProbabilityEnemy::onBlinkTimeout() {
     toggleBlink();
 }
 
-void ProbabilityEnemy::toggleBlink()
-{
+void ProbabilityEnemy::toggleBlink() {
     m_isRed = !m_isRed;
-    if (m_isRed)
-    {
+    if (m_isRed) {
         QGraphicsPixmapItem::setPixmap(m_redPixmap);
-    }
-    else
-    {
+    } else {
         QGraphicsPixmapItem::setPixmap(m_normalPixmap);
     }
 }
 
-void ProbabilityEnemy::onExplodeTimeout()
-{
+void ProbabilityEnemy::onExplodeTimeout() {
     explode(true);
 }
 
-void ProbabilityEnemy::onContactCheck()
-{
+void ProbabilityEnemy::onContactCheck() {
     if (m_exploded || m_isPaused || !scene())
         return;
 
     healContactingEnemies();
 }
 
-void ProbabilityEnemy::healContactingEnemies()
-{
+void ProbabilityEnemy::healContactingEnemies() {
     // 检测与概率论接触的敌人，给它们回血
-    QList<QGraphicsItem *> collisions = collidingItems();
-    for (QGraphicsItem *item : collisions)
-    {
+    QList<QGraphicsItem*> collisions = collidingItems();
+    for (QGraphicsItem* item : collisions) {
         // 跳过非敌人
-        Enemy *enemy = dynamic_cast<Enemy *>(item);
+        Enemy* enemy = dynamic_cast<Enemy*>(item);
         if (!enemy)
             continue;
 
         // 跳过其他概率论敌人
-        if (dynamic_cast<ProbabilityEnemy *>(enemy))
+        if (dynamic_cast<ProbabilityEnemy*>(enemy))
             continue;
 
         // 使用像素级碰撞检测
-        if (Entity::pixelCollision(this, enemy))
-        {
+        if (Entity::pixelCollision(this, enemy)) {
             int currentHealth = enemy->getHealth();
             int maxHealth = enemy->getMaxHealth();
 
@@ -358,12 +314,12 @@ void ProbabilityEnemy::healContactingEnemies()
 
             // 创建显示绿色治疗文字（跟随目标）
             // 即使实际治疗量不足2点，也显示"治疗2点生命值++"
-            QGraphicsTextItem *textItem = new QGraphicsTextItem(QString("治疗%1点生命值++").arg(HEAL_AMOUNT));
+            QGraphicsTextItem* textItem = new QGraphicsTextItem(QString("治疗%1点生命值++").arg(HEAL_AMOUNT));
             QFont font;
             font.setPointSize(14);
             font.setBold(true);
             textItem->setFont(font);
-            textItem->setDefaultTextColor(QColor(0, 200, 0)); // 绿色
+            textItem->setDefaultTextColor(QColor(0, 200, 0));  // 绿色
             textItem->setPos(enemy->pos().x() + 20, enemy->pos().y() - 30);
             textItem->setZValue(300);
             scene()->addItem(textItem);
@@ -376,30 +332,25 @@ void ProbabilityEnemy::healContactingEnemies()
     }
 }
 
-void ProbabilityEnemy::explode(bool dealDamage)
-{
+void ProbabilityEnemy::explode(bool dealDamage) {
     if (m_exploded)
         return;
 
     m_exploded = true;
 
     // 停止所有定时器
-    if (m_growthTimer)
-    {
+    if (m_growthTimer) {
         m_growthTimer->stop();
     }
-    if (m_blinkTimer)
-    {
+    if (m_blinkTimer) {
         m_blinkTimer->stop();
     }
-    if (m_explodeTimer)
-    {
+    if (m_explodeTimer) {
         m_explodeTimer->stop();
     }
 
     // 只有主动爆炸（成长完成）才对所有实体造成伤害
-    if (dealDamage)
-    {
+    if (dealDamage) {
         damageAllEntities();
     }
 
@@ -407,9 +358,8 @@ void ProbabilityEnemy::explode(bool dealDamage)
     AudioManager::instance().playSound("enemy_death");
 
     // 创建爆炸动画
-    if (scene())
-    {
-        auto *explosion = new Explosion();
+    if (scene()) {
+        auto* explosion = new Explosion();
         explosion->setPos(this->pos());
         scene()->addItem(explosion);
         explosion->startAnimation();
@@ -418,8 +368,7 @@ void ProbabilityEnemy::explode(bool dealDamage)
     // 发出dying信号并删除自己
     emit dying(this);
 
-    if (scene())
-    {
+    if (scene()) {
         scene()->removeItem(this);
     }
 
@@ -428,54 +377,49 @@ void ProbabilityEnemy::explode(bool dealDamage)
     qDebug() << "ProbabilityEnemy 爆炸！造成伤害:" << dealDamage;
 }
 
-void ProbabilityEnemy::damageAllEntities()
-{
+void ProbabilityEnemy::damageAllEntities() {
     if (!scene())
         return;
 
     qDebug() << "ProbabilityEnemy 概率爆炸！盛宴降临！";
 
     // 获取场景中所有物品
-    QList<QGraphicsItem *> allItems = scene()->items();
+    QList<QGraphicsItem*> allItems = scene()->items();
 
-    for (QGraphicsItem *item : allItems)
-    {
+    for (QGraphicsItem* item : allItems) {
         // 跳过自己
         if (item == this)
             continue;
 
         // 对玩家：强制扣到只剩1滴血
-        if (Player *p = dynamic_cast<Player *>(item))
-        {
+        if (Player* p = dynamic_cast<Player*>(item)) {
             p->setCurrentHealth(1);
             qDebug() << "ProbabilityEnemy 将玩家血量强制设为1";
             continue;
         }
 
         // 对敌人：强制回满血（不包括其他ProbabilityEnemy）
-        if (Enemy *enemy = dynamic_cast<Enemy *>(item))
-        {
+        if (Enemy* enemy = dynamic_cast<Enemy*>(item)) {
             // 跳过其他概率论敌人
-            if (dynamic_cast<ProbabilityEnemy *>(enemy))
+            if (dynamic_cast<ProbabilityEnemy*>(enemy))
                 continue;
 
             int currentHealth = enemy->getHealth();
             int maxHealth = enemy->getMaxHealth();
 
             // 只有未满血的敌人才需要回满并显示文字
-            if (currentHealth < maxHealth)
-            {
+            if (currentHealth < maxHealth) {
                 // 回满血
                 enemy->setCurrentHealth(maxHealth);
 
                 // 显示绿色跟随文字 "恢复至满额状态！"（位置比普通回血文字更高，防止重叠）
-                QGraphicsTextItem *healText = new QGraphicsTextItem("恢复至满额状态！");
+                QGraphicsTextItem* healText = new QGraphicsTextItem("恢复至满额状态！");
                 QFont font;
                 font.setPointSize(14);
                 font.setBold(true);
                 healText->setFont(font);
-                healText->setDefaultTextColor(QColor(0, 200, 0)); // 绿色
-                healText->setPos(enemy->pos().x() + 20, enemy->pos().y() - 55); // 比普通回血文字高25像素
+                healText->setDefaultTextColor(QColor(0, 200, 0));                // 绿色
+                healText->setPos(enemy->pos().x() + 20, enemy->pos().y() - 55);  // 比普通回血文字高25像素
                 healText->setZValue(300);
                 scene()->addItem(healText);
 
@@ -491,94 +435,80 @@ void ProbabilityEnemy::damageAllEntities()
     showExplosionText();
 }
 
-void ProbabilityEnemy::showExplosionText()
-{
+void ProbabilityEnemy::showExplosionText() {
     if (!scene())
         return;
 
     // 创建文字
-    QGraphicsTextItem *textItem = new QGraphicsTextItem();
+    QGraphicsTextItem* textItem = new QGraphicsTextItem();
 
     // 使用HTML设置蓝紫色渐变效果
-    QString htmlText = "<span style='font-size: 32px; font-weight: bold;'>"
-                       "<span style='color: #4169E1;'>概</span>"
-                       "<span style='color: #5A5FD6;'>率</span>"
-                       "<span style='color: #7B68EE;'>爆</span>"
-                       "<span style='color: #8A2BE2;'>炸</span>"
-                       "<span style='color: #9932CC;'>！</span>"
-                       "<span style='color: #8A2BE2;'>盛</span>"
-                       "<span style='color: #7B68EE;'>宴</span>"
-                       "<span style='color: #5A5FD6;'>降</span>"
-                       "<span style='color: #4169E1;'>临</span>"
-                       "<span style='color: #5A5FD6;'>！</span>"
-                       "</span>";
+    QString htmlText =
+        "<span style='font-size: 32px; font-weight: bold;'>"
+        "<span style='color: #4169E1;'>概</span>"
+        "<span style='color: #5A5FD6;'>率</span>"
+        "<span style='color: #7B68EE;'>爆</span>"
+        "<span style='color: #8A2BE2;'>炸</span>"
+        "<span style='color: #9932CC;'>！</span>"
+        "<span style='color: #8A2BE2;'>盛</span>"
+        "<span style='color: #7B68EE;'>宴</span>"
+        "<span style='color: #5A5FD6;'>降</span>"
+        "<span style='color: #4169E1;'>临</span>"
+        "<span style='color: #5A5FD6;'>！</span>"
+        "</span>";
     textItem->setHtml(htmlText);
 
     // 设置位置在屏幕顶部中央
     qreal textWidth = textItem->boundingRect().width();
-    textItem->setPos((800 - textWidth) / 2, 50); // 800是场景宽度
-    textItem->setZValue(500);                    // 确保在最上层
+    textItem->setPos((800 - textWidth) / 2, 50);  // 800是场景宽度
+    textItem->setZValue(500);                     // 确保在最上层
 
     scene()->addItem(textItem);
 
     // 3秒后删除文字
-    QTimer::singleShot(3000, textItem, [textItem]()
-                       {
+    QTimer::singleShot(3000, textItem, [textItem]() {
         if (textItem && textItem->scene()) {
             textItem->scene()->removeItem(textItem);
         }
         delete textItem; });
 }
 
-void ProbabilityEnemy::pauseTimers()
-{
+void ProbabilityEnemy::pauseTimers() {
     Enemy::pauseTimers();
 
-    if (m_growthTimer && m_growthTimer->isActive())
-    {
+    if (m_growthTimer && m_growthTimer->isActive()) {
         m_growthTimer->stop();
     }
-    if (m_blinkTimer && m_blinkTimer->isActive())
-    {
+    if (m_blinkTimer && m_blinkTimer->isActive()) {
         m_blinkTimer->stop();
     }
-    if (m_explodeTimer && m_explodeTimer->isActive())
-    {
+    if (m_explodeTimer && m_explodeTimer->isActive()) {
         m_explodeTimer->stop();
     }
-    if (m_contactTimer && m_contactTimer->isActive())
-    {
+    if (m_contactTimer && m_contactTimer->isActive()) {
         m_contactTimer->stop();
     }
 }
 
-void ProbabilityEnemy::resumeTimers()
-{
+void ProbabilityEnemy::resumeTimers() {
     Enemy::resumeTimers();
 
     // 恢复接触检测定时器
-    if (m_contactTimer && !m_exploded)
-    {
+    if (m_contactTimer && !m_exploded) {
         m_contactTimer->start(CONTACT_CHECK_INTERVAL);
     }
 
-    if (!m_isBlinking && !m_exploded)
-    {
+    if (!m_isBlinking && !m_exploded) {
         // 还在成长阶段，恢复成长定时器
-        if (m_growthTimer)
-        {
+        if (m_growthTimer) {
             m_growthTimer->start(GROWTH_UPDATE_INTERVAL);
         }
-    }
-    else if (m_isBlinking && !m_exploded)
-    {
+    } else if (m_isBlinking && !m_exploded) {
         // 在闪烁阶段，恢复闪烁和爆炸定时器
-        if (m_blinkTimer)
-        {
+        if (m_blinkTimer) {
             m_blinkTimer->start(BLINK_INTERVAL);
         }
-        if (m_explodeTimer)
-        {
+        if (m_explodeTimer) {
             // 简单处理：给一个短时间爆炸
             m_explodeTimer->start(500);
         }

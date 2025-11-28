@@ -2,27 +2,30 @@
 #include <QDebug>
 #include <QGraphicsScene>
 #include <QtMath>
+#include "../core/configmanager.h"
 #include "player.h"
 #include "teacherboss.h"
 
-Invigilator::Invigilator(const QPixmap &normalPic, const QPixmap &angryPic, TeacherBoss *master, double scale)
-        : Enemy(normalPic, scale),
-          m_master(master),
-          m_state(PATROL),
-          m_normalPixmap(normalPic),
-          m_angryPixmap(angryPic),
-          m_patrolAngle(0.0),
-          m_patrolRadius(100.0),  // 巡逻半径100像素
-          m_patrolSpeed(0.03),    // 巡逻速度
-          m_patrolTimer(nullptr),
-          m_detectionRange(150.0) {  // 发现玩家的距离
-
-    // 设置监考员属性
-    setHealth(15);        // 较低血量
-    setContactDamage(1);  // 接触伤害1点
-    setVisionRange(200);  // 视野范围
-    setAttackRange(30);   // 攻击范围
-    setSpeed(2.0);        // 移动速度
+Invigilator::Invigilator(const QPixmap& normalPic, const QPixmap& angryPic, TeacherBoss* master, double scale)
+    : Enemy(normalPic, scale),
+      m_master(master),
+      m_state(PATROL),
+      m_normalPixmap(normalPic),
+      m_angryPixmap(angryPic),
+      m_patrolAngle(0.0),
+      m_patrolRadius(100.0),
+      m_patrolSpeed(0.03),
+      m_patrolTimer(nullptr),
+      m_detectionRange(150.0) {
+    // 从配置文件读取监考员属性
+    ConfigManager& config = ConfigManager::instance();
+    setHealth(config.getEnemyInt("invigilator", "health", 15));
+    setContactDamage(config.getEnemyInt("invigilator", "contact_damage", 1));
+    setVisionRange(config.getEnemyDouble("invigilator", "vision_range", 200));
+    setAttackRange(config.getEnemyDouble("invigilator", "attack_range", 30));
+    setSpeed(config.getEnemyDouble("invigilator", "speed", 2.0));
+    m_patrolRadius = config.getEnemyDouble("invigilator", "patrol_radius", 100.0);
+    m_detectionRange = config.getEnemyDouble("invigilator", "detection_range", 150.0);
 
     // 标记为被召唤的敌人
     setIsSummoned(true);

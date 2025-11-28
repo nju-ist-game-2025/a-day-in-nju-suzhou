@@ -112,6 +112,7 @@ void setupMap(QGraphicsScene* scene) {
     Map& map = sharedMapInstance();
     const QString levelPath = QStringLiteral("assets/levels/level1_wall.json");
     // 墙壁配置是可选的，如果文件不存在也不影响游戏运行
+    // 目前未实现
     if (QFile::exists(levelPath)) {
         if (!map.loadFromFile(levelPath, scene)) {
             qWarning() << "加载地图失败:" << levelPath;
