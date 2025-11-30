@@ -35,26 +35,27 @@ struct CodexEntry {
 
 // 图鉴条目卡片组件
 class CodexCard : public QWidget {
-    Q_OBJECT
-   public:
-    explicit CodexCard(const CodexEntry& entry, QWidget* parent = nullptr);
+Q_OBJECT
+public:
+    explicit CodexCard(const CodexEntry &entry, QWidget *parent = nullptr);
+
     void setScale(double scale);  // 缩放卡片
 
-   signals:
+signals:
 
-    void clicked(const CodexEntry& entry);
+    void clicked(const CodexEntry &entry);
 
-   protected:
-    void mousePressEvent(QMouseEvent* event) override;
+protected:
+    void mousePressEvent(QMouseEvent *event) override;
 
-    void enterEvent(QEnterEvent* event) override;
+    void enterEvent(QEnterEvent *event) override;
 
-    void leaveEvent(QEvent* event) override;
+    void leaveEvent(QEvent *event) override;
 
-   private:
+private:
     CodexEntry m_entry;
-    QLabel* m_imageLabel;
-    QLabel* m_nameLabel;
+    QLabel *m_imageLabel;
+    QLabel *m_nameLabel;
 
     // 基础尺寸常量
     static constexpr int BASE_CARD_WIDTH = 120;
@@ -66,27 +67,27 @@ class CodexCard : public QWidget {
 
 // 详细信息弹窗
 class CodexDetailDialog : public QDialog {
-    Q_OBJECT
-   public:
-    explicit CodexDetailDialog(const CodexEntry& entry, QWidget* parent = nullptr);
+Q_OBJECT
+public:
+    explicit CodexDetailDialog(const CodexEntry &entry, QWidget *parent = nullptr);
 };
 
 // 主图鉴类
 class Codex : public QWidget {
-    Q_OBJECT
+Q_OBJECT
 
-   public:
-    explicit Codex(QWidget* parent = nullptr);
+public:
+    explicit Codex(QWidget *parent = nullptr);
 
-   public slots:
+public slots:
 
     void returnToMenu();
 
-   signals:
+signals:
 
     void backToMenu();
 
-   private:
+private:
     void setupUI();
 
     void loadBossData();
@@ -105,14 +106,14 @@ class Codex : public QWidget {
 
     void refreshMysteryData();  // 刷新神秘物品数据（通关后更新）
 
-    QWidget* createCategoryPage(const QList<CodexEntry>& entries);
+    QWidget *createCategoryPage(const QList<CodexEntry> &entries);
 
-    void showEntryDetail(const CodexEntry& entry);
+    void showEntryDetail(const CodexEntry &entry);
 
-    QTabWidget* tabWidget;
-    QPushButton* backButton;
-    QLabel* titleLabel;            // 标题标签，用于缩放
-    QList<CodexCard*> m_allCards;  // 所有卡片，用于缩放
+    QTabWidget *tabWidget;
+    QPushButton *backButton;
+    QLabel *titleLabel;            // 标题标签，用于缩放
+    QList<CodexCard *> m_allCards;  // 所有卡片，用于缩放
 
     QList<CodexEntry> m_bossEntries;
     QList<CodexEntry> m_enemyEntries;
@@ -122,9 +123,10 @@ class Codex : public QWidget {
     QList<CodexEntry> m_mechanicsEntries;
     QList<CodexEntry> m_mysteryEntries;  // 神秘物品
 
-   protected:
-    void resizeEvent(QResizeEvent* event) override;
-    void showEvent(QShowEvent* event) override;  // 显示时刷新数据
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
+    void showEvent(QShowEvent *event) override;  // 显示时刷新数据
 };
 
 #endif  // CODEX_H

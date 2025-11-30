@@ -1,5 +1,4 @@
 #include "configvalidator.h"
-#include <QDebug>
 #include "configmanager.h"
 
 // 静态成员初始化
