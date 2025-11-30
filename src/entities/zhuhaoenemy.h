@@ -65,7 +65,7 @@ private slots:
 
 private:
     void moveAlongEdge();                  // 沿边缘移动
-    void updateZhuhaoFacing();             // 更新朱昊朝向
+    void updateZhuhaoFacing();             // 更新朝向
     EdgePosition getCurrentEdgePosition(); // 获取当前所在边缘位置
     bool isAtCorner();                     // 检查是否在角落
     void shootBarrage();                   // 发射弹幕
@@ -97,7 +97,7 @@ private:
 };
 
 /**
- * @brief 朱昊的特殊弹幕子弹基类
+ * @brief zhuhao特殊弹幕子弹基类
  */
 class ZhuhaoProjectile : public QObject, public QGraphicsPixmapItem {
 Q_OBJECT

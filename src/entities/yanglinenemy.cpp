@@ -21,7 +21,7 @@ YanglinEnemy::YanglinEnemy(const QPixmap& pic, double scale)
       m_originalSpeed(2.0),
       m_isReturningToNormal(false),
       m_lastSpinningDamageTime(0) {
-    // 从配置文件读取杨林属性
+
     ConfigManager& config = ConfigManager::instance();
     health = config.getEnemyInt("yanglin", "health", 200);
     maxHealth = health;
@@ -57,10 +57,6 @@ YanglinEnemy::YanglinEnemy(const QPixmap& pic, double scale)
     m_firstSpinningTimer->setInterval(FIRST_SPINNING_DELAY);
     connect(m_firstSpinningTimer, &QTimer::timeout, this, &YanglinEnemy::onFirstSpinning);
     m_firstSpinningTimer->start();
-
-    qDebug() << "创建杨林精英怪 - 血量:" << health << "接触伤害:" << contactDamage
-             << "旋转伤害:" << SPINNING_DAMAGE << "基础旋转半径:" << BASE_SPINNING_RADIUS
-             << "全图视野:" << visionRange << "当前缩放:" << getTotalScale();
 }
 
 YanglinEnemy::~YanglinEnemy() {
@@ -210,7 +206,6 @@ void YanglinEnemy::checkSpinningDamage() {
     QRectF playerRect = player->boundingRect();
     QPointF playerCenter = player->pos() + QPointF(playerRect.width() / 2, playerRect.height() / 2);
 
-    // 计算杨林中心（考虑缩放）
     QRectF myRect = boundingRect();
     double currentScale = getTotalScale();
     QPointF myCenter = pos() + QPointF(myRect.width() * currentScale / 2, myRect.height() * currentScale / 2);

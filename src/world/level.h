@@ -165,8 +165,8 @@ class Level : public QObject {
 
     // 精英房间相关
     void checkEliteRoomPhase2();  // 检查是否触发精英房间第二阶段
-    void startElitePhase2();      // 启动精英房间第二阶段（生成朱昊）
-    void spawnZhuhaoEnemy();      // 生成朱昊精英怪
+    void startElitePhase2();      // 启动精英房间第二阶段
+    void spawnZhuhaoEnemy();      // 生成zhuhao精英怪
 
     // 辅助方法：批量暂停/恢复敌人定时器
     void pauseAllEnemyTimers();
@@ -261,9 +261,9 @@ class Level : public QObject {
     // 精英房间相关
     bool m_isEliteRoom = false;           // 当前是否在精英房间
     bool m_elitePhase2Triggered = false;  // 精英房间第二阶段是否已触发
-    int m_eliteYanglinDeathCount = 0;     // 精英房间中杨林死亡计数
+    int m_eliteYanglinDeathCount = 0;     // 精英房间yanglin死亡计数
     bool m_isEliteDialog = false;         // 是否正在显示精英房间对话
-    QPointer<ZhuhaoEnemy> m_zhuhaoEnemy;  // 朱昊精英怪引用
+    QPointer<ZhuhaoEnemy> m_zhuhaoEnemy;  // zhuhao精英怪引用
 
    public slots:
 

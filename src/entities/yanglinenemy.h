@@ -6,7 +6,7 @@
 class Player;
 
 /**
- * @brief 杨林 - 第三关精英小怪
+ * @brief 第三关精英小怪
  *
  * 特性：
  * - 继承自ScalingEnemy，拥有持续缩放效果（与optimization类似）
@@ -15,7 +15,7 @@ class Player;
  * - 拥有spinning技能：
  *   - 与PantsEnemy类似机制，但不形成可视的像素圆
  *   - 伤害判定仍然是圆形区域
- *   - 圆的大小随杨林的缩放而变化（基本上是能包住自己的最小圆）
+ *   - 圆的大小随怪的缩放而变化（基本上是能包住自己的最小圆）
  *   - 开局10秒后释放第一次，之后每30秒释放一次，每次持续5秒
  */
 class YanglinEnemy : public ScalingEnemy {
@@ -62,7 +62,7 @@ private:
     double m_originalSpeed;     // 原始移速（用于恢复）
     bool m_isReturningToNormal; // 是否正在回正角度
 
-    // 技能参数（杨林专属）- 与pants类似但有调整
+    // 技能参数（yanglin专属）- 与pants类似但有调整
     static constexpr int FIRST_SPINNING_DELAY = 10000;       // 开局10秒后第一次释放
     static constexpr int SPINNING_COOLDOWN = 30000;          // 技能冷却时间（30秒）
     static constexpr int SPINNING_DURATION = 5000;           // 技能持续时间（5秒）

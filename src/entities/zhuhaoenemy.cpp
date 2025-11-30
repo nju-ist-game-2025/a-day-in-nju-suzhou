@@ -374,11 +374,11 @@ void ZhuhaoEnemy::shootBarrage() {
 }
 
 void ZhuhaoEnemy::attackPlayer() {
-    // 朱昊不进行近战攻击，只发射弹幕
+    // 不进行接触伤害
 }
 
 void ZhuhaoEnemy::move() {
-    // 朱昊不使用基类的移动逻辑，不跟随玩家
+    //不使用基类的移动逻辑，不跟随玩家
     // 移动由m_moveTimer和moveAlongEdge()处理
 }
 
@@ -566,7 +566,6 @@ void ZhuhaoProjectile::applyEffect(Player* player) {
     switch (m_type) {
         case SLEEP_ZZZ:
             // 无伤害，100%昏迷效果（与枕头一致）
-            qDebug() << "朱昊昏睡子弹命中 - 100%昏迷";
             if (player->canMove() && !player->isEffectOnCooldown()) {
                 player->setEffectCooldown(true);
                 player->setCanMove(false);
@@ -608,7 +607,7 @@ void ZhuhaoProjectile::applyEffect(Player* player) {
 
         case CONFUSED: {
             // 2点伤害，50%昏迷或50%惊吓
-            qDebug() << "朱昊叽里咕噜子弹命中 - 2点伤害，50%昏迷或50%惊吓";
+            qDebug() << "叽里咕噜子弹命中 - 2点伤害，50%昏迷或50%惊吓";
             player->takeDamage(2);
             if (!player->isEffectOnCooldown()) {
                 player->setEffectCooldown(true);
@@ -710,7 +709,7 @@ void ZhuhaoProjectile::applyEffect(Player* player) {
 
         case CPU: {
             // 2点伤害，100%惊吓效果
-            qDebug() << "朱昊CPU子弹命中 - 2点伤害，100%惊吓";
+            qDebug() << "CPU子弹命中 - 2点伤害，100%惊吓";
             player->takeDamage(2);
             if (!player->isEffectOnCooldown() && !player->isScared()) {
                 player->setEffectCooldown(true);

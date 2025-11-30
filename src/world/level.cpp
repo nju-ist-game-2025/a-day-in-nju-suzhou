@@ -1157,12 +1157,11 @@ void Level::spawnEnemiesInRoom(int roomIndex) {
                     enemy->setPos(x, y);
                     enemy->setPlayer(m_player);
 
-                    // 为绕圈移动的敌人（如杨林）设置不同的初始角度，避免重合
-                    // 每只杨林间隔 120度（2π/3弧度）
+                    // 为绕圈移动的敌人设置不同的初始角度，避免重合
                     if (enemyType == "yanglin" && count > 1) {
                         double initialAngle = (2.0 * M_PI / count) * i;
                         enemy->setCircleAngle(initialAngle);
-                        qDebug() << "设置杨林" << i << "初始角度:" << (initialAngle * 180.0 / M_PI) << "度";
+                        qDebug() << "设置yanglin" << i << "初始角度:" << (initialAngle * 180.0 / M_PI) << "度";
                     }
 
                     // 预加载碰撞掩码（避免运行时生成）

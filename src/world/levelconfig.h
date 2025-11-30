@@ -37,7 +37,7 @@ struct RoomConfig {
     bool isEliteRoom;                     // 是否是精英房间
     QStringList eliteDialog;              // 精英房间开场对话
     QString eliteDialogBackground;        // 精英房间开场对话背景
-    QStringList elitePhase2Dialog;        // 精英房间第二阶段对话（第一只杨林死亡后）
+    QStringList elitePhase2Dialog;        // 精英房间第二阶段对话
     QString elitePhase2DialogBackground;  // 精英房间第二阶段对话背景
 
     // 门的连接信息：-1 表示无门，>= 0 表示连接到的房间索引
