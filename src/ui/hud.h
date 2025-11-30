@@ -7,22 +7,32 @@
 #include "player.h"
 
 class HUD : public QObject, public QGraphicsItem {
-    Q_OBJECT
+Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
-   public:
-    HUD(Player* pl, QGraphicsItem* parent = nullptr);
+public:
+    HUD(Player *pl, QGraphicsItem *parent = nullptr);
+
     ~HUD() override;
 
     QRectF boundingRect() const override;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
-    void paintShield(QPainter* painter);
-    void paintBlack(QPainter* painter);
-    void paintFrostChance(QPainter* painter);
-    void paintKey(QPainter* painter);
-    void paintEffects(QPainter* painter, const QString& text, int count, double duration, QColor color = Qt::black);
-    void paintMinimap(QPainter* painter);
-    void paintTeleportCooldown(QPainter* painter);
-    void paintUltimateStatus(QPainter* painter);
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+
+    void paintShield(QPainter *painter);
+
+    void paintBlack(QPainter *painter);
+
+    void paintFrostChance(QPainter *painter);
+
+    void paintKey(QPainter *painter);
+
+    void paintEffects(QPainter *painter, const QString &text, int count, double duration, QColor color = Qt::black);
+
+    void paintMinimap(QPainter *painter);
+
+    void paintTeleportCooldown(QPainter *painter);
+
+    void paintUltimateStatus(QPainter *painter);
 
     struct RoomNode {
         int id;
@@ -32,31 +42,31 @@ class HUD : public QObject, public QGraphicsItem {
         int up, down, left, right;
     };
 
-   public slots:
+public slots:
 
     void updateHealth(float current, float max);
 
-    void updateMinimap(int currentRoom, const QVector<int>& roomLayout);  // Simplified layout data
+    void updateMinimap(int currentRoom, const QVector<int> &roomLayout);  // Simplified layout data
     void triggerDamageFlash();
 
-    void setMapLayout(const QVector<RoomNode>& nodes);         // Set map layout from Level
-    void syncVisitedRooms(const QVector<bool>& visitedArray);  // 同步已访问房间状态
+    void setMapLayout(const QVector<RoomNode> &nodes);         // Set map layout from Level
+    void syncVisitedRooms(const QVector<bool> &visitedArray);  // 同步已访问房间状态
 
-   private slots:
+private slots:
 
     void endDamageFlash();
 
-   private:
+private:
     float currentHealth;
     float maxHealth;
     bool isFlashing;
     bool isScreenFlashing;
-    QTimer* flashTimer;
+    QTimer *flashTimer;
     int flashCount;
-    QTimer* screenFlashTimer;
-    Player* player;
+    QTimer *screenFlashTimer;
+    Player *player;
     int currentRoomIndex;
-    QTimer* m_hudTimer;  // HUD刷新定时器
+    QTimer *m_hudTimer;  // HUD刷新定时器
 
     QVector<RoomNode> mapNodes;
 };

@@ -9,8 +9,8 @@
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 
-CharacterSelector::CharacterSelector(QWidget* parent)
-    : QWidget(parent), m_selectedIndex(0) {
+CharacterSelector::CharacterSelector(QWidget *parent)
+        : QWidget(parent), m_selectedIndex(0) {
     setMinimumSize(800, 600);
 
     // 设置背景
@@ -20,12 +20,12 @@ CharacterSelector::CharacterSelector(QWidget* parent)
         palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
         setAutoFillBackground(true);
         setPalette(palette);
-    } catch (const QString&) {
+    } catch (const QString &) {
         setStyleSheet("background-color: #2c3e50;");
     }
 
     // 主布局
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setAlignment(Qt::AlignCenter);
     mainLayout->setSpacing(20);
 
@@ -39,7 +39,7 @@ CharacterSelector::CharacterSelector(QWidget* parent)
     m_titleLabel->setAlignment(Qt::AlignCenter);
     m_titleLabel->setStyleSheet("color: #000000;");
 
-    QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect(this);
+    QGraphicsDropShadowEffect *shadowEffect = new QGraphicsDropShadowEffect(this);
     shadowEffect->setBlurRadius(5);
     shadowEffect->setColor(QColor(0, 0, 0, 150));
     shadowEffect->setOffset(3, 3);
@@ -50,9 +50,9 @@ CharacterSelector::CharacterSelector(QWidget* parent)
     m_previewLabel->setFixedSize(150, 150);
     m_previewLabel->setAlignment(Qt::AlignCenter);
     m_previewLabel->setStyleSheet(
-        "QLabel {"
-        "   background-color: transparent;"
-        "}");
+            "QLabel {"
+            "   background-color: transparent;"
+            "}");
 
     // 角色名称
     m_nameLabel = new QLabel(this);
@@ -73,22 +73,22 @@ CharacterSelector::CharacterSelector(QWidget* parent)
     abilityButtonFont.setBold(true);
     m_abilityButton->setFont(abilityButtonFont);
     m_abilityButton->setStyleSheet(
-        "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2196F3, stop:1 #1976D2);"
-        "   color: white;"
-        "   border: 2px solid #1565C0;"
-        "   border-radius: 8px;"
-        "   padding: 5px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #42A5F5, stop:1 #1E88E5);"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1976D2, stop:1 #1565C0);"
-        "}");
+            "QPushButton {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2196F3, stop:1 #1976D2);"
+            "   color: white;"
+            "   border: 2px solid #1565C0;"
+            "   border-radius: 8px;"
+            "   padding: 5px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #42A5F5, stop:1 #1E88E5);"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1976D2, stop:1 #1565C0);"
+            "}");
 
     // 角色选择按钮容器
-    QWidget* characterContainer = new QWidget(this);
+    QWidget *characterContainer = new QWidget(this);
     m_characterLayout = new QHBoxLayout(characterContainer);
     m_characterLayout->setAlignment(Qt::AlignCenter);
     m_characterLayout->setSpacing(20);
@@ -98,34 +98,34 @@ CharacterSelector::CharacterSelector(QWidget* parent)
 
     // 按钮样式
     QString confirmButtonStyle =
-        "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4CAF50, stop:1 #388E3C);"
-        "   color: white;"
-        "   border: 2px solid #2E7D32;"
-        "   border-radius: 10px;"
-        "   padding: 5px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #66BB6A, stop:1 #43A047);"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #388E3C, stop:1 #2E7D32);"
-        "}";
+            "QPushButton {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4CAF50, stop:1 #388E3C);"
+            "   color: white;"
+            "   border: 2px solid #2E7D32;"
+            "   border-radius: 10px;"
+            "   padding: 5px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #66BB6A, stop:1 #43A047);"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #388E3C, stop:1 #2E7D32);"
+            "}";
 
     QString backButtonStyle =
-        "QPushButton {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #9E9E9E, stop:1 #757575);"
-        "   color: white;"
-        "   border: 2px solid #616161;"
-        "   border-radius: 10px;"
-        "   padding: 5px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #BDBDBD, stop:1 #9E9E9E);"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #757575, stop:1 #616161);"
-        "}";
+            "QPushButton {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #9E9E9E, stop:1 #757575);"
+            "   color: white;"
+            "   border: 2px solid #616161;"
+            "   border-radius: 10px;"
+            "   padding: 5px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #BDBDBD, stop:1 #9E9E9E);"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #757575, stop:1 #616161);"
+            "}";
 
     QFont buttonFont;
     buttonFont.setFamily("Microsoft YaHei");
@@ -145,7 +145,7 @@ CharacterSelector::CharacterSelector(QWidget* parent)
     m_backButton->setStyleSheet(backButtonStyle);
 
     // 按钮布局
-    QHBoxLayout* buttonLayout = new QHBoxLayout();
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->setAlignment(Qt::AlignCenter);
     buttonLayout->setSpacing(30);
     buttonLayout->addWidget(m_backButton);
@@ -185,32 +185,32 @@ void CharacterSelector::loadCharacters() {
 
     // 角色配置：名称、图片与能力说明
     QList<CharacterConfig> characterConfigs = {
-        {"美少女", "beautifulGirl.png", "子弹伤害翻倍，但初始血量减半。"},
-        {"高雅人士", "HighGracePeople.png", "初始心之容器 +2 且额外获得 2 点护盾。"},
-        {"小蓝鲸", "njuFish.png", "移动速度 +25%，子弹速度 +20%，攻速 +20%。"},
-        {"权服侠", "quanfuxia.png", "初始携带 2 把钥匙和 1 点黑心。"}};
+            {"美少女",   "beautifulGirl.png",   "子弹伤害翻倍，但初始血量减半。"},
+            {"高雅人士", "HighGracePeople.png", "初始心之容器 +2 且额外获得 2 点护盾。"},
+            {"小蓝鲸",   "njuFish.png",         "移动速度 +25%，子弹速度 +20%，攻速 +20%。"},
+            {"权服侠",   "quanfuxia.png",       "初始携带 2 把钥匙和 1 点黑心。"}};
 
     // 获取当前配置中的玩家角色路径
     QString currentPlayerPath = ConfigManager::instance().getAssetPath("player");
     int defaultSelectedIndex = 0;
 
     QString characterButtonStyle =
-        "QPushButton {"
-        "   background-color: rgba(255, 255, 255, 30);"
-        "   border: 3px solid #888888;"
-        "   border-radius: 10px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: rgba(255, 255, 255, 60);"
-        "   border-color: #AAAAAA;"
-        "}"
-        "QPushButton:checked {"
-        "   background-color: rgba(76, 175, 80, 100);"
-        "   border-color: #4CAF50;"
-        "}";
+            "QPushButton {"
+            "   background-color: rgba(255, 255, 255, 30);"
+            "   border: 3px solid #888888;"
+            "   border-radius: 10px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: rgba(255, 255, 255, 60);"
+            "   border-color: #AAAAAA;"
+            "}"
+            "QPushButton:checked {"
+            "   background-color: rgba(76, 175, 80, 100);"
+            "   border-color: #4CAF50;"
+            "}";
 
     for (int i = 0; i < characterConfigs.size(); ++i) {
-        const auto& config = characterConfigs[i];
+        const auto &config = characterConfigs[i];
         QString imagePath = QString("assets/player/%1").arg(config.image);
 
         // 检查文件是否存在
@@ -225,7 +225,7 @@ void CharacterSelector::loadCharacters() {
         info.ability = config.ability;
 
         // 创建角色选择按钮
-        QPushButton* btn = new QPushButton(this);
+        QPushButton *btn = new QPushButton(this);
         btn->setFixedSize(100, 100);
         btn->setCheckable(true);
         btn->setStyleSheet(characterButtonStyle);
@@ -291,8 +291,8 @@ void CharacterSelector::onAbilityClicked() {
         return;
 
     QString abilityText = m_characters[m_selectedIndex].ability.isEmpty()
-                              ? "该角色暂未配置能力说明。"
-                              : m_characters[m_selectedIndex].ability;
+                          ? "该角色暂未配置能力说明。"
+                          : m_characters[m_selectedIndex].ability;
 
     QMessageBox msgBox(this);
     msgBox.setWindowTitle(QString("%1 - 能力说明").arg(m_selectedName));
@@ -301,21 +301,21 @@ void CharacterSelector::onAbilityClicked() {
     msgBox.setIconPixmap(QPixmap(m_selectedCharacter).scaled(80, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setStyleSheet(
-        "QMessageBox {"
-        "   background-color: #f5f5f5;"
-        "}"
-        "QPushButton {"
-        "   background-color: #4CAF50;"
-        "   color: white;"
-        "   border: none;"
-        "   border-radius: 5px;"
-        "   padding: 8px 20px;"
-        "   font-size: 13px;"
-        "   font-weight: bold;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: #66BB6A;"
-        "}");
+            "QMessageBox {"
+            "   background-color: #f5f5f5;"
+            "}"
+            "QPushButton {"
+            "   background-color: #4CAF50;"
+            "   color: white;"
+            "   border: none;"
+            "   border-radius: 5px;"
+            "   padding: 8px 20px;"
+            "   font-size: 13px;"
+            "   font-weight: bold;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: #66BB6A;"
+            "}");
     msgBox.exec();
 }
 
@@ -331,17 +331,17 @@ void CharacterSelector::onBackClicked() {
     emit backToMenu();
 }
 
-void CharacterSelector::resizeEvent(QResizeEvent* event) {
+void CharacterSelector::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
 
     // 更新背景图片以适应新的窗口大小
     try {
         QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage(
-            "background_select_character", event->size().width(), event->size().height());
+                "background_select_character", event->size().width(), event->size().height());
         QPalette palette;
         palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
         setPalette(palette);
-    } catch (const QString&) {
+    } catch (const QString &) {
         // 保持纯色背景
     }
 
@@ -359,7 +359,7 @@ void CharacterSelector::resizeEvent(QResizeEvent* event) {
     // 缩放角色选择按钮
     int charBtnSize = static_cast<int>(100 * scale);
     int charIconSize = static_cast<int>(80 * scale);
-    for (auto& charInfo : m_characters) {
+    for (auto &charInfo: m_characters) {
         charInfo.button->setFixedSize(charBtnSize, charBtnSize);
         charInfo.button->setIconSize(QSize(charIconSize, charIconSize));
     }
