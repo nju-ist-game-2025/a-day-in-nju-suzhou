@@ -52,9 +52,7 @@ class Level : public QObject {
     void loadRoom(int roomIndex);
 
     void onPlayerDied();
-
-    void bonusEffects();  // 保留旧方法以兼容旧逻辑
-
+    
     // 物品掉落系统
     void dropRandomItem(QPointF position);                                         // 在指定位置掉落随机物品
     void dropItemsFromPosition(QPointF position, int count, bool scatter = true);  // 从指定位置掉落多个物品（散开效果）

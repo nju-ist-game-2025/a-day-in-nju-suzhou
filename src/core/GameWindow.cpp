@@ -3,17 +3,6 @@
 #include <QFile>
 #include "world/map.h"
 
-namespace {
-Map& sharedMapInstance() {
-    static Map map;
-    return map;
-}
-}  // namespace
-
-void clearMapWalls() {
-    sharedMapInstance().clear();
-}
-
 GameWindow::GameWindow(QWidget* parent)
     : QMainWindow(parent), m_selectedCharacter("assets/player/player.png") {
     // 设置窗口属性
@@ -40,7 +29,7 @@ GameWindow::GameWindow(QWidget* parent)
     connect(gameView, &GameView::backToMenu, this, &GameWindow::showMainMenu);
     connect(gameView, &GameView::requestRestart, this, &GameWindow::onRequestRestart);
 
-    // 创建图鉴界面（新增）
+    // 创建图鉴界面
     codex = new Codex(this);
     connect(codex, &Codex::backToMenu, this, &GameWindow::showMainMenu);
 
@@ -52,8 +41,8 @@ GameWindow::GameWindow(QWidget* parent)
     // 添加到堆叠窗口
     stackedWidget->addWidget(mainMenu);
     stackedWidget->addWidget(gameView);
-    stackedWidget->addWidget(codex);              // 新增图鉴界面
-    stackedWidget->addWidget(characterSelector);  // 角色选择界面
+    stackedWidget->addWidget(codex);
+    stackedWidget->addWidget(characterSelector);
 
     // 显示主菜单
     stackedWidget->setCurrentWidget(mainMenu);
@@ -80,6 +69,7 @@ void GameWindow::startGame() {
     gameView->setFocus();  // 确保游戏视图获得焦点以接收键盘事件
 }
 
+// 开发者模式启动游戏
 void GameWindow::startGameAtLevel(int level, int maxHealth, int bulletDamage, bool skipToBoss) {
     qDebug() << "开发者模式: 跳转到第" << level << "关, 血量上限:" << maxHealth << ", 子弹伤害:" << bulletDamage
              << ", 直接进入Boss房:" << skipToBoss;
@@ -91,7 +81,7 @@ void GameWindow::startGameAtLevel(int level, int maxHealth, int bulletDamage, bo
 }
 
 void GameWindow::showCodex() {
-    stackedWidget->setCurrentWidget(codex);  // 切换到图鉴界面
+    stackedWidget->setCurrentWidget(codex);
 }
 
 void GameWindow::showCharacterSelector() {
@@ -106,18 +96,4 @@ void GameWindow::onCharacterSelected(const QString& characterPath) {
 
 void GameWindow::exitGame() {
     close();
-}
-
-void setupMap(QGraphicsScene* scene) {
-    Map& map = sharedMapInstance();
-    const QString levelPath = QStringLiteral("assets/levels/level1_wall.json");
-    // 墙壁配置是可选的，如果文件不存在也不影响游戏运行
-    // 目前未实现
-    if (QFile::exists(levelPath)) {
-        if (!map.loadFromFile(levelPath, scene)) {
-            qWarning() << "加载地图失败:" << levelPath;
-        }
-    } else {
-        qDebug() << "未找到墙壁配置文件:" << levelPath;
-    }
 }

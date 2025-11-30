@@ -55,7 +55,6 @@ class Chest : public QObject, public QGraphicsPixmapItem {
 
     virtual void tryOpen();       // 尝试打开（检查条件）
     virtual void doOpen();        // 执行打开逻辑
-    virtual void bonusEffects();  // 保留旧方法以兼容
 
     // 掉落物品到场景中
     void dropItems(int count);  // 掉落指定数量的随机物品

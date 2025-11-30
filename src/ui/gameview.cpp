@@ -16,8 +16,8 @@
 #include "../core/GameWindow.cpp"
 #include "../core/audiomanager.h"
 #include "../core/resourcefactory.h"
-#include "../entities/sockenemy.h"
-#include "../entities/walker.h"
+#include "../entities/level_2/sockenemy.h"
+#include "../entities/level_2/walker.h"
 #include "explosion.h"
 #include "level.h"
 #include "pausemenu.h"
@@ -140,9 +140,6 @@ void GameView::cleanupGame() {
         hud = nullptr;
     }
 
-    // ===== 清理地图墙体 =====
-    clearMapWalls();
-
     // ===== 清理场景中的所有对象 =====
     if (scene) {
         scene->clear();
@@ -249,9 +246,6 @@ void GameView::initGame() {
 
         // 创建HUD
         hud = new HUD(player);
-
-        // 设置地图墙壁
-        setupMap(scene);
 
         // 加载子弹图片（使用新的子弹分类配置）
         int bulletSize = ConfigManager::instance().getBulletSize("player");

@@ -14,17 +14,9 @@ AudioManager::AudioManager(QObject *parent)
     // 初始化音乐播放器
     m_musicPlayer = new QMediaPlayer(this);
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    // Qt 6: 使用 QAudioOutput
     m_audioOutput = new QAudioOutput(this);
     m_musicPlayer->setAudioOutput(m_audioOutput);
     m_audioOutput->setVolume(m_musicVolume / 100.0);
-#else
-    // Qt 5: 使用 QMediaPlaylist
-    m_playlist = new QMediaPlaylist(this);
-    m_musicPlayer->setPlaylist(m_playlist);
-    m_musicPlayer->setVolume(m_musicVolume);
-#endif
 
     // 实现循环播放
     connect(m_musicPlayer, &QMediaPlayer::mediaStatusChanged,
@@ -79,11 +71,11 @@ void AudioManager::playSound(const QString &soundName) {
     SoundPool &pool = m_soundPools[soundName];
 
     // 使用轮询方式选择下一个可用的音效实例
-    // 这样可以避免同一个实例被重复调用play()导致阻塞
+    // 避免同一个实例被重复调用play()导致阻塞
     QSoundEffect *effect = pool.effects[pool.nextIndex];
     pool.nextIndex = (pool.nextIndex + 1) % pool.effects.size();
 
-    // 播放音效（非阻塞，因为使用不同实例）
+    // 播放音效（使用不同实例，不阻塞主进程）
     effect->play();
 }
 
@@ -93,16 +85,9 @@ void AudioManager::playMusic(const QString &musicFile) {
         return;
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    // Qt 6: 使用 setSource
     m_currentMusicFile = musicFile;
     m_musicPlayer->setSource(QUrl::fromLocalFile(musicFile));
-#else
-    // Qt 5: 使用 QMediaPlaylist
-    m_playlist->clear();
-    m_playlist->addMedia(QUrl::fromLocalFile(musicFile));
-    m_playlist->setPlaybackMode(QMediaPlaylist::Loop);
-#endif
+
 
     m_musicPlayer->play();
     qDebug() << "Playing music:" << musicFile;
@@ -114,11 +99,7 @@ void AudioManager::stopMusic() {
 
 void AudioManager::setMusicVolume(int volume) {
     m_musicVolume = qBound(0, volume, 100);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     m_audioOutput->setVolume(m_musicVolume / 100.0);
-#else
-    m_musicPlayer->setVolume(m_musicVolume);
-#endif
 }
 
 void AudioManager::setSoundVolume(int volume) {
@@ -132,23 +113,14 @@ void AudioManager::setSoundVolume(int volume) {
 }
 
 bool AudioManager::isMusicPlaying() const {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     return m_musicPlayer->playbackState() == QMediaPlayer::PlayingState;
-#else
-    return m_musicPlayer->state() == QMediaPlayer::PlayingState;
-#endif
 }
 
 void AudioManager::onMediaStatusChanged(QMediaPlayer::MediaStatus status) {
     if (status == QMediaPlayer::EndOfMedia) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        // Qt 6: 手动实现循环播放
+        // 手动实现循环播放
         qDebug() << "Music playback finished, looping...";
         m_musicPlayer->setPosition(0);
         m_musicPlayer->play();
-#else
-        // Qt 5: QMediaPlaylist 自动处理循环
-        qDebug() << "Music playback finished";
-#endif
     }
 }

@@ -11,8 +11,6 @@
 
 /**
  * @brief 资源工厂类 - 封装各种图形资源的创建和加载
- * 避免代码重复，便于维护和修改
- * 支持从文件加载PNG图片或使用默认图形
  */
 class ResourceFactory {
 public:

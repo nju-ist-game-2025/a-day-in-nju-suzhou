@@ -62,7 +62,7 @@ Enemy::Enemy(const QPixmap& pic, double scale)
     connect(aiTimer, &QTimer::timeout, this, &Enemy::updateAI);
     aiTimer->start(100);
 
-    // 移动定时器 (每20ms移动一次，50fps足够流畅)
+    // 移动定时器 (每20ms移动一次)
     moveTimer = new QTimer(this);
     connect(moveTimer, &QTimer::timeout, this, &Enemy::move);
     moveTimer->start(20);
@@ -96,12 +96,6 @@ void Enemy::getEffects() {
         return;
     if (player->getCurrentHealth() < 1)
         return;
-
-    // 随机选择一种负面效果
-    // 0: PoisonEffect
-    // 1: SpeedEffect (slow)
-    // 2: DamageEffect (weak)
-    // 3: shootSpeedEffect (slow fire)
 
     int type = QRandomGenerator::global()->bounded(4);
     StatusEffect* effect = nullptr;

@@ -1,18 +1,17 @@
 #include "boss.h"
 
 Boss::Boss(const QPixmap& pic, double scale)
-    // 暂时这样设置 此后要为不同的Boss设计专门的属性和行为
     : Enemy(pic, scale) {
     setHealth(300);           // 更高血量
     setContactDamage(5);      // 更高伤害
     setVisionRange(1000);     // 全图视野
-    setAttackRange(60);       // 更大攻击范围（用于判定）
+    setAttackRange(60);       // 更大攻击范围
     setAttackCooldown(1500);  // 攻击频率略低
     setSpeed(1.5);            // 更笨重
 
     damageScale = 0.8;  // 伤害减免
 
-    // 使用绕圈接近模式，增加战术感和压迫感
+    // 使用绕圈接近模式
     setMovementPattern(MOVE_CIRCLE);
     setCircleRadius(120.0);
 }
@@ -21,15 +20,14 @@ Boss::~Boss() {
     // qDebug() <<"Boss被击败！";
 }
 
+// 重写边界框以包含血条区域
 QRectF Boss::boundingRect() const {
-    // 扩展边界以包含血条
     QRectF base = QGraphicsPixmapItem::boundingRect();
-    // 血条在头顶上方15像素，高度8像素
     return base.adjusted(0, -20, 0, 0);
 }
 
 void Boss::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
-    // 先绘制基础图像
+    // 基础图像
     QGraphicsPixmapItem::paint(painter, option, widget);
 
     // 绘制血条
@@ -56,7 +54,7 @@ void Boss::drawHealthBar(QPainter* painter) {
     // 保存画笔状态
     painter->save();
 
-    // 绘制血条背景（深灰色）
+    // 绘制血条背景
     painter->setPen(Qt::NoPen);
     painter->setBrush(QColor(50, 50, 50, 200));
     painter->drawRect(QRectF(barX, barY, barWidth, barHeight));

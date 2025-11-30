@@ -5,7 +5,7 @@
 #include "../items/itemeffectconfig.h"
 #include "enemy.h"
 #include "player.h"
-#include "probabilityenemy.h"
+#include "level_3/probabilityenemy.h"
 #include "statuseffect.h"
 
 Projectile::Projectile(int _mode, double _hurt, QPointF pos, const QPixmap& pic_bullet, double scale)

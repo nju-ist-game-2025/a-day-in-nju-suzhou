@@ -35,10 +35,6 @@ set(MAIN_SOURCES
 set(CORE_SOURCES
         src/core/gamewindow.cpp
         src/core/gamewindow.h
-        src/core/gamecontroller.cpp
-        src/core/gamecontroller.h
-        src/core/gamemanager.cpp
-        src/core/gamemanager.h
         src/core/audiomanager.cpp
         src/core/audiomanager.h
         src/core/resourcefactory.h
@@ -58,56 +54,56 @@ set(ENTITY_SOURCES
         src/entities/enemy.h
         src/entities/boss.cpp
         src/entities/boss.h
-        src/entities/nightmareboss.cpp
-        src/entities/nightmareboss.h
-        src/entities/washmachineboss.cpp
-        src/entities/washmachineboss.h
-        src/entities/teacherboss.cpp
-        src/entities/teacherboss.h
-        src/entities/invigilator.cpp
-        src/entities/invigilator.h
-        src/entities/chalkbeam.cpp
-        src/entities/chalkbeam.h
-        src/entities/exampaper.cpp
-        src/entities/exampaper.h
-        src/entities/mletrap.cpp
-        src/entities/mletrap.h
-        src/entities/clockenemy.cpp
-        src/entities/clockenemy.h
-        src/entities/clockboom.cpp
-        src/entities/clockboom.h
-        src/entities/sockenemy.cpp
-        src/entities/sockenemy.h
-        src/entities/sockshooter.cpp
-        src/entities/sockshooter.h
-        src/entities/pillowenemy.cpp
-        src/entities/pillowenemy.h
-        src/entities/pantsenemy.cpp
-        src/entities/pantsenemy.h
+        src/entities/level_1/nightmareboss.cpp
+        src/entities/level_1/nightmareboss.h
+        src/entities/level_2/washmachineboss.cpp
+        src/entities/level_2/washmachineboss.h
+        src/entities/level_3/teacherboss.cpp
+        src/entities/level_3/teacherboss.h
+        src/entities/level_3/invigilator.cpp
+        src/entities/level_3/invigilator.h
+        src/entities/level_3/chalkbeam.cpp
+        src/entities/level_3/chalkbeam.h
+        src/entities/level_3/exampaper.cpp
+        src/entities/level_3/exampaper.h
+        src/entities/level_3/mletrap.cpp
+        src/entities/level_3/mletrap.h
+        src/entities/level_1/clockenemy.cpp
+        src/entities/level_1/clockenemy.h
+        src/entities/level_1/clockboom.cpp
+        src/entities/level_1/clockboom.h
+        src/entities/level_2/sockenemy.cpp
+        src/entities/level_2/sockenemy.h
+        src/entities/level_2/sockshooter.cpp
+        src/entities/level_2/sockshooter.h
+        src/entities/level_1/pillowenemy.cpp
+        src/entities/level_1/pillowenemy.h
+        src/entities/level_2/pantsenemy.cpp
+        src/entities/level_2/pantsenemy.h
         src/entities/projectile.cpp
         src/entities/projectile.h
-        src/entities/toxicgas.cpp
-        src/entities/toxicgas.h
-        src/entities/orbitingsock.cpp
-        src/entities/orbitingsock.h
-        src/entities/walker.cpp
-        src/entities/walker.h
+        src/entities/level_2/toxicgas.cpp
+        src/entities/level_2/toxicgas.h
+        src/entities/level_2/orbitingsock.cpp
+        src/entities/level_2/orbitingsock.h
+        src/entities/level_2/walker.cpp
+        src/entities/level_2/walker.h
         src/entities/usagi.cpp
         src/entities/usagi.h
-        src/entities/scalingenemy.cpp
-        src/entities/scalingenemy.h
-        src/entities/optimizationenemy.cpp
-        src/entities/optimizationenemy.h
-        src/entities/digitalsystemenemy.cpp
-        src/entities/digitalsystemenemy.h
-        src/entities/yanglinenemy.cpp
-        src/entities/yanglinenemy.h
-        src/entities/zhuhaoenemy.cpp
-        src/entities/zhuhaoenemy.h
-        src/entities/xukeenemy.cpp
-        src/entities/xukeenemy.h
-        src/entities/probabilityenemy.cpp
-        src/entities/probabilityenemy.h
+        src/entities/level_3/scalingenemy.cpp
+        src/entities/level_3/scalingenemy.h
+        src/entities/level_3/optimizationenemy.cpp
+        src/entities/level_3/optimizationenemy.h
+        src/entities/level_3/digitalsystemenemy.cpp
+        src/entities/level_3/digitalsystemenemy.h
+        src/entities/level_3/yanglinenemy.cpp
+        src/entities/level_3/yanglinenemy.h
+        src/entities/level_3/zhuhaoenemy.cpp
+        src/entities/level_3/zhuhaoenemy.h
+        src/entities/level_3/xukeenemy.cpp
+        src/entities/level_3/xukeenemy.h
+        src/entities/level_3/probabilityenemy.cpp
+        src/entities/level_3/probabilityenemy.h
 )
 
 set(WORLD_SOURCES

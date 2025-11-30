@@ -11,27 +11,32 @@
 #include "../core/audiomanager.h"
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
+// entities
 #include "../entities/boss.h"
-#include "../entities/clockboom.h"
-#include "../entities/clockenemy.h"
-#include "../entities/digitalsystemenemy.h"
 #include "../entities/enemy.h"
-#include "../entities/nightmareboss.h"
-#include "../entities/optimizationenemy.h"
-#include "../entities/pantsenemy.h"
-#include "../entities/pillowenemy.h"
 #include "../entities/player.h"
-#include "../entities/probabilityenemy.h"
 #include "../entities/projectile.h"
-#include "../entities/sockenemy.h"
-#include "../entities/sockshooter.h"
-#include "../entities/teacherboss.h"
 #include "../entities/usagi.h"
-#include "../entities/walker.h"
-#include "../entities/washmachineboss.h"
-#include "../entities/xukeenemy.h"
-#include "../entities/yanglinenemy.h"
-#include "../entities/zhuhaoenemy.h"
+// level_1
+#include "../entities/level_1/clockboom.h"
+#include "../entities/level_1/clockenemy.h"
+#include "../entities/level_1/nightmareboss.h"
+#include "../entities/level_1/pillowenemy.h"
+// level_2
+#include "../entities/level_2/pantsenemy.h"
+#include "../entities/level_2/sockenemy.h"
+#include "../entities/level_2/sockshooter.h"
+#include "../entities/level_2/walker.h"
+#include "../entities/level_2/washmachineboss.h"
+// level_3
+#include "../entities/level_3/digitalsystemenemy.h"
+#include "../entities/level_3/optimizationenemy.h"
+#include "../entities/level_3/probabilityenemy.h"
+#include "../entities/level_3/teacherboss.h"
+#include "../entities/level_3/xukeenemy.h"
+#include "../entities/level_3/yanglinenemy.h"
+#include "../entities/level_3/zhuhaoenemy.h"
+// items 和 ui
 #include "../items/chest.h"
 #include "../items/droppeditem.h"
 #include "../items/droppeditemfactory.h"
@@ -60,7 +65,7 @@ Level::Level(Player* player, QGraphicsScene* scene, QObject* parent)
 }
 
 Level::~Level() {
-    // 移除事件过滤器（关键：防止事件发送到已删除的对象）
+    // 移除事件过滤器，防止事件发送到已删除的对象
     if (m_scene) {
         m_scene->removeEventFilter(this);
     }
@@ -76,7 +81,7 @@ Level::~Level() {
         m_levelTextTimer = nullptr;
     }
 
-    // 清理对话框UI（如果还存在）
+    // 清理对话框UI
     if (m_dialogBox) {
         if (m_scene)
             m_scene->removeItem(m_dialogBox);
@@ -189,7 +194,7 @@ void Level::init(int levelNumber) {
     m_hasEncounteredBossDoor = false;
     m_bossDoorsAlreadyOpened = false;
 
-    // 重置Boss相关状态（关键：防止跨关卡状态污染导致崩溃）
+    // 重置Boss相关状态，防止跨关卡状态污染导致崩溃
     m_currentWashMachineBoss = nullptr;
     m_currentTeacherBoss = nullptr;
     m_bossDefeated = false;
@@ -221,9 +226,9 @@ void Level::init(int levelNumber) {
     qDebug() << "加载关卡:" << config.getLevelName();
     qDebug() << "关卡描述条数:" << config.getDescription().size();
 
-    // 开发者模式：非可视化模拟整个流程，直接显示boss对话
+    // 开发者模式
     if (m_skipToBoss) {
-        qDebug() << "开发者模式: 非可视化模拟流程，直接进入Boss对话";
+        qDebug() << "开发者模式: 直接进入Boss对话";
         // 直接初始化关卡（跳过开头对话的显示，但内部状态正确初始化）
         initializeLevelAfterStory(config);
         // 延迟发出storyFinished信号，确保GameView的连接已建立
@@ -2024,10 +2029,6 @@ void Level::onEnemyDying(Enemy* enemy) {
     // 使用 QPointer 包装目标并用 removeAll 安全移除
     QPointer<Enemy> target(enemy);
     m_currentEnemies.removeAll(target);
-
-    // 移除频繁的调试输出以避免性能问题
-    // qDebug() << "已从全局敌人列表移除，剩余:" << m_currentEnemies.size();
-
     // 只有非召唤的敌人才有概率掉落物品
     // 使用工厂类判断是否掉落（5%概率）
     if (!enemy->isSummoned()) {
@@ -2506,50 +2507,6 @@ void Level::onPlayerDied() {
             if (e)
                 e->setPlayer(nullptr);
         }
-    }
-}
-
-void Level::bonusEffects() {
-    if (!m_player)
-        return;
-
-    // 随机选择一种效果
-    // 0: SpeedEffect
-    // 1: DamageEffect
-    // 2: shootSpeedEffect
-    // 3: decDamage
-    // 4: InvincibleEffect
-    // 5: shieldEffect
-
-    int type = QRandomGenerator::global()->bounded(12);
-    if (type >= 6)
-        return;
-    StatusEffect* effect = nullptr;
-
-    switch (type) {
-        case 0:
-            effect = new SpeedEffect(5, 1.5);
-            break;
-        case 1:
-            effect = new DamageEffect(5, 1.5);
-            break;
-        case 2:
-            effect = new shootSpeedEffect(5, 1.5);
-            break;
-        case 3:
-            effect = new decDamage(5, 0.5);
-            break;
-        case 4:
-            effect = new InvincibleEffect(5);
-            break;
-        case 5:
-            effect = new shieldEffect(m_player, 1);
-            break;
-    }
-
-    if (effect) {
-        effect->applyTo(m_player);
-        // effect会在expire()中调用deleteLater()自我销毁
     }
 }
 

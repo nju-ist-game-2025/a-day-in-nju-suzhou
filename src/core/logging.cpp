@@ -9,7 +9,7 @@
 namespace {
 
     static std::atomic_bool g_debug_enabled{false};
-    static QMutex g_print_mutex;  // ensure message output is thread-safe when writing to stderr
+    static QMutex g_print_mutex;
 
     void defaultMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
         // 如果是 debug 消息并且当前关闭，则丢弃

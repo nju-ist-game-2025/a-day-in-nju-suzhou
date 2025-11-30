@@ -9,8 +9,6 @@
 #include "droppeditemfactory.h"
 #include "player.h"
 
-// ==================== Chest 基类实现 ====================
-
 Chest::Chest(Player* pl, ChestType type, const QPixmap& pic_chest, double scale)
     : m_chestType(type), m_isOpened(false), m_player(pl), m_hintText(nullptr), m_hintTimer(nullptr) {
     if (scale == 1.0) {
@@ -139,52 +137,6 @@ void Chest::doOpen() {
 
     // 延迟删除
     deleteLater();
-}
-
-void Chest::bonusEffects() {
-    // 检查player是否仍然有效
-    if (!m_player || !m_player->scene()) {
-        return;
-    }
-
-    // 获取原始指针用于创建效果
-    Player* pl = m_player.data();
-
-    QVector<StatusEffect*> effectstoPlayer;
-
-    SpeedEffect* sp = new SpeedEffect(5, 1.5);
-    effectstoPlayer.push_back(sp);
-    DamageEffect* dam = new DamageEffect(5, 1.5);
-    effectstoPlayer.push_back(dam);
-    shootSpeedEffect* shootsp = new shootSpeedEffect(5, 1.5);
-    effectstoPlayer.push_back(shootsp);
-    blackHeartEffect* black1 = new blackHeartEffect(pl, 1);
-    blackHeartEffect* black2 = new blackHeartEffect(pl, 1);
-    effectstoPlayer.push_back(black1);
-    effectstoPlayer.push_back(black2);
-    decDamage* dec = new decDamage(5, 0.5);
-    effectstoPlayer.push_back(dec);
-    InvincibleEffect* inv = new InvincibleEffect(5);
-    effectstoPlayer.push_back(inv);
-
-    // 以1/3的概率获得额外增益效果
-    int i = QRandomGenerator::global()->bounded(effectstoPlayer.size() * 3);
-    if (i >= 0 && i < effectstoPlayer.size() && effectstoPlayer[i]) {
-        // 应用前再次检查player
-        if (m_player) {
-            effectstoPlayer[i]->applyTo(m_player.data());
-        }
-        for (StatusEffect* effect : effectstoPlayer) {
-            if (effect != effectstoPlayer[i]) {  // 只删除未使用的
-                effect->deleteLater();
-            }
-        }
-    } else {
-        // 如果没有选中任何效果，清理所有效果
-        for (StatusEffect* effect : effectstoPlayer) {
-            effect->deleteLater();
-        }
-    }
 }
 
 // 掉落物品到场景中（使用指定物品池）

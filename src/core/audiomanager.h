@@ -6,14 +6,7 @@
 #include <QObject>
 #include <QSoundEffect>
 #include <QVector>
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-
 #include <QAudioOutput>
-
-#else
-#include <QMediaPlaylist>
-#endif
 
 // 音效池 - 每种音效预创建多个实例，支持同时播放
 struct SoundPool {
@@ -54,12 +47,9 @@ private:
     static const int POOL_SIZE = 8;         // 每种音效的池大小
 
     QMediaPlayer *m_musicPlayer;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+
     QAudioOutput *m_audioOutput;
     QString m_currentMusicFile;
-#else
-    QMediaPlaylist* m_playlist;
-#endif
 
     int m_soundVolume;
     int m_musicVolume;
