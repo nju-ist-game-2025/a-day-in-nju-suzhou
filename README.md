@@ -16,7 +16,7 @@
 
 ```bash
 # 克隆仓库
-git clone <your-repo-url>
+git clone https://github.com/nju-ist-game-2025/a-day-in-nju-suzhou.git
 cd our_game
 
 # 创建构建目录
