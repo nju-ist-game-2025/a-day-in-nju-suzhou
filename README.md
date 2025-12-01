@@ -9,7 +9,7 @@
 ### 前置要求
 
 - **CMake** 3.16 或更高版本
-- **Qt 6** 或 **Qt 5**（Widgets + Multimedia 模块）
+- **Qt 6**（Widgets + Multimedia 模块）
 - **C++17** 编译器（MinGW / MSVC / GCC）
 
 ### 克隆和编译
