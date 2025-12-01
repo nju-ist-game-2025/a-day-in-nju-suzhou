@@ -1185,3 +1185,47 @@ QStringList TeacherBoss::getDefeatedDialog() {
         "【奶牛张】\n『哈哈，喜忧参半吧！再见了。』",
         "（奶牛张化作一道光消散）"};
 }
+
+// ==================== Level信号连接 ====================
+
+void TeacherBoss::setupLevelConnections(QObject* level) {
+    if (!level) {
+        qWarning() << "[TeacherBoss] setupLevelConnections: level is null";
+        return;
+    }
+
+    // 连接请求对话信号
+    connect(this, SIGNAL(requestShowDialog(QStringList, QString)),
+            level, SLOT(onBossRequestDialog(QStringList, QString)));
+
+    // 连接请求背景切换信号
+    connect(this, SIGNAL(requestChangeBackground(QString)),
+            level, SLOT(changeBackground(QString)));
+
+    // 连接请求显示文字提示信号
+    connect(this, SIGNAL(requestShowTransitionText(QString)),
+            level, SLOT(showPhaseTransitionText(QString)));
+
+    // 连接请求渐变背景信号
+    connect(this, SIGNAL(requestFadeBackground(QString, int)),
+            level, SLOT(fadeBackgroundTo(QString, int)));
+
+    // 连接请求渐变对话背景信号
+    connect(this, SIGNAL(requestFadeDialogBackground(QString, int)),
+            level, SLOT(onBossRequestFadeDialogBackground(QString, int)));
+
+    // 连接请求对话中切换背景信号
+    connect(this, SIGNAL(requestDialogBackgroundChange(int, QString)),
+            level, SLOT(onBossRequestDialogBackgroundChange(int, QString)));
+
+    // 连接召唤敌人信号
+    connect(this, SIGNAL(requestSpawnEnemies(QVector<QPair<QString, int>>)),
+            level, SLOT(spawnEnemiesForBoss(QVector<QPair<QString, int>>)));
+
+    // 连接敌人追踪信号（通过函数指针而非字符串）
+    connect(this, &TeacherBoss::enemySpawned, level, [level](Enemy* enemy) {
+        QMetaObject::invokeMethod(level, "onBossEnemySpawned", Qt::DirectConnection, Q_ARG(Enemy*, enemy));
+    });
+
+    qDebug() << "[TeacherBoss] 信号已连接到Level";
+}

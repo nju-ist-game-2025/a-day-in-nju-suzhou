@@ -11,9 +11,6 @@
 #include "entity.h"
 #include "projectile.h"
 
-const int max_red_contain = 12;
-const int max_soul = 6;
-
 class Player : public Entity {
     Q_OBJECT
     int redContainers;
@@ -76,8 +73,7 @@ class Player : public Entity {
     }
 
     void addRedContainers(int n) {
-        if (redContainers + n <= max_red_contain)
-            redContainers += n;
+        redContainers += n;
     };
 
     void addRedHearts(double n) {

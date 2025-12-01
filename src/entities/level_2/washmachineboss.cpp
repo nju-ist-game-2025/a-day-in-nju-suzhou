@@ -12,7 +12,6 @@
 #include "../../core/resourcefactory.h"
 #include "../player.h"
 #include "../projectile.h"
-#include "toxicgas.h"
 #include "orbitingsock.h"
 #include "toxicgas.h"
 
@@ -777,4 +776,35 @@ QStringList WashMachineBoss::getDefeatedDialog() {
         "「智科er」 \n 以后我会好好爱护公共设施的！",
         "【洗衣机】\n『嗯...愿你前路顺遂...咕噜～』",
         "（洗衣机安静地进入待机模式）"};
+}
+
+// ==================== Level信号连接 ====================
+
+void WashMachineBoss::setupLevelConnections(QObject* level) {
+    if (!level) {
+        qWarning() << "[WashMachineBoss] setupLevelConnections: level is null";
+        return;
+    }
+
+    // 连接请求对话信号
+    connect(this, SIGNAL(requestShowDialog(QStringList, QString)),
+            level, SLOT(onBossRequestDialog(QStringList, QString)));
+
+    // 连接请求背景切换信号
+    connect(this, SIGNAL(requestChangeBackground(QString)),
+            level, SLOT(changeBackground(QString)));
+
+    // 连接请求显示文字提示信号
+    connect(this, SIGNAL(requestShowTransitionText(QString)),
+            level, SLOT(showPhaseTransitionText(QString)));
+
+    // 连接请求吸纳信号
+    connect(this, SIGNAL(requestAbsorbAllEntities()),
+            level, SLOT(onBossRequestAbsorb()));
+
+    // 连接召唤敌人信号
+    connect(this, SIGNAL(requestSpawnEnemies(QVector<QPair<QString, int>>)),
+            level, SLOT(spawnEnemiesForBoss(QVector<QPair<QString, int>>)));
+
+    qDebug() << "[WashMachineBoss] 信号已连接到Level";
 }

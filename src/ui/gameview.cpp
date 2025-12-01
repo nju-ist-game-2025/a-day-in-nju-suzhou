@@ -18,6 +18,7 @@
 #include "../core/resourcefactory.h"
 #include "../entities/level_2/sockenemy.h"
 #include "../entities/level_2/walker.h"
+#include "dialogsystem.h"
 #include "explosion.h"
 #include "level.h"
 #include "pausemenu.h"
@@ -561,8 +562,8 @@ void GameView::initAudio() {
 
 void GameView::mousePressEvent(QMouseEvent* event) {
     // 剧情模式下，任何鼠标点击都继续对话
-    if (level && m_isInStoryMode) {
-        level->nextDialog();
+    if (level && m_isInStoryMode && level->dialogSystem()) {
+        level->dialogSystem()->onDialogClicked();
         event->accept();  // 标记事件已处理
         return;
     }
@@ -590,10 +591,10 @@ void GameView::keyPressEvent(QKeyEvent* event) {
     }
 
     // 检查是否在剧情模式下
-    if (level && m_isInStoryMode) {
+    if (level && m_isInStoryMode && level->dialogSystem()) {
         // 剧情模式下，空格键或回车键继续对话
         if (event->key() == Qt::Key_Space || event->key() == Qt::Key_Return) {
-            level->nextDialog();
+            level->dialogSystem()->onDialogClicked();
             return;  // 事件已处理，不传递给玩家
         }
         return;

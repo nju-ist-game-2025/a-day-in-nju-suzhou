@@ -45,6 +45,22 @@ class TeacherBoss : public Boss {
     // 设置场景（用于生成投射物）
     void setScene(QGraphicsScene* scene) { m_scene = scene; }
 
+    /**
+     * @brief 设置与Level的信号连接
+     * @param level Level对象（需要有相应的槽函数）
+     *
+     * 此方法将Boss的信号连接到Level的槽函数：
+     * - requestShowDialog -> Level::onBossRequestDialog
+     * - requestChangeBackground -> Level::changeBackground
+     * - requestShowTransitionText -> Level::showPhaseTransitionText
+     * - requestFadeBackground -> Level::fadeBackgroundTo
+     * - requestFadeDialogBackground -> Level::fadeDialogBackgroundTo
+     * - requestDialogBackgroundChange -> Level::onBossRequestDialogBackgroundChange
+     * - requestSpawnEnemies -> Level::spawnEnemiesForBoss
+     * - enemySpawned -> Level (lambda for enemy tracking)
+     */
+    void setupLevelConnections(QObject* level);
+
    signals:
 
     // 请求Level执行操作

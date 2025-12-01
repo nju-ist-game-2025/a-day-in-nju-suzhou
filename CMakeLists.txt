@@ -117,6 +117,16 @@ set(WORLD_SOURCES
         src/world/randomgenerator.h
         src/world/levelconfig.cpp
         src/world/levelconfig.h
+        src/world/factory/enemyfactory.cpp
+        src/world/factory/enemyfactory.h
+        src/world/factory/bossfactory.cpp
+        src/world/factory/bossfactory.h
+        src/world/roommanager.cpp
+        src/world/roommanager.h
+        src/world/bossfight.cpp
+        src/world/bossfight.h
+        src/world/rewardsystem.cpp
+        src/world/rewardsystem.h
 )
 
 set(ITEM_SOURCES
@@ -149,6 +159,8 @@ set(UI_SOURCES
         src/ui/characterselector.cpp
         src/ui/pausemenu.h
         src/ui/pausemenu.cpp
+        src/ui/dialogsystem.h
+        src/ui/dialogsystem.cpp
 )
 
 

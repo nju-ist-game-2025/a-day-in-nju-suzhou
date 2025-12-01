@@ -7,26 +7,20 @@
 #include <QTimer>
 #include <QVector>
 #include "../items/droppeditem.h"
+#include "../ui/dialogsystem.h"
 #include "door.h"
 #include "levelconfig.h"
+#include "rewardsystem.h"
 #include "room.h"
+#include "roommanager.h"
 
 class Player;
-
 class Enemy;
-
 class Boss;
-
 class WashMachineBoss;
-
 class TeacherBoss;
-
 class Chest;
-
-class Usagi;
-
 class ZhuhaoEnemy;
-
 class QGraphicsScene;
 
 class Level : public QObject {
@@ -38,58 +32,44 @@ class Level : public QObject {
     ~Level() override;
 
     void init(int levelNumber);
-
     void setSkipToBoss(bool skip) { m_skipToBoss = skip; }  // 设置是否跳过到Boss房
-
     int currentLevel() const { return m_levelNumber; }
-
     bool isAllRoomsCompleted() const;
-
     bool enterNextRoom();
-
     Room* currentRoom() const;
-
     void loadRoom(int roomIndex);
-
     void onPlayerDied();
-    
+
     // 物品掉落系统
     void dropRandomItem(QPointF position);                                         // 在指定位置掉落随机物品
     void dropItemsFromPosition(QPointF position, int count, bool scatter = true);  // 从指定位置掉落多个物品（散开效果）
 
     void clearCurrentRoomEntities();
-
     void clearSceneEntities();
 
     void showLevelStartText(LevelConfig& config);
 
     void openDoors(Room* cur);
-
     void showCredits(const QStringList& desc);
 
-    void
-    showStoryDialog(const QStringList& dialogs, bool isBossDialog = false, const QString& customBackground = QString());
+    void showStoryDialog(const QStringList& dialogs, bool isBossDialog = false, const QString& customBackground = QString());
+
+    // 获取对话系统（供外部访问）
+    DialogSystem* dialogSystem() const { return m_dialogSystem; }
 
     bool canOpenBossDoor() const;  // 检查是否所有非boss房间都已访问且怪物清空
     void openBossDoors();          // 打开所有通往boss房间的门
 
     // 暂停控制
     void setPaused(bool paused);
-
     bool isPaused() const { return m_isPaused; }
 
-    // G键进入下一关
-    bool isGKeyEnabled() const { return m_gKeyEnabled; }
+    // G键进入下一关（代理到RewardSystem）
+    bool isGKeyEnabled() const;
     void triggerNextLevelByGKey();  // 按G键触发进入下一关
-
-    // 背景切换
-    void changeBackground(const QString& backgroundPath);
 
     // 吸纳动画（洗衣机Boss变异阶段）
     void performAbsorbAnimation(WashMachineBoss* boss);
-
-   protected:
-    bool eventFilter(QObject* watched, QEvent* event) override;
 
    signals:
 
@@ -112,54 +92,21 @@ class Level : public QObject {
 
    private:
     void initCurrentRoom(Room* room);
-
     void spawnEnemiesInRoom(int roomIndex);
-
     void spawnChestsInRoom(int roomIndex);
-
     void spawnDoors(const RoomConfig& roomCfg);
-
     void buildMinimapData();  // New method
 
-    // 敌人工厂方法：根据类型创建具体的敌人实例
-    Enemy* createEnemyByType(int levelNumber, const QString& enemyType, const QPixmap& pic, double scale);
-
-    // Boss工厂方法：根据关卡号创建对应的Boss实例
+    // Boss工厂方法：根据关卡号创建对应的Boss实例（使用BossFactory并连接信号）
     Boss* createBossByLevel(int levelNumber, const QPixmap& pic, double scale);
 
     // Boss召唤敌人（通用方法）
     void spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemies);
 
-    // WashMachineBoss相关
-    void connectWashMachineBossSignals(WashMachineBoss* boss);
-
-    void onWashMachineBossRequestDialog(const QStringList& dialogs, const QString& background);
-
-    void onWashMachineBossRequestChangeBackground(const QString& backgroundPath);
-
-    void onWashMachineBossRequestAbsorb();
-
-    // TeacherBoss相关
-    void connectTeacherBossSignals(TeacherBoss* boss);
-
-    void onTeacherBossRequestDialog(const QStringList& dialogs, const QString& background);
-
-    void onTeacherBossRequestChangeBackground(const QString& backgroundPath);
-
-    void onTeacherBossRequestTransitionText(const QString& text);
-
-    void onTeacherBossRequestFadeBackground(const QString& backgroundPath, int duration);
-
-    void onTeacherBossRequestFadeDialogBackground(const QString& backgroundPath, int duration);
-
-    void onTeacherBossRequestDialogBackgroundChange(int dialogIndex, const QString& backgroundName);
-
-    // Boss奖励机制（乌萨奇）
+    // Boss奖励机制（代理到RewardSystem）
     void startBossRewardSequence();
-
-    void onUsagiRequestShowDialog(const QStringList& dialog);
-
-    void onUsagiRewardCompleted();
+    void onRewardShowDialogRequested(const QStringList& dialog);
+    void onRewardSequenceCompleted();
 
     // 精英房间相关
     void checkEliteRoomPhase2();  // 检查是否触发精英房间第二阶段
@@ -175,49 +122,35 @@ class Level : public QObject {
     void showGKeyHint();  // 显示G键提示
     void hideGKeyHint();  // 隐藏G键提示
 
+    // ========== 房间管理访问器（委托给RoomManager）==========
+    int currentRoomIndex() const;
+    QVector<Room*>& rooms();
+    const QVector<Room*>& rooms() const;
+    QVector<QPointer<Enemy>>& currentEnemies();
+    QVector<QPointer<Chest>>& currentChests();
+    QVector<Door*>& currentDoors();
+    QMap<int, QVector<Door*>>& roomDoors();
+    QVector<bool>& visitedRooms();
+    const QVector<bool>& visitedRooms() const;
+    int& visitedCount();
+    bool hasEncounteredBossDoor() const;
+    void setHasEncounteredBossDoor(bool value);
+    bool bossDoorsAlreadyOpened() const;
+    void setBossDoorsAlreadyOpened(bool value);
+    void setCurrentRoomIndex(int index);
+
+    // 房间管理器（完全管理房间数据）
+    RoomManager* m_roomManager = nullptr;
+
+    // 对话系统（管理所有对话相关UI和逻辑）
+    DialogSystem* m_dialogSystem = nullptr;
+
     int m_levelNumber;
-    QVector<Room*> m_rooms;
-    int m_currentRoomIndex;
     Player* m_player;
     QGraphicsScene* m_scene;
-    QVector<QPointer<Enemy>> m_currentEnemies;
-    QVector<QPointer<Chest>> m_currentChests;
-    QVector<QGraphicsItem*> m_doorItems;
-    QVector<Door*> m_currentDoors;          // 当前房间的门对象
-    QMap<int, QVector<Door*>> m_roomDoors;  // 每个房间的门（roomIndex -> doors）
-    QVector<bool> visited;
     QTimer* checkChange;
-    int visited_count;
-    QTimer* m_levelTextTimer;                         // 追踪关卡文字显示的定时器
-    QGraphicsPixmapItem* m_textBackground = nullptr;  // 渐变文字背景
 
-    // boss门相关
-    bool m_hasEncounteredBossDoor;  // 是否已经遇到过boss门
-    bool m_bossDoorsAlreadyOpened;  // boss门是否已经打开过
-    bool m_skipToBoss = false;      // 开发者模式：直接跳过到Boss房
-
-    // galgame相关
-    QGraphicsPixmapItem* m_dialogBox;
-    QGraphicsTextItem* m_dialogText;
-    QGraphicsTextItem* m_skipHint = nullptr;  // "跳过"提示
-    QGraphicsTextItem* m_continueHint;
-    QStringList m_currentDialogs;
-    int m_currentDialogIndex;
-    bool m_skipRequested = false;  // 防止重复调用 finishStory
-    bool m_isStoryFinished;
-    bool m_isBossDialog;  // 标记当前是否为boss对话
-
-    // 对话期间的Boss角色图片（入场动画）
-    QGraphicsPixmapItem* m_dialogBossSprite = nullptr;
-    QPropertyAnimation* m_dialogBossFlyAnimation = nullptr;
-    bool m_isTeacherBossInitialDialog = false;  // 标记是否为TeacherBoss初始对话
-
-    // 对话中背景切换相关（TeacherBoss特殊需求）
-    QMap<int, QString> m_pendingDialogBackgrounds;  // 待切换的对话背景 <对话索引, 背景名称>
-
-    // 待执行的对话背景渐变（在对话框创建后执行）
-    QString m_pendingFadeDialogBackground;  // 待渐变到的背景路径
-    int m_pendingFadeDialogDuration = 0;    // 渐变持续时间
+    bool m_skipToBoss = false;  // 开发者模式：直接跳过到Boss房
 
     // 背景图片项
     QGraphicsPixmapItem* m_backgroundItem = nullptr;
@@ -246,14 +179,11 @@ class Level : public QObject {
     QPointF m_absorbCenter;
     int m_absorbAnimationStep = 0;
 
-    // Boss奖励机制相关
-    QPointer<Usagi> m_usagi;
-    bool m_bossDefeated = false;          // Boss是否已被击败
-    bool m_rewardSequenceActive = false;  // 奖励流程是否激活
-    bool m_bossRoomCleared = false;       // Boss房间是否已通关（奖励已领取，门已打开）
+    // Boss奖励机制相关 - 使用RewardSystem管理
+    RewardSystem* m_rewardSystem = nullptr;
+    bool m_bossDefeated = false;  // Boss是否已被击败
 
-    // G键进入下一关相关
-    bool m_gKeyEnabled = false;                   // G键是否激活
+    // G键提示文字（UI由Level管理，状态由RewardSystem管理）
     QGraphicsTextItem* m_gKeyHintText = nullptr;  // G键提示文字
 
     // 精英房间相关
@@ -265,23 +195,32 @@ class Level : public QObject {
 
    public slots:
 
-    void onDialogClicked();
-
-    void nextDialog();
-
     void showPhaseTransitionText(const QString& text, const QColor& color = QColor(75, 0, 130));  // 显示阶段转换文字提示（可被信号连接或直接调用）
+
+    // 背景切换（供Boss信号连接使用）
+    void changeBackground(const QString& backgroundPath);
 
     // 背景渐变接口：将背景渐变到给定路径（绝对路径或相对 assets/），duration 毫秒
     void fadeBackgroundTo(const QString& imagePath, int duration);
 
-    // 对话框背景渐变接口：将对话框背景渐变到给定路径，duration 毫秒
+    // 对话框背景渐变接口（委托给DialogSystem）
     void fadeDialogBackgroundTo(const QString& imagePath, int duration);
+
+    // ========== Boss通用槽函数（供Boss类的setupLevelConnections使用）==========
+    void onBossRequestDialog(const QStringList& dialogs, const QString& background);
+    void onBossRequestAbsorb();  // WashMachineBoss吸纳请求
+    void onBossRequestFadeDialogBackground(const QString& backgroundPath, int duration);
+    void onBossRequestDialogBackgroundChange(int dialogIndex, const QString& backgroundName);
+    void onBossEnemySpawned(Enemy* enemy);  // TeacherBoss直接生成的敌人追踪
 
    private slots:
 
     void onEnemyDying(Enemy* enemy);
 
-    void finishStory();
+    // 对话系统回调槽函数
+    void onDialogSystemStoryFinished();
+    void onDialogSystemBossDialogFinished();
+    void onDialogSystemEliteDialogFinished();
 
     void initializeLevelAfterStory(const LevelConfig& config);
 

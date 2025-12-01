@@ -348,7 +348,7 @@
         },
         "teacher": {
             "phase1": {
-                "health": 600,
+                "health": 5000,
                 "contact_damage": 3,
                 "vision_range": 1000.0,
                 "attack_range": 70.0,

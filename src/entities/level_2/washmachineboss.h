@@ -23,10 +23,10 @@ class Player;
  * 3. 变异阶段 (40%~0%血量): 吸纳所有实体 + 毒气团攻击
  */
 class WashMachineBoss : public Boss {
-Q_OBJECT
+    Q_OBJECT
 
-public:
-    explicit WashMachineBoss(const QPixmap &pic, double scale = 1.5);
+   public:
+    explicit WashMachineBoss(const QPixmap& pic, double scale = 1.5);
 
     ~WashMachineBoss() override;
 
@@ -45,19 +45,32 @@ public:
     int getPhase() const { return m_phase; }
 
     // 设置场景（用于生成投射物）
-    void setScene(QGraphicsScene *scene) { m_scene = scene; }
+    void setScene(QGraphicsScene* scene) { m_scene = scene; }
 
-signals:
+    /**
+     * @brief 设置与Level的信号连接
+     * @param level Level对象（需要有相应的槽函数）
+     *
+     * 此方法将Boss的信号连接到Level的槽函数：
+     * - requestShowDialog -> Level::onBossRequestDialog
+     * - requestChangeBackground -> Level::changeBackground
+     * - requestShowTransitionText -> Level::showPhaseTransitionText
+     * - requestAbsorbAllEntities -> Level::performAbsorbAnimation
+     * - requestSpawnEnemies -> Level::spawnEnemiesForBoss
+     */
+    void setupLevelConnections(QObject* level);
+
+   signals:
 
     // 请求Level执行操作
-    void requestSpawnEnemies(const QVector<QPair<QString, int>> &enemies);
+    void requestSpawnEnemies(const QVector<QPair<QString, int>>& enemies);
 
-    void requestShowDialog(const QStringList &dialogs, const QString &background);
+    void requestShowDialog(const QStringList& dialogs, const QString& background);
 
-    void requestChangeBackground(const QString &backgroundPath);
+    void requestChangeBackground(const QString& backgroundPath);
 
     void requestAbsorbAllEntities();                      // 请求吸纳所有实体
-    void requestShowTransitionText(const QString &text);  // 请求显示阶段转换文字
+    void requestShowTransitionText(const QString& text);  // 请求显示阶段转换文字
 
     // 阶段变化通知
     void phaseChanged(int newPhase);
@@ -65,7 +78,7 @@ signals:
     // 对话结束后继续战斗
     void dialogFinished();
 
-public slots:
+   public slots:
 
     // 对话结束后调用，继续战斗
     void onDialogFinished();
@@ -73,7 +86,7 @@ public slots:
     // 吸纳动画完成后调用
     void onAbsorbComplete();
 
-private:
+   private:
     // 阶段管理
     int m_phase;              // 1=普通, 2=愤怒, 3=变异
     bool m_isTransitioning;   // 阶段转换中（无敌）
@@ -90,12 +103,12 @@ private:
     QPixmap m_toxicGasPixmap;
 
     // 场景引用
-    QGraphicsScene *m_scene;
+    QGraphicsScene* m_scene;
 
     // ========== 普通阶段 - 水柱攻击 ==========
-    QTimer *m_waterAttackTimer;  // 水柱攻击定时器
+    QTimer* m_waterAttackTimer;  // 水柱攻击定时器
     bool m_isCharging;           // 是否正在蓄力
-    QTimer *m_chargeTimer;       // 蓄力定时器
+    QTimer* m_chargeTimer;       // 蓄力定时器
 
     void startWaterAttackCycle();
 
@@ -106,7 +119,7 @@ private:
     void createWaterWave(int direction);  // 0=上, 1=下, 2=左, 3=右
 
     // ========== 愤怒阶段 - 召唤臭袜子 ==========
-    QTimer *m_summonTimer;                            // 召唤定时器
+    QTimer* m_summonTimer;                            // 召唤定时器
     QVector<QPointer<OrbitingSock>> m_orbitingSocks;  // 围绕的臭袜子
 
     void startSummonCycle();
@@ -117,8 +130,8 @@ private:
     void cleanupOrbitingSocks();
 
     // ========== 变异阶段 - 毒气攻击 ==========
-    QTimer *m_toxicGasTimer;  // 扩散毒气定时器
-    QTimer *m_fastGasTimer;   // 追踪毒气定时器
+    QTimer* m_toxicGasTimer;  // 扩散毒气定时器
+    QTimer* m_fastGasTimer;   // 追踪毒气定时器
     double m_spiralAngle;     // 螺旋发射角度（度）
 
     void startToxicGasCycle();
