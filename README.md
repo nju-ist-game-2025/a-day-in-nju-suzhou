@@ -34,4 +34,4 @@ cmake --build .
 ./game_final      # Linux/Mac
 ```
 ### 下载发行版
-我们提供了游戏的压缩包。下载zip文件，解压后找到final_game.exe，双击即可游玩
+我们提供了游戏的压缩包。下载zip文件，解压后找到game_final.exe，双击即可游玩
