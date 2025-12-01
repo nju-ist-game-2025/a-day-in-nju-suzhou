@@ -1,4 +1,4 @@
-# Our Game - 智科er的一天
+# 智科er的一天
 
 一个类似《以撒的结合》的2D Roguelike游戏，使用Qt框架开发。
 
@@ -33,3 +33,6 @@ cmake --build .
 ./game_final.exe  # Windows
 ./game_final      # Linux/Mac
 ```
+### 下载发行版
+我们提供了游戏的压缩包
+下载zip文件，解压后找到final_game.exe，双击即可游玩
