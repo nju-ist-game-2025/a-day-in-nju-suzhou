@@ -215,7 +215,7 @@
             "max_scale": 2.0
         },
         "zhuhao": {
-            "health": 150,
+            "health": 200,
             "contact_damage": 3,
             "vision_range": 9999.0,
             "attack_range": 9999.0,
@@ -226,7 +226,7 @@
             "bullet_speed": 4.0
         },
         "xuke": {
-            "health": 24,
+            "health": 90,
             "contact_damage": 0,
             "vision_range": 9999.0,
             "attack_range": 9999.0,
@@ -241,7 +241,7 @@
             "special_headshot_damage": 8
         },
         "probability_theory": {
-            "health": 100,
+            "health": 200,
             "contact_damage": 2,
             "speed": 0,
             "initial_scale": 0.3,
@@ -252,7 +252,7 @@
             "heal_interval": 500
         },
         "invigilator": {
-            "health": 25,
+            "health": 30,
             "contact_damage": 1,
             "vision_range": 200.0,
             "attack_range": 30.0,
@@ -261,7 +261,7 @@
             "detection_range": 150.0
         },
         "orbiting_sock": {
-            "health": 15,
+            "health": 25,
             "contact_damage": 2,
             "vision_range": 300.0,
             "attack_range": 40.0,
@@ -271,13 +271,13 @@
             "orbit_speed": 0.05
         },
         "digital_system": {
-            "health": 25,
+            "health": 80,
             "contact_damage": 3,
             "circle_radius": 180.0,
             "speed": 2.5
         },
         "optimization": {
-            "health": 25,
+            "health": 80,
             "contact_damage": 3,
             "circle_radius": 180.0,
             "speed": 2.5
@@ -286,7 +286,7 @@
     "bosses": {
         "nightmare": {
             "phase1": {
-                "health": 250,
+                "health": 350,
                 "contact_damage": 3,
                 "vision_range": 1000.0,
                 "attack_range": 70.0,
@@ -298,7 +298,7 @@
                 "dash_speed": 6.0
             },
             "phase2": {
-                "health": 300,
+                "health": 400,
                 "contact_damage": 5,
                 "vision_range": 500.0,
                 "speed": 1.2,
@@ -312,7 +312,7 @@
         },
         "washmachine": {
             "phase1": {
-                "health": 700,
+                "health": 800,
                 "contact_damage": 3,
                 "vision_range": 500.0,
                 "attack_range": 60.0,
@@ -330,9 +330,9 @@
                 "move_pattern": "dash",
                 "dash_charge_time": 800,
                 "dash_speed": 7.0,
-                "summon_interval": 10000,
-                "initial_socks_on_angry": 3,
-                "max_orbiting_socks": 6
+                "summon_interval": 5000,
+                "initial_socks_on_angry": 6,
+                "max_orbiting_socks": 18
             },
             "phase3": {
                 "health_threshold": 0.4,

@@ -30,8 +30,7 @@ class Room : public QGraphicsScene {
 
    public:
     Room();
-
-    ~Room();  // 析构函数，清理敌人和宝箱
+    ~Room();  // 清理敌人和宝箱
 
     Room(Player* p, bool u, bool d, bool l, bool r);
 
@@ -54,35 +53,23 @@ class Room : public QGraphicsScene {
 
     // 门控制
     void setDoorOpenUp(bool v);
-
     void setDoorOpenDown(bool v);
-
     void setDoorOpenLeft(bool v);
-
     void setDoorOpenRight(bool v);
-
     bool isDoorOpenUp() const;
-
     bool isDoorOpenDown() const;
-
     bool isDoorOpenLeft() const;
-
     bool isDoorOpenRight() const;
 
     // 战斗房间控制
     void setBattleRoom(bool isBattle);
-
     bool isBattleRoom() const;
-
     void startBattle();
-
     bool isBattleStarted() const;
-
     bool canLeaveRoom() const;  // 检查是否可以离开房间
 
     // 房间清除状态控制（开发者模式用）
     void setCleared(bool cleared);
-
     bool isCleared() const;
 
     // 掉落物品管理

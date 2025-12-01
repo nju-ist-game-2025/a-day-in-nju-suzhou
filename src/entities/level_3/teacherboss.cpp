@@ -57,13 +57,7 @@ TeacherBoss::TeacherBoss(const QPixmap& pic, double scale)
         setPixmap(m_normalPixmap);
     }
 
-    // 创建后延迟启动第一阶段技能
-    QTimer::singleShot(500, this, [this]() {
-        if (!m_isDefeated && m_phase == 1) {
-            emit requestShowTransitionText("「随堂测验」开始！");
-            startPhase1Skills();
-        }
-    });
+    // 第一阶段技能启动由 setScene() 触发，确保 m_scene 已设置
 
     qDebug() << "[TeacherBoss] 奶牛张创建，血量:" << health << "阶段: 1";
 }
@@ -115,6 +109,20 @@ TeacherBoss::~TeacherBoss() {
     cleanupInvigilators();
 
     qDebug() << "[TeacherBoss] 奶牛张被击败！";
+}
+
+void TeacherBoss::setScene(QGraphicsScene* scene) {
+    m_scene = scene;
+
+    // 场景设置后延迟启动第一阶段技能
+    if (m_scene && !m_isDefeated && m_phase == 1) {
+        QTimer::singleShot(500, this, [this]() {
+            if (!m_isDefeated && m_phase == 1 && m_scene) {
+                emit requestShowTransitionText("「随堂测验」开始！");
+                startPhase1Skills();
+            }
+        });
+    }
 }
 
 void TeacherBoss::loadTextures() {

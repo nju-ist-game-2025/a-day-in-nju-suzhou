@@ -13,6 +13,7 @@
 
 class Player;
 class Enemy;
+class Boss;
 class Chest;
 class QGraphicsScene;
 class QGraphicsPixmapItem;
@@ -21,7 +22,6 @@ class DroppedItem;
 /**
  * @brief 房间管理器类 - 封装房间切换、门管理、敌人生成等逻辑
  *
- * 将 Level 类中与房间管理相关的功能提取出来，降低 Level 类的复杂度。
  * 职责：
  *   - 房间初始化和切换
  *   - 门的创建、状态管理和开关控制
@@ -42,42 +42,20 @@ class RoomManager : public QObject {
      * @return 是否初始化成功
      */
     bool init(int levelNumber);
-
-    /**
-     * @brief 清理所有资源
-     */
+    // 清理所有资源
     void cleanup();
-
-    /**
-     * @brief 设置关卡号（用于配置加载）
-     */
+    // 用于配置加载
     void setLevelNumber(int levelNumber) { m_levelNumber = levelNumber; }
-
-    /**
-     * @brief 获取关卡号
-     */
     int levelNumber() const { return m_levelNumber; }
 
     // ==================== 房间操作 ====================
 
-    /**
-     * @brief 获取当前房间
-     */
+    // 获取当前房间
     Room* currentRoom() const;
-
-    /**
-     * @brief 获取当前房间索引
-     */
     int currentRoomIndex() const { return m_currentRoomIndex; }
-
-    /**
-     * @brief 获取房间数量
-     */
     int roomCount() const { return m_rooms.size(); }
 
-    /**
-     * @brief 获取指定索引的房间
-     */
+    // 获取指定索引的房间
     Room* getRoom(int index) const;
 
     /**
@@ -93,105 +71,41 @@ class RoomManager : public QObject {
      * @return 新房间索引，-1表示无法移动
      */
     int enterNextRoom(Door::Direction direction);
-
-    /**
-     * @brief 检查房间是否已访问
-     */
     bool isRoomVisited(int roomIndex) const;
-
-    /**
-     * @brief 标记房间已访问
-     */
     void markRoomVisited(int roomIndex);
-
-    /**
-     * @brief 检查所有非Boss房间是否都已完成（已访问且敌人清空）
-     */
     bool areAllNonBossRoomsCompleted() const;
 
-    /**
-     * @brief 获取已访问房间数量
-     */
+    // 获取已访问房间数量
     int visitedRoomCount() const { return m_visitedCount; }
 
-    /**
-     * @brief 获取已访问房间数量引用（可修改）
-     */
+    // 获取已访问房间数量引用
     int& visitedCountRef() { return m_visitedCount; }
-
-    /**
-     * @brief 获取访问状态数组
-     */
+    // 获取访问状态数组
     const QVector<bool>& visitedRooms() const { return m_visited; }
-
-    /**
-     * @brief 获取访问状态数组引用（可修改）
-     */
     QVector<bool>& visitedRoomsRef() { return m_visited; }
-
-    /**
-     * @brief 获取房间数组引用（可修改）
-     */
     QVector<Room*>& roomsRef() { return m_rooms; }
-
-    /**
-     * @brief 设置当前房间索引
-     */
     void setCurrentRoomIndex(int index) { m_currentRoomIndex = index; }
 
     // ==================== 门管理 ====================
 
-    /**
-     * @brief 生成当前房间的门
-     */
     void spawnDoors(const RoomConfig& roomCfg);
-
-    /**
-     * @brief 打开当前房间的门
-     */
     void openDoors();
-
-    /**
-     * @brief 打开通往Boss房间的门
-     */
     void openBossDoors();
 
-    /**
-     * @brief 检查是否可以打开Boss门
-     */
+    // 检查是否可以打开Boss门
     bool canOpenBossDoor() const;
 
-    /**
-     * @brief 获取当前房间的门列表
-     */
+    // 获取当前房间的门列表
     const QVector<Door*>& currentDoors() const { return m_currentDoors; }
-
-    /**
-     * @brief 获取当前房间的门列表引用（可修改）
-     */
+    // 获取当前房间的门列表引用
     QVector<Door*>& currentDoorsRef() { return m_currentDoors; }
-
-    /**
-     * @brief 获取房间门映射引用（可修改）
-     */
+    // 获取房间门映射引用
     QMap<int, QVector<Door*>>& roomDoorsRef() { return m_roomDoors; }
 
     // ==================== 敌人/宝箱管理 ====================
 
-    /**
-     * @brief 在当前房间生成敌人
-     */
     void spawnEnemiesInRoom();
-
-    /**
-     * @brief 在当前房间生成宝箱
-     */
     void spawnChestsInRoom();
-
-    /**
-     * @brief Boss召唤敌人
-     * @param enemies 敌人类型和数量的列表
-     */
     void spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemies);
 
     // ==================== 物品掉落管理 ====================
@@ -209,42 +123,15 @@ class RoomManager : public QObject {
      * @param scatter 是否散开
      */
     void dropItemsFromPosition(QPointF position, int count, bool scatter = true);
-
-    /**
-     * @brief 恢复掉落物品到场景
-     */
     void restoreDroppedItemsToScene();
-
-    /**
-     * @brief 获取当前敌人列表
-     */
     QVector<QPointer<Enemy>>& currentEnemies() { return m_currentEnemies; }
-
-    /**
-     * @brief 获取当前宝箱列表
-     */
     QVector<QPointer<Chest>>& currentChests() { return m_currentChests; }
-
-    /**
-     * @brief 移除敌人
-     */
     void removeEnemy(Enemy* enemy);
-
-    /**
-     * @brief 清理当前房间的场景实体
-     */
     void clearSceneEntities();
 
     // ==================== 背景管理 ====================
 
-    /**
-     * @brief 设置背景图片项
-     */
     void setBackgroundItem(QGraphicsPixmapItem* item) { m_backgroundItem = item; }
-
-    /**
-     * @brief 更新房间背景
-     */
     void updateBackground(const QString& backgroundPath);
 
     // ==================== 状态标记 ====================
@@ -256,51 +143,16 @@ class RoomManager : public QObject {
     bool bossDoorsAlreadyOpened() const { return m_bossDoorsAlreadyOpened; }
 
    signals:
-    /**
-     * @brief 房间进入信号
-     */
     void roomEntered(int roomIndex);
-
-    /**
-     * @brief 敌人清空信号
-     */
     void enemiesCleared(int roomIndex, bool up, bool down, bool left, bool right);
-
-    /**
-     * @brief Boss门打开信号
-     */
     void bossDoorsOpened();
-
-    /**
-     * @brief 敌人死亡信号（转发给Level处理）
-     */
     void enemyDied(Enemy* enemy);
-
-    /**
-     * @brief 请求创建敌人
-     */
-    void requestCreateEnemy(int levelNumber, const QString& type, const QPixmap& pic, double scale, QPointF pos);
-
-    /**
-     * @brief 请求创建Boss
-     */
-    void requestCreateBoss(int levelNumber, const QPixmap& pic, double scale, QPointF pos);
-
-    /**
-     * @brief Boss召唤的敌人生成完成信号
-     * @param enemy 生成的敌人
-     */
+    void enemyCreated(Enemy* enemy);  // 敌人创建信号，Level连接dying信号
+    void bossCreated(Boss* boss);     // Boss创建信号
     void enemySummoned(Enemy* enemy);
 
    private:
-    /**
-     * @brief 初始化当前房间
-     */
     void initCurrentRoom(Room* room);
-
-    /**
-     * @brief 创建房间对象
-     */
     bool createRooms(const LevelConfig& config);
 
     int m_levelNumber = 0;

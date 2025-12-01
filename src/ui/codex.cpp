@@ -669,7 +669,7 @@ void Codex::loadEnemyData() {
 
     CodexEntry orbitingSock;
     orbitingSock.name = "旋转臭袜子";
-    orbitingSock.imagePath = "assets/enemy/level_2/sock_normal.png";
+    orbitingSock.imagePath = "assets/enemy/level_2/orbiting_sock.png";
     orbitingSock.health = config.getEnemyInt("orbiting_sock", "health", 15);
     orbitingSock.attackMethod = QString("近战接触攻击（%1点伤害）").arg(
             config.getEnemyInt("orbiting_sock", "contact_damage", 2));

@@ -2,11 +2,12 @@
 #include <QDebug>
 #include <QGraphicsScene>
 #include <QRandomGenerator>
+#include <QtMath>
 #include "../core/configmanager.h"
 #include "../core/resourcefactory.h"
 #include "../entities/boss.h"
-#include "../entities/level_1/clockboom.h"
 #include "../entities/enemy.h"
+#include "../entities/level_1/clockboom.h"
 #include "../entities/player.h"
 #include "../items/chest.h"
 #include "../items/droppeditemfactory.h"
@@ -352,7 +353,6 @@ void RoomManager::openDoors() {
 
     auto tryOpenDoor = [&](int neighborRoom, bool& flag, void (Room::*setOpen)(bool), Door::Direction dir) {
         if (neighborRoom < 0) {
-            doorIndex++;
             return;
         }
 
@@ -450,6 +450,7 @@ bool RoomManager::canOpenBossDoor() const {
 void RoomManager::spawnEnemiesInRoom() {
     LevelConfig config;
     if (!config.loadFromFile(m_levelNumber)) {
+        qWarning() << "RoomManager: 加载关卡配置失败";
         return;
     }
 
@@ -458,32 +459,134 @@ void RoomManager::spawnEnemiesInRoom() {
 
     // 如果房间已清除，跳过
     if (cur && cur->isCleared()) {
+        qDebug() << "房间" << m_currentRoomIndex << "已被清除，跳过敌人生成";
         openDoors();
         return;
     }
 
-    // 计算敌人数量
-    int totalEnemyCount = 0;
-    for (const EnemySpawnConfig& enemyCfg : roomCfg.enemies) {
-        totalEnemyCount += enemyCfg.count;
-    }
+    try {
+        bool hasBoss = roomCfg.hasBoss;
 
-    if (totalEnemyCount == 0 && (!cur->isBattleRoom() || cur->isBattleStarted())) {
-        openDoors();
-    }
+        // 计算敌人数量
+        int totalEnemyCount = 0;
+        for (const EnemySpawnConfig& enemyCfg : roomCfg.enemies) {
+            totalEnemyCount += enemyCfg.count;
+        }
 
-    // 生成敌人（通过信号委托给Level处理）
-    for (const EnemySpawnConfig& enemyCfg : roomCfg.enemies) {
-        QString enemyType = enemyCfg.type;
-        int count = enemyCfg.count;
-        int enemySize = ConfigManager::instance().getEntitySize("enemies", enemyType);
-        if (enemySize <= 0)
-            enemySize = 40;
+        if (totalEnemyCount == 0 && (!cur->isBattleRoom() || cur->isBattleStarted())) {
+            openDoors();
+        }
 
-        QPixmap enemyPix = ResourceFactory::createEnemyImage(enemySize, m_levelNumber, enemyType);
-        double enemyScale = 1.0;
+        // 根据配置生成各种类型的敌人
+        for (const EnemySpawnConfig& enemyCfg : roomCfg.enemies) {
+            QString enemyType = enemyCfg.type;
+            int count = enemyCfg.count;
 
-        for (int i = 0; i < count; ++i) {
+            // 特殊处理ClockBoom类型
+            if (enemyType == "clock_boom") {
+                int enemySize = ConfigManager::instance().getEntitySize("enemies", "clock_boom");
+                if (enemySize <= 0)
+                    enemySize = 40;
+                QPixmap boomNormalPic = ResourceFactory::createEnemyImage(enemySize, m_levelNumber, "clock_boom");
+
+                for (int i = 0; i < count; ++i) {
+                    int x = QRandomGenerator::global()->bounded(100, 700);
+                    int y = QRandomGenerator::global()->bounded(100, 500);
+
+                    if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100) {
+                        x += 150;
+                        y += 150;
+                    }
+
+                    ClockBoom* boom = new ClockBoom(boomNormalPic, boomNormalPic, 1.0);
+                    boom->setPos(x, y);
+                    boom->setPlayer(m_player);
+                    boom->preloadCollisionMask();
+
+                    m_scene->addItem(boom);
+
+                    QPointer<Enemy> eptr(boom);
+                    m_currentEnemies.append(eptr);
+                    m_rooms[m_currentRoomIndex]->currentEnemies.append(eptr);
+
+                    emit enemyCreated(boom);
+                    qDebug() << "创建ClockBoom，房间" << m_currentRoomIndex << "，编号" << i << "，位置:" << x << "," << y;
+                }
+            } else {
+                // 普通敌人生成
+                int enemySize = ConfigManager::instance().getEntitySize("enemies", enemyType);
+                if (enemySize <= 0)
+                    enemySize = 40;
+
+                QPixmap enemyPix;
+                double enemyScale = 1.0;
+
+                // 对于ScalingEnemy类型（Level 3的缩放敌人），使用高分辨率图片
+                if (m_levelNumber == 3 && (enemyType == "optimization" || enemyType == "digital_system" || enemyType == "yanglin" || enemyType == "probability_theory")) {
+                    enemyPix = ResourceFactory::createEnemyImageHighRes(m_levelNumber, enemyType, 200);
+                    enemyScale = static_cast<double>(enemySize) / static_cast<double>(enemyPix.width());
+                    qDebug() << "使用高分辨率图片创建ScalingEnemy:" << enemyType
+                             << "图片尺寸:" << enemyPix.width() << "x" << enemyPix.height()
+                             << "基础scale:" << enemyScale;
+                } else {
+                    enemyPix = ResourceFactory::createEnemyImage(enemySize, m_levelNumber, enemyType);
+                }
+
+                for (int i = 0; i < count; ++i) {
+                    int x, y;
+
+                    // probability_theory固定刷新在地图正中间
+                    if (enemyType == "probability_theory") {
+                        x = 400;
+                        y = 300;
+                    } else {
+                        x = QRandomGenerator::global()->bounded(100, 700);
+                        y = QRandomGenerator::global()->bounded(100, 500);
+
+                        if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100) {
+                            x += 150;
+                            y += 150;
+                        }
+                    }
+
+                    Enemy* enemy = EnemyFactory::instance().createEnemy(m_levelNumber, enemyType, enemyPix, enemyScale);
+                    enemy->setPos(x, y);
+                    enemy->setPlayer(m_player);
+
+                    // 为绕圈移动的敌人设置不同的初始角度
+                    if (enemyType == "yanglin" && count > 1) {
+                        double initialAngle = (2.0 * M_PI / count) * i;
+                        enemy->setCircleAngle(initialAngle);
+                        qDebug() << "设置yanglin" << i << "初始角度:" << (initialAngle * 180.0 / M_PI) << "度";
+                    }
+
+                    enemy->preloadCollisionMask();
+                    m_scene->addItem(enemy);
+
+                    QPointer<Enemy> eptr(enemy);
+                    m_currentEnemies.append(eptr);
+                    m_rooms[m_currentRoomIndex]->currentEnemies.append(eptr);
+
+                    emit enemyCreated(enemy);
+                    qDebug() << "创建敌人" << enemyType << "位置:" << x << "," << y;
+                }
+            }
+        }
+
+        // Boss生成
+        if (hasBoss) {
+            QString bossType;
+            if (m_levelNumber == 1) {
+                bossType = "nightmare";
+            } else if (m_levelNumber == 2) {
+                bossType = "washmachine";
+            } else {
+                bossType = "teacher";
+            }
+
+            int bossSize = ConfigManager::instance().getEntitySize("bosses", bossType);
+            QPixmap bossPix = ResourceFactory::createBossImage(bossSize, m_levelNumber, bossType);
+
             int x = QRandomGenerator::global()->bounded(100, 700);
             int y = QRandomGenerator::global()->bounded(100, 500);
 
@@ -492,25 +595,24 @@ void RoomManager::spawnEnemiesInRoom() {
                 y += 150;
             }
 
-            emit requestCreateEnemy(m_levelNumber, enemyType, enemyPix, enemyScale, QPointF(x, y));
+            Boss* boss = BossFactory::instance().createBoss(m_levelNumber, bossPix, 1.0, m_scene);
+            if (boss) {
+                boss->setPos(x, y);
+                boss->setPlayer(m_player);
+                boss->preloadCollisionMask();
+
+                m_scene->addItem(boss);
+
+                QPointer<Enemy> eptr(static_cast<Enemy*>(boss));
+                m_currentEnemies.append(eptr);
+                m_rooms[m_currentRoomIndex]->currentEnemies.append(eptr);
+
+                emit bossCreated(boss);
+                qDebug() << "创建boss类型:" << bossType << "位置:" << x << "," << y;
+            }
         }
-    }
-
-    // Boss生成
-    if (roomCfg.hasBoss) {
-        QString bossType = (m_levelNumber == 1) ? "nightmare" : "washmachine";
-        int bossSize = ConfigManager::instance().getEntitySize("bosses", bossType);
-        QPixmap bossPix = ResourceFactory::createBossImage(bossSize, m_levelNumber, bossType);
-
-        int x = QRandomGenerator::global()->bounded(100, 700);
-        int y = QRandomGenerator::global()->bounded(100, 500);
-
-        if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100) {
-            x += 150;
-            y += 150;
-        }
-
-        emit requestCreateBoss(m_levelNumber, bossPix, 1.0, QPointF(x, y));
+    } catch (const QString& error) {
+        qWarning() << "RoomManager: 生成敌人失败:" << error;
     }
 }
 

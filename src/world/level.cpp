@@ -56,6 +56,26 @@ Level::Level(Player* player, QGraphicsScene* scene, QObject* parent)
     // 创建房间管理器（完全管理房间数据）
     m_roomManager = new RoomManager(m_player, m_scene, this);
 
+    // 连接RoomManager的敌人创建信号（连接死亡回调）
+    connect(m_roomManager, &RoomManager::enemyCreated, this, [this](Enemy* enemy) {
+        if (enemy) {
+            connect(enemy, &Enemy::dying, this, &Level::onEnemyDying);
+        }
+    });
+
+    // 连接RoomManager的Boss创建信号（设置Boss特有信号和死亡回调）
+    connect(m_roomManager, &RoomManager::bossCreated, this, [this](Boss* boss) {
+        if (boss) {
+            // 连接死亡信号
+            connect(boss, &Boss::dying, this, &Level::onEnemyDying);
+
+            // 设置Boss特有的信号连接（对话、吸纳、召唤敌人等）
+            setupBossConnections(boss);
+
+            qDebug() << "Boss dying信号和特有信号已连接";
+        }
+    });
+
     // 连接RoomManager的敌人召唤信号（用于Boss召唤敌人时连接死亡回调）
     connect(m_roomManager, &RoomManager::enemySummoned, this, [this](Enemy* enemy) {
         if (enemy) {
@@ -490,7 +510,6 @@ void Level::initCurrentRoom(Room* room) {
             rr->stopChangeTimer();
     }
 
-    // Clear only the scene, not the room data
     clearSceneEntities();
 
     LevelConfig config;
@@ -510,8 +529,6 @@ void Level::initCurrentRoom(Room* room) {
         spawnDoors(roomCfg);
     }
 
-    // Spawn enemies and chests - they will be added to both room lists and global lists
-    // inside the spawn functions, so we don't need to add them again
     qDebug() << "初始化房间" << currentRoomIndex() << "，开始生成实体";
     spawnEnemiesInRoom(currentRoomIndex());
     spawnChestsInRoom(currentRoomIndex());
@@ -535,186 +552,12 @@ void Level::initCurrentRoom(Room* room) {
 }
 
 void Level::spawnEnemiesInRoom(int roomIndex) {
-    LevelConfig config;
-    if (!config.loadFromFile(m_levelNumber)) {
-        qWarning() << "加载关卡配置失败";
-        return;
+    // 委托给 RoomManager 处理
+    // 先设置当前房间索引，确保 RoomManager 生成正确房间的敌人
+    if (m_roomManager->currentRoomIndex() != roomIndex) {
+        m_roomManager->setCurrentRoomIndex(roomIndex);
     }
-
-    const RoomConfig& roomCfg = config.getRoom(roomIndex);
-    Room* cur = rooms()[roomIndex];
-
-    // 如果房间已被标记为清除（开发者模式跳关），跳过敌人生成
-    if (cur && cur->isCleared()) {
-        qDebug() << "房间" << roomIndex << "已被清除，跳过敌人生成";
-        openDoors(cur);
-        return;
-    }
-
-    try {
-        bool hasBoss = roomCfg.hasBoss;
-
-        // 计算总敌人数量（用于判断是否打开门）
-        int totalEnemyCount = 0;
-        for (const EnemySpawnConfig& enemyCfg : roomCfg.enemies) {
-            totalEnemyCount += enemyCfg.count;
-        }
-
-        // 如果没有敌人且不是战斗房间，或者战斗已经结束，则打开门
-        if (totalEnemyCount == 0 && (!cur->isBattleRoom() || cur->isBattleStarted())) {
-            openDoors(cur);
-        }
-
-        // 根据配置生成各种类型的敌人
-        for (const EnemySpawnConfig& enemyCfg : roomCfg.enemies) {
-            QString enemyType = enemyCfg.type;
-            int count = enemyCfg.count;
-
-            // 特殊处理ClockBoom类型
-            if (enemyType == "clock_boom") {
-                // 使用新的配置接口获取具体敌人类型的尺寸
-                int enemySize = ConfigManager::instance().getEntitySize("enemies", "clock_boom");
-                if (enemySize <= 0)
-                    enemySize = 40;  // 默认值
-                QPixmap boomNormalPic = ResourceFactory::createEnemyImage(enemySize, m_levelNumber, "clock_boom");
-
-                for (int i = 0; i < count; ++i) {
-                    int x = QRandomGenerator::global()->bounded(100, 700);
-                    int y = QRandomGenerator::global()->bounded(100, 500);
-
-                    if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100) {
-                        x += 150;
-                        y += 150;
-                    }
-
-                    ClockBoom* boom = new ClockBoom(boomNormalPic, boomNormalPic, 1.0);
-                    boom->setPos(x, y);
-                    boom->setPlayer(m_player);
-
-                    // 预加载碰撞掩码
-                    boom->preloadCollisionMask();
-
-                    m_scene->addItem(boom);
-
-                    QPointer<Enemy> eptr(boom);
-                    currentEnemies().append(eptr);
-                    rooms()[roomIndex]->currentEnemies.append(eptr);
-
-                    connect(boom, &Enemy::dying, this, &Level::onEnemyDying);
-                    qDebug() << "创建ClockBoom，房间" << roomIndex << "，编号" << i << "，位置:" << x << "," << y;
-                }
-            } else {
-                // 普通敌人生成 - 使用新的配置接口获取具体敌人类型的尺寸
-                int enemySize = ConfigManager::instance().getEntitySize("enemies", enemyType);
-                if (enemySize <= 0)
-                    enemySize = 40;  // 默认值
-
-                QPixmap enemyPix;
-                double enemyScale = 1.0;
-
-                // 对于ScalingEnemy类型（Level 3的缩放敌人），使用高分辨率图片
-                // 避免先缩小再放大导致的画质损失
-                if (m_levelNumber == 3 && (enemyType == "optimization" || enemyType == "digital_system" || enemyType == "yanglin" || enemyType == "probability_theory")) {
-                    // 加载高分辨率图片（最大200像素，保持高质量）
-                    enemyPix = ResourceFactory::createEnemyImageHighRes(m_levelNumber, enemyType, 200);
-                    // 计算初始缩放比例，使视觉大小与配置的enemySize一致
-                    // 由于ScalingEnemy会在1.0-3.0之间动态缩放，这里设置基础scale
-                    enemyScale = static_cast<double>(enemySize) / static_cast<double>(enemyPix.width());
-                    qDebug() << "使用高分辨率图片创建ScalingEnemy:" << enemyType
-                             << "图片尺寸:" << enemyPix.width() << "x" << enemyPix.height()
-                             << "基础scale:" << enemyScale;
-                } else {
-                    enemyPix = ResourceFactory::createEnemyImage(enemySize, m_levelNumber, enemyType);
-                }
-
-                for (int i = 0; i < count; ++i) {
-                    int x, y;
-
-                    // probability_theory固定刷新在地图正中间（使用setOffset后pos就是中心点）
-                    if (enemyType == "probability_theory") {
-                        x = 400;  // 地图中央X
-                        y = 300;  // 地图中央Y
-                    } else {
-                        x = QRandomGenerator::global()->bounded(100, 700);
-                        y = QRandomGenerator::global()->bounded(100, 500);
-
-                        if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100) {
-                            x += 150;
-                            y += 150;
-                        }
-                    }
-
-                    // 根据关卡号和敌人类型创建具体的敌人实例
-                    Enemy* enemy = EnemyFactory::instance().createEnemy(m_levelNumber, enemyType, enemyPix, enemyScale);
-                    enemy->setPos(x, y);
-                    enemy->setPlayer(m_player);
-
-                    // 为绕圈移动的敌人设置不同的初始角度，避免重合
-                    if (enemyType == "yanglin" && count > 1) {
-                        double initialAngle = (2.0 * M_PI / count) * i;
-                        enemy->setCircleAngle(initialAngle);
-                        qDebug() << "设置yanglin" << i << "初始角度:" << (initialAngle * 180.0 / M_PI) << "度";
-                    }
-
-                    // 预加载碰撞掩码（避免运行时生成）
-                    enemy->preloadCollisionMask();
-
-                    m_scene->addItem(enemy);
-
-                    // 使用 QPointer 存储
-                    QPointer<Enemy> eptr(enemy);
-                    currentEnemies().append(eptr);
-                    rooms()[roomIndex]->currentEnemies.append(eptr);
-
-                    connect(enemy, &Enemy::dying, this, &Level::onEnemyDying);
-                    qDebug() << "创建敌人" << enemyType << "位置:" << x << "," << y;
-                }
-            }
-        }
-
-        if (hasBoss) {
-            // 根据关卡号确定Boss类型
-            QString bossType;
-            if (m_levelNumber == 1) {
-                bossType = "nightmare";
-            } else {
-                bossType = "washmachine";
-            }
-
-            // 加载对应的Boss图片（使用新的配置接口获取具体Boss类型的尺寸）
-            int bossSize = ConfigManager::instance().getEntitySize("bosses", bossType);
-            QPixmap bossPix = ResourceFactory::createBossImage(bossSize, m_levelNumber, bossType);
-
-            int x = QRandomGenerator::global()->bounded(100, 700);
-            int y = QRandomGenerator::global()->bounded(100, 500);
-
-            if (qAbs(x - 400) < 100 && qAbs(y - 300) < 100) {
-                x += 150;
-                y += 150;
-            }
-
-            // 使用工厂方法创建对应的Boss
-            Boss* boss = createBossByLevel(m_levelNumber, bossPix, 1.0);
-            boss->setPos(x, y);
-            boss->setPlayer(m_player);
-
-            // 预加载碰撞掩码（避免运行时生成）
-            boss->preloadCollisionMask();
-
-            m_scene->addItem(boss);
-
-            // 使用 QPointer<Enemy> 存储
-            QPointer<Enemy> eptr(static_cast<Enemy*>(boss));
-            currentEnemies().append(eptr);
-            // Room::currentEnemies 也应为 QVector<QPointer<Enemy>>
-            rooms()[roomIndex]->currentEnemies.append(eptr);
-
-            connect(boss, &Boss::dying, this, &Level::onEnemyDying);
-            qDebug() << "创建boss类型:" << bossType << "位置:" << x << "," << y << "已连接dying信号";
-        }
-    } catch (const QString& error) {
-        qWarning() << "生成敌人失败:" << error;
-    }
+    m_roomManager->spawnEnemiesInRoom();
 }
 
 // 在当前房间生成宝箱（委托给RoomManager）
@@ -796,13 +639,13 @@ void Level::fadeBackgroundTo(const QString& imagePath, int duration) {
     anim->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
-Boss* Level::createBossByLevel(int levelNumber, const QPixmap& pic, double scale) {
-    // 使用 BossFactory 创建 Boss 实例
-    Boss* boss = BossFactory::instance().createBoss(levelNumber, pic, scale, m_scene);
+void Level::setupBossConnections(Boss* boss) {
+    if (!boss)
+        return;
 
-    // 根据具体类型让Boss自己设置信号连接
+    // 根据具体类型设置Boss特有的信号连接
     if (NightmareBoss* nightmareBoss = dynamic_cast<NightmareBoss*>(boss)) {
-        qDebug() << "创建Nightmare Boss（第一关）";
+        qDebug() << "[Level] 设置Nightmare Boss信号连接（第一关）";
         // 连接Nightmare Boss的特殊信号
         connect(nightmareBoss, &NightmareBoss::requestSpawnEnemies,
                 this, &Level::spawnEnemiesForBoss);
@@ -810,17 +653,25 @@ Boss* Level::createBossByLevel(int levelNumber, const QPixmap& pic, double scale
         connect(nightmareBoss, &NightmareBoss::phase1DeathTriggered,
                 this, [this]() { this->fadeBackgroundTo(QString("assets/background/nightmare2_map.png"), 3000); });
     } else if (WashMachineBoss* washMachineBoss = dynamic_cast<WashMachineBoss*>(boss)) {
-        qDebug() << "创建WashMachine Boss（第二关）";
+        qDebug() << "[Level] 设置WashMachine Boss信号连接（第二关）";
         m_currentWashMachineBoss = washMachineBoss;
         washMachineBoss->setupLevelConnections(this);
     } else if (TeacherBoss* teacherBoss = dynamic_cast<TeacherBoss*>(boss)) {
-        qDebug() << "创建Teacher Boss（第三关）";
+        qDebug() << "[Level] 设置Teacher Boss信号连接（第三关）";
         m_currentTeacherBoss = teacherBoss;
         teacherBoss->setScene(m_scene);  // 设置场景引用，用于生成粉笔、监考员等实体
         teacherBoss->setupLevelConnections(this);
     } else {
-        qDebug() << "使用默认Boss";
+        qDebug() << "[Level] 使用默认Boss，无特殊信号连接";
     }
+}
+
+Boss* Level::createBossByLevel(int levelNumber, const QPixmap& pic, double scale) {
+    // 使用 BossFactory 创建 Boss 实例
+    Boss* boss = BossFactory::instance().createBoss(levelNumber, pic, scale, m_scene);
+
+    // 设置Boss信号连接
+    setupBossConnections(boss);
 
     return boss;
 }
@@ -884,7 +735,6 @@ void Level::buildMinimapData() {
         }
     }
 
-    // Pass to HUD
     if (auto view = dynamic_cast<GameView*>(parent())) {
         if (auto hud = view->getHUD()) {
             hud->setMapLayout(nodes);
@@ -895,7 +745,6 @@ void Level::buildMinimapData() {
 }
 
 void Level::clearSceneEntities() {
-    // Remove enemies from scene only, keep them in room data
     for (QPointer<Enemy> enemyPtr : currentEnemies()) {
         Enemy* enemy = enemyPtr.data();
         if (m_scene && enemy) {
@@ -904,7 +753,6 @@ void Level::clearSceneEntities() {
     }
     currentEnemies().clear();
 
-    // Remove chests from scene only, keep them in room data
     for (QPointer<Chest> chestPtr : currentChests()) {
         Chest* chest = chestPtr.data();
         if (m_scene && chest) {
@@ -913,10 +761,9 @@ void Level::clearSceneEntities() {
     }
     currentChests().clear();
 
-    // 注意：掉落物品的保存应该在 enterNextRoom 中完成（在修改 currentRoomIndex() 之前）
-    // clearSceneEntities 只负责清理场景中的子弹等临时物品，不再处理掉落物品的保存
+    // 掉落物品的保存应该在 enterNextRoom 中完成（在修改 currentRoomIndex() 之前）
+    // clearSceneEntities 只负责清理场景中的子弹等临时物品，不处理掉落物品的保存
 
-    // Clear new Door objects (don't delete, just remove from scene)
     // 门对象保存在 roomDoors() 中，会被复用
     for (Door* door : currentDoors()) {
         if (m_scene && door) {
@@ -959,8 +806,6 @@ void Level::clearSceneEntities() {
 
 void Level::clearCurrentRoomEntities() {
     // 遮罩效果现在由NightmareBoss自己管理，其析构函数会自动清理
-
-    // Delete all entities completely (used when resetting level)
     for (QPointer<Enemy> enemyPtr : currentEnemies()) {
         Enemy* enemy = enemyPtr.data();
         if (enemy) {
@@ -1533,12 +1378,9 @@ void Level::openBossDoors() {
         // 跳过boss房间本身
         if (roomCfg.hasBoss)
             continue;
-
         if (roomIndex >= rooms().size() || !rooms()[roomIndex])
             continue;
-
         Room* room = rooms()[roomIndex];
-
         qDebug() << "检查房间" << roomIndex << "的门（上:" << roomCfg.doorUp << "，下:" << roomCfg.doorDown
                  << "，左:" << roomCfg.doorLeft << "，右:" << roomCfg.doorRight << "）";
 

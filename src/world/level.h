@@ -100,6 +100,9 @@ class Level : public QObject {
     // Boss工厂方法：根据关卡号创建对应的Boss实例（使用BossFactory并连接信号）
     Boss* createBossByLevel(int levelNumber, const QPixmap& pic, double scale);
 
+    // Boss信号连接设置（供RoomManager创建Boss后调用）
+    void setupBossConnections(Boss* boss);
+
     // Boss召唤敌人（通用方法）
     void spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemies);
 

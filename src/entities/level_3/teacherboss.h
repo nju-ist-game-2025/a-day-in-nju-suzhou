@@ -42,8 +42,8 @@ class TeacherBoss : public Boss {
     // 获取当前阶段
     int getPhase() const { return m_phase; }
 
-    // 设置场景（用于生成投射物）
-    void setScene(QGraphicsScene* scene) { m_scene = scene; }
+    // 设置场景（用于生成投射物），会启动第一阶段技能
+    void setScene(QGraphicsScene* scene);
 
     /**
      * @brief 设置与Level的信号连接

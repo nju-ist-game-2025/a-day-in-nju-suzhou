@@ -533,27 +533,7 @@ void WashMachineBoss::startSummonCycle() {
 
 void WashMachineBoss::summonInitialSocks() {
     // 从配置读取初始召唤袜子数量
-    QFile configFile("assets/config.json");
-    if (!configFile.exists()) {
-        configFile.setFileName("../assets/config.json");
-    }
-
-    int sockCount = 3;  // 默认值
-
-    if (configFile.open(QIODevice::ReadOnly)) {
-        QByteArray data = configFile.readAll();
-        configFile.close();
-        QJsonDocument doc = QJsonDocument::fromJson(data);
-        if (!doc.isNull() && doc.isObject()) {
-            QJsonObject root = doc.object();
-            if (root.contains("washmachine_boss")) {
-                QJsonObject bossConfig = root["washmachine_boss"].toObject();
-                if (bossConfig.contains("initial_socks_on_angry")) {
-                    sockCount = bossConfig["initial_socks_on_angry"].toInt();
-                }
-            }
-        }
-    }
+    int sockCount = ConfigManager::instance().getBossInt("washmachine", "phase2", "initial_socks_on_angry", 6);
 
     qDebug() << "愤怒阶段初始召唤" << sockCount << "只袜子";
 
@@ -568,9 +548,10 @@ void WashMachineBoss::summonOrbitingSock() {
     if (m_phase != 2 || m_isPaused || m_isAbsorbing || m_waitingForDialog)
         return;
 
-    // 检查袜子数量上限（6只）
-    if (m_orbitingSocks.size() >= 6) {
-        qDebug() << "[WashMachine] 臭袜子已达到上限(6只)，不再召唤";
+    // 从配置读取最大袜子数量
+    int maxSocks = ConfigManager::instance().getBossInt("washmachine", "phase2", "max_orbiting_socks", 18);
+    if (m_orbitingSocks.size() >= maxSocks) {
+        qDebug() << "[WashMachine] 臭袜子已达到上限(" << maxSocks << "只)，不再召唤";
         return;
     }
 
@@ -580,13 +561,12 @@ void WashMachineBoss::summonOrbitingSock() {
 
     qDebug() << "WashMachine Boss召唤旋转臭袜子！";
 
-    // 使用普通臭袜子图片
     int enemySize = ConfigManager::instance().getEntitySize("enemies", "sock_normal");
     if (enemySize <= 0)
         enemySize = 40;
 
     QPixmap sockPix;
-    QString sockPath = "assets/enemy/level_2/sock_normal.png";
+    QString sockPath = "assets/enemy/level_2/orbiting_sock.png";
     if (QFile::exists(sockPath)) {
         sockPix = QPixmap(sockPath).scaled(enemySize, enemySize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     } else {
@@ -598,8 +578,10 @@ void WashMachineBoss::summonOrbitingSock() {
     // 创建旋转臭袜子
     OrbitingSock* sock = new OrbitingSock(sockPix, this, 1.0);
 
-    // 设置轨道参数，根据已有袜子数量设置初始角度
-    double initialAngle = m_orbitingSocks.size() * (M_PI / 3);  // 每只间隔60度
+    // 设置轨道参数，根据已有袜子数量和最大数量计算均匀分布的初始角度
+    // 将360度均分成 maxSocks 份，每只袜子占据一个位置
+    double angleStep = (2.0 * M_PI) / maxSocks;  // 每只袜子的角度间隔
+    double initialAngle = m_orbitingSocks.size() * angleStep;
     sock->setOrbitAngle(initialAngle);
     sock->setOrbitRadius(100.0);
     sock->setPlayer(player);

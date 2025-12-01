@@ -113,8 +113,6 @@ set(WORLD_SOURCES
         src/world/room.h
         src/world/door.cpp
         src/world/door.h
-        src/world/randomgenerator.cpp
-        src/world/randomgenerator.h
         src/world/levelconfig.cpp
         src/world/levelconfig.h
         src/world/factory/enemyfactory.cpp
@@ -173,9 +171,6 @@ set(PROJECT_SOURCES
         ${ITEM_SOURCES}
         ${UI_SOURCES}
         ${UI_FORMS}
-        src/world/wall.h
-        src/world/map.h
-        src/world/map.cpp
 )
 
 if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)

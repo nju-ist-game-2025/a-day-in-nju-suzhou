@@ -1,7 +1,6 @@
 #include "GameWindow.h"
 #include <QDebug>
 #include <QFile>
-#include "world/map.h"
 
 GameWindow::GameWindow(QWidget* parent)
     : QMainWindow(parent), m_selectedCharacter("assets/player/player.png") {
