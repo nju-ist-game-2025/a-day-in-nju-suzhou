@@ -174,7 +174,7 @@ set(PROJECT_SOURCES
 )
 
 if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(game_final
+    qt_add_executable(game_final WIN32
             MANUAL_FINALIZATION
             ${PROJECT_SOURCES}
             src/constants.h
@@ -191,7 +191,7 @@ else ()
         # Define properties for Android with Qt 5 after find_package() calls as:
         #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else ()
-        add_executable(game_final
+        add_executable(game_final WIN32
                 ${PROJECT_SOURCES}
         )
     endif ()
