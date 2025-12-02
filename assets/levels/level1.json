@@ -28,7 +28,7 @@
     {
       "id": 0,
       "name": "Room 1 - Initial",
-      "background": "startRoom",
+      "background": "instructionRoom",
       "enemies": [],
       "hasBoss": false,
       "hasChest": true,

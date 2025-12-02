@@ -870,7 +870,7 @@ void Codex::loadItemData() {
     blackHeart.imagePath = "assets/props/black_heart.png";
     blackHeart.health = -1;
     blackHeart.isCharacter = true;
-    blackHeart.skills = QString("死亡时自动消耗，每颗黑心转化为%1点血量").arg(
+    blackHeart.skills = QString("死亡时让玩家复活，所有黑心转化为红心，每颗黑心转化为%1点血量").arg(
             blackHeartData.effectParams.value("healPerHeart").toInt(6));
     blackHeart.backstory = "黑心是乌萨奇的特别馈赠。它看起来阴森森的，但其实比红心更可靠。\n\n当你以为自己要凉了的时候，黑心会默默地燃烧自己，把你从死亡线上拉回来。这大概就是传说中的「黑暗中的守护者」吧。\n\n虽然名字叫黑心，但它的心其实很软。";
     m_itemEntries.append(blackHeart);
@@ -975,9 +975,10 @@ void Codex::loadMechanicsData() {
     playerMechanics.isCharacter = true;
     playerMechanics.skills = QString(
             "【移动】WASD键控制角色移动，基础速度%1\n"
-            "【射击】鼠标左键射击，射击冷却%2ms\n"
-            "【瞬移】空格键瞬移，距离%3，冷却%4秒\n"
-            "【大招】Q键释放大招，伤害%5倍，子弹体积%6倍，持续%7秒，冷却%8秒")
+            "【射击】上下左右键射击，射击冷却%2ms\n"
+            "【瞬移】Q键瞬移，距离%3，冷却%4秒\n"
+            "【大招】E键释放大招，伤害%5倍，子弹体积%6倍，持续%7秒，冷却%8秒\n"
+            "【宝箱】空格键打开宝箱")
             .arg(config.getPlayerDouble("speed", 4.0), 0, 'f', 1)
             .arg(config.getPlayerInt("shoot_cooldown", 150))
             .arg(config.getPlayerDouble("teleport_distance", 120.0), 0, 'f', 0)
