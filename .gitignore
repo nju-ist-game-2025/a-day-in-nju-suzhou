@@ -93,4 +93,12 @@ CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 
+# Git files
 FETCH_HEAD
+
+# Scripts
+*.ps1
+*.bat
+
+# Archives
+*.zip
