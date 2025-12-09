@@ -53,8 +53,7 @@ Enemy* EnemyFactory::createEnemy(int levelNumber, const QString& enemyType, cons
     return new Enemy(pic, scale);
 }
 
-// ==================== 静态注册所有敌人类型 ====================
-
+// 静态注册所有敌人类型
 // Level 1 敌人注册
 REGISTER_ENEMY(1, "clock_normal", ClockEnemy);
 REGISTER_ENEMY(1, "pillow", PillowEnemy);

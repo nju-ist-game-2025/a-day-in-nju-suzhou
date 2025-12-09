@@ -179,7 +179,7 @@ void ClockBoom::explode(bool dealDamage) {
         damageNearbyEntities();
     }
 
-    // 播放爆炸音效（不阻塞）
+    // 播放爆炸音效
     AudioManager::instance().playSound("enemy_death");
 
     // 创建爆炸动画 - 立即创建以确保显示
@@ -223,7 +223,7 @@ void ClockBoom::damageNearbyEntities() {
         if (item == this)
             continue;
 
-        // 先尝试转换为Enemy（更常见），如果失败再尝试Player
+        // 先尝试转换为Enemy，如果失败再尝试Player
         if (Enemy* enemy = dynamic_cast<Enemy*>(item)) {
             // 跳过其他 ClockBoom（同类不互相伤害）
             if (dynamic_cast<ClockBoom*>(enemy))
@@ -294,7 +294,7 @@ void ClockBoom::resumeTimers() {
             m_blinkTimer->start(500);
         }
         // 爆炸定时器是一次性的，需要计算剩余时间
-        // 这里简单处理：继续以原始2.5秒启动（这可能不完美但可以接受）
+        // 简单处理：继续以原始2.5秒启动
         if (m_explodeTimer && m_explodeTimer->remainingTime() > 0) {
             // 如果还有剩余时间，让它继续
             // Qt的定时器在stop后remainingTime会返回-1

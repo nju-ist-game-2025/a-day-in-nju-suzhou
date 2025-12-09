@@ -92,7 +92,7 @@ void NightmareBoss::takeDamage(int damage) {
     health -= static_cast<int>(damage * damageScale);
 
     if (health <= 0 && m_phase == 1) {
-        // 一阶段死亡 - 触发亡语
+        // 一阶段死亡，触发亡语
         m_isTransitioning = true;
         health = 1;  // 保持存活，不触发dying信号
 
@@ -149,7 +149,7 @@ void NightmareBoss::enterPhase2() {
 
     qDebug() << "Nightmare Boss 进入二阶段！";
 
-    // 更换图片（使用预加载的Nightmare2.png，已经是正确尺寸）
+    // 更换图片（使用预加载的Nightmare2.png）
     setPixmap(m_phase2Pixmap);
 
     // 从配置文件读取二阶段属性
@@ -410,8 +410,6 @@ void NightmareBoss::resumeTimers() {
         }
     }
 }
-
-// ============== 遮罩效果方法 ==============
 
 // 创建带有玩家视野圆形区域的遮罩（使用shadow.png作为背景）
 QPixmap NightmareBoss::createShadowWithVision(const QPointF& playerPos) {

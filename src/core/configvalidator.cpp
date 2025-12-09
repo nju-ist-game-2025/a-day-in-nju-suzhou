@@ -351,7 +351,7 @@ QString ConfigValidator::getValidationReport() {
     report += "========== 配置验证报告 ==========\n\n";
 
     if (!s_errors.isEmpty()) {
-        report += QString("❌ 错误 (%1):\n").arg(s_errors.count());
+        report += QString("错误 (%1):\n").arg(s_errors.count());
         for (const QString& err : s_errors) {
             report += QString("  - %1\n").arg(err);
         }
@@ -359,14 +359,14 @@ QString ConfigValidator::getValidationReport() {
     }
 
     if (!s_warnings.isEmpty()) {
-        report += QString("⚠️ 警告 (%1):\n").arg(s_warnings.count());
+        report += QString("警告 (%1):\n").arg(s_warnings.count());
         for (const QString& warn : s_warnings) {
             report += QString("  - %1\n").arg(warn);
         }
         report += "\n";
     }
 
-    report += QString("✅ 成功加载: %1 项配置\n").arg(s_successes.count());
+    report += QString("成功加载: %1 项配置\n").arg(s_successes.count());
     report += "\n========================================\n";
 
     return report;

@@ -18,7 +18,7 @@ AudioManager::AudioManager(QObject *parent)
     m_musicPlayer->setAudioOutput(m_audioOutput);
     m_audioOutput->setVolume(m_musicVolume / 100.0);
 
-    // 实现循环播放
+    // 循环播放
     connect(m_musicPlayer, &QMediaPlayer::mediaStatusChanged,
             this, &AudioManager::onMediaStatusChanged);
 }

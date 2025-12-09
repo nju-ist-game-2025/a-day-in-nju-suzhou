@@ -8,8 +8,6 @@
 #include "../../core/configmanager.h"
 #include "../player.h"
 
-// ==================== XukeEnemy 实现 ====================
-
 XukeEnemy::XukeEnemy(const QPixmap& pic, double scale)
     : Enemy(pic, scale),
       m_shootTimer(nullptr),
@@ -185,8 +183,6 @@ void XukeEnemy::shootBullet() {
              << "计数:" << m_shotCount << "方向:(" << dirX << "," << dirY << ")"
              << "玩家距离:" << dist;
 }
-
-// ==================== XukeProjectile 实现 ====================
 
 XukeProjectile::XukeProjectile(BulletType type, int baseDamage, QPointF pos, const QPixmap& pic, double scale, Player* targetPlayer)
     : Projectile(1, baseDamage, pos, pic, scale),  // mode=1 表示敌人子弹

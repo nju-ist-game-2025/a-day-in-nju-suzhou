@@ -24,7 +24,7 @@ private slots:
 
     void startGameAtLevel(int level, int maxHealth, int bulletDamage, bool skipToBoss);  // 开发者模式
 
-    void showCodex();                                        // 新增：显示图鉴
+    void showCodex();                                        // 显示图鉴
     void showCharacterSelector();                            // 显示角色选择
     void onCharacterSelected(const QString &characterPath);  // 角色选择完成
     void exitGame();

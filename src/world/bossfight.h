@@ -53,8 +53,6 @@ class BossFight : public QObject {
      */
     void setBackgroundOverlay(QGraphicsPixmapItem* overlay) { m_backgroundOverlay = overlay; }
 
-    // ==================== Boss管理 ====================
-
     /**
      * @brief 初始化Nightmare Boss
      */
@@ -80,8 +78,6 @@ class BossFight : public QObject {
      */
     TeacherBoss* currentTeacherBoss() const { return m_currentTeacherBoss.data(); }
 
-    // ==================== 战斗状态 ====================
-
     /**
      * @brief 检查Boss是否已被击败
      */
@@ -102,8 +98,6 @@ class BossFight : public QObject {
      */
     void setRewardSequenceActive(bool active) { m_rewardSequenceActive = active; }
 
-    // ==================== 吸纳动画 ====================
-
     /**
      * @brief 执行吸纳动画（WashMachineBoss Phase 3）
      */
@@ -113,8 +107,6 @@ class BossFight : public QObject {
      * @brief 检查吸纳动画是否激活
      */
     bool isAbsorbAnimationActive() const { return m_isAbsorbAnimationActive; }
-
-    // ==================== 背景控制 ====================
 
     /**
      * @brief 切换背景
@@ -130,8 +122,6 @@ class BossFight : public QObject {
      * @brief 渐变对话背景
      */
     void fadeDialogBackgroundTo(const QString& imagePath, int duration);
-
-    // ==================== 阶段转换 ====================
 
     /**
      * @brief 显示阶段转换文字
@@ -175,12 +165,10 @@ class BossFight : public QObject {
     void dialogBackgroundChangeRequested(int dialogIndex, const QString& backgroundName);
 
    private slots:
-    // ==================== WashMachineBoss事件处理 ====================
     void onWashMachineBossRequestDialog(const QStringList& dialogs, const QString& background);
     void onWashMachineBossRequestChangeBackground(const QString& backgroundPath);
     void onWashMachineBossRequestAbsorb();
 
-    // ==================== TeacherBoss事件处理 ====================
     void onTeacherBossRequestDialog(const QStringList& dialogs, const QString& background);
     void onTeacherBossRequestChangeBackground(const QString& backgroundPath);
     void onTeacherBossRequestTransitionText(const QString& text);
@@ -188,7 +176,6 @@ class BossFight : public QObject {
     void onTeacherBossRequestFadeDialogBackground(const QString& backgroundPath, int duration);
     void onTeacherBossRequestDialogBackgroundChange(int dialogIndex, const QString& backgroundName);
 
-    // ==================== 吸纳动画 ====================
     void onAbsorbAnimationStep();
 
    private:

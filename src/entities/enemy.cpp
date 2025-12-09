@@ -367,7 +367,7 @@ void Enemy::takeDamage(int damage) {
     }
 }
 
-// ============== 移动模式实现 ==============
+// ============== 不同移动模式 ==============
 
 void Enemy::executeMovement() {
     switch (m_movePattern) {
@@ -583,7 +583,7 @@ void Enemy::moveKeepDistance() {
     double tolerance = 30.0;   // X轴距离容差
     double yTolerance = 20.0;  // Y轴对齐容差
 
-    // ========== X方向：保持水平距离 ==========
+    // X方向：保持水平距离
     double absDx = qAbs(dx);
     if (absDx < m_preferredDistance - tolerance) {
         // 太近了，水平后退（远离玩家）
@@ -596,7 +596,7 @@ void Enemy::moveKeepDistance() {
         xdir = 0;
     }
 
-    // ========== Y方向：主动对齐玩家高度 ==========
+    // Y方向：对齐玩家高度
     if (qAbs(dy) > yTolerance) {
         // Y轴不对齐，移动到玩家同一水平线
         ydir = (dy > 0) ? static_cast<int>(moveSpeed) : -static_cast<int>(moveSpeed);

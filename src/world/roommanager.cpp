@@ -724,8 +724,6 @@ void RoomManager::initCurrentRoom(Room* room) {
     room->startChangeTimer();
 }
 
-// ==================== Boss召唤敌人 ====================
-
 void RoomManager::spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemies) {
     if (!m_scene)
         return;
@@ -872,8 +870,6 @@ void RoomManager::spawnEnemiesForBoss(const QVector<QPair<QString, int>>& enemie
 
     qDebug() << "RoomManager: Boss召唤敌人完成，当前场上敌人数:" << m_currentEnemies.size();
 }
-
-// ==================== 物品掉落管理 ====================
 
 void RoomManager::dropRandomItem(QPointF position) {
     if (!m_scene || !m_player)

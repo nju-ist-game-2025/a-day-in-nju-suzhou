@@ -36,7 +36,7 @@ public:
 
     struct RoomNode {
         int id;
-        int x, y;  // Grid coordinates relative to start (0,0)
+        int x, y;
         bool visited;
         bool hasBoss;  // 是否为boss房间
         int up, down, left, right;
@@ -46,10 +46,10 @@ public slots:
 
     void updateHealth(float current, float max);
 
-    void updateMinimap(int currentRoom, const QVector<int> &roomLayout);  // Simplified layout data
+    void updateMinimap(int currentRoom, const QVector<int> &roomLayout);
     void triggerDamageFlash();
 
-    void setMapLayout(const QVector<RoomNode> &nodes);         // Set map layout from Level
+    void setMapLayout(const QVector<RoomNode> &nodes);
     void syncVisitedRooms(const QVector<bool> &visitedArray);  // 同步已访问房间状态
 
 private slots:

@@ -11,8 +11,6 @@
 #include "../../ui/explosion.h"
 #include "../player.h"
 
-// ==================== ZhuhaoEnemy 实现 ====================
-
 ZhuhaoEnemy::ZhuhaoEnemy(const QPixmap& pic, double scale)
     : Enemy(pic, scale),
       m_moveTimer(nullptr),
@@ -132,10 +130,6 @@ void ZhuhaoEnemy::moveAlongEdge() {
 
     double newCenterX = centerX;
     double newCenterY = centerY;
-
-    // 状态机方式：根据当前边移动，到达端点时切换到下一边
-    // m_currentEdge: 0=上边(向右) 1=右边(向下) 2=下边(向左) 3=左边(向上) 顺时针
-    // 逆时针时方向相反
 
     if (m_movingClockwise) {
         switch (m_currentEdge) {
@@ -402,8 +396,6 @@ void ZhuhaoEnemy::resumeTimers() {
         m_shootTimer->start(SHOOT_COOLDOWN);
 }
 
-// ==================== ZhuhaoProjectile 实现 ====================
-
 ZhuhaoProjectile::ZhuhaoProjectile(BulletType type, QPointF startPos, double angle, double speed, QGraphicsScene* scene)
     : QObject(nullptr),
       QGraphicsPixmapItem(),
@@ -619,7 +611,6 @@ void ZhuhaoProjectile::applyEffect(Player* player) {
                     if (player->canMove()) {
                         player->setCanMove(false);
 
-                        // 显示"昏睡ZZZ"文字提示（与枕头一致）
                         QGraphicsTextItem* sleepText = new QGraphicsTextItem("昏睡ZZZ");
                         QFont font;
                         font.setPointSize(16);

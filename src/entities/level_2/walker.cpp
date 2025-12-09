@@ -10,11 +10,9 @@
 #include "../../items/statuseffect.h"
 #include "../player.h"
 
-// ========== PoisonTrail 静态成员初始化 ==========
+// 静态成员初始化
 QMap<Player*, qint64> PoisonTrail::s_playerPoisonCooldowns;
 QMap<Enemy*, qint64> PoisonTrail::s_enemyEncourageCooldowns;
-
-// ========== Walker 实现 ==========
 
 Walker::Walker(const QPixmap& pic, double scale)
     : Enemy(pic, scale),
@@ -30,9 +28,9 @@ Walker::Walker(const QPixmap& pic, double scale)
     // 从配置文件读取Walker属性
     ConfigManager& config = ConfigManager::instance();
     setHealth(config.getEnemyInt("walker", "health", 8));
-    setContactDamage(0);  // 无接触伤害！
+    setContactDamage(0);
     setVisionRange(config.getEnemyDouble("walker", "vision_range", DEFAULT_VISION_RANGE));
-    setAttackRange(0);  // 无攻击范围（不主动攻击）
+    setAttackRange(0);
     m_walkerSpeed = config.getEnemyDouble("walker", "speed", DEFAULT_WALKER_SPEED);
     setSpeed(m_walkerSpeed);
     m_trailDuration = config.getEnemyInt("walker", "trail_duration", DEFAULT_TRAIL_DURATION);
@@ -192,8 +190,6 @@ void Walker::executeMovement() {
     // 设置新位置
     setPos(newPos);
 }
-
-// ========== PoisonTrail 实现 ==========
 
 PoisonTrail::PoisonTrail(const QPointF& center, int duration, double encourageDur, double poisonDur, QObject* parent)
     : QObject(parent),

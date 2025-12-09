@@ -19,7 +19,6 @@ HUD::HUD(Player *pl, QGraphicsItem *parent)
         update();
     });
 
-    // ***** 60 FPS HUD刷新定时器 *****
     // 设置 this 为父对象，确保 HUD 销毁时定时器也被销毁
     m_hudTimer = new QTimer(this);
     m_hudTimer->setInterval(16);
@@ -401,12 +400,12 @@ void HUD::paintMinimap(QPainter *painter) {
     int cellSize = 15;
     int spacing = 5;
 
-    // Draw background
+    // 绘制背景
     painter->setBrush(QColor(0, 0, 0, 150));
     painter->setPen(QPen(Qt::white, 1));
     painter->drawRect(startX, startY, mapSize, mapSize);
 
-    // Draw "Room X" text
+    // 绘制 Room 文字
     painter->setPen(Qt::white);
     QFont font = painter->font();
     font.setPointSize(10);
@@ -414,42 +413,38 @@ void HUD::paintMinimap(QPainter *painter) {
     painter->drawText(QRect(startX, startY + mapSize + 5, mapSize, 20), Qt::AlignCenter,
                       QString("Room %1").arg(currentRoomIndex));
 
-    // Find center of map (Start Room 0 at center)
+    // 找到地图中心
     int centerX = startX + mapSize / 2;
     int centerY = startY + mapSize / 2;
 
     for (const RoomNode &node: mapNodes) {
-        // Only draw visited rooms or all rooms? User said "overall room structure". Let's draw all but dim unvisited.
-        // Or just draw all for now as requested.
-
         int drawX = centerX + node.x * (cellSize + spacing) - cellSize / 2;
         int drawY = centerY + node.y * (cellSize + spacing) - cellSize / 2;
 
-        // Check bounds
+        // 检查边界
         if (drawX < startX || drawX > startX + mapSize || drawY < startY || drawY > startY + mapSize)
             continue;
 
         if (node.hasBoss) {
             painter->setBrush(QColor(75, 0, 130));  // Boss房间恒为深紫色 (Indigo)
         } else if (node.id == currentRoomIndex) {
-            painter->setBrush(Qt::red);  // Current room
+            painter->setBrush(Qt::red);  // 当前房间为红色
         } else if (node.visited) {
-            painter->setBrush(Qt::lightGray);  // Visited
+            painter->setBrush(Qt::lightGray);  // 已访问
         } else {
-            painter->setBrush(Qt::darkGray);  // Unvisited
+            painter->setBrush(Qt::darkGray);  // 未访问
         }
 
         painter->setPen(Qt::black);
         painter->drawRect(drawX, drawY, cellSize, cellSize);
 
-        // Draw Room ID text next to the cell
         painter->setPen(Qt::white);
         QFont idFont = painter->font();
         idFont.setPointSize(6);
         painter->setFont(idFont);
         painter->drawText(QRect(drawX, drawY, cellSize, cellSize), Qt::AlignCenter, QString::number(node.id));
 
-        // Draw connections (lines) - 只绘制右和下的连接，避免重复绘制
+        // 绘制连接线 - 只绘制右和下的连接，避免重复绘制
         painter->setPen(QPen(Qt::white, 1));
         if (node.right >= 0) {
             painter->drawLine(drawX + cellSize, drawY + cellSize / 2, drawX + cellSize + spacing, drawY + cellSize / 2);
@@ -464,7 +459,7 @@ void HUD::paintMinimap(QPainter *painter) {
 void HUD::updateMinimap(int currentRoom, const QVector<int> & /*roomLayout*/) {
     currentRoomIndex = currentRoom;
 
-    // Update visited status
+    // 更新已访问状态
     for (auto &mapNode: mapNodes) {
         if (mapNode.id == currentRoom) {
             mapNode.visited = true;

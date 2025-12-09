@@ -32,8 +32,6 @@ Boss* BossFactory::createBoss(int levelNumber, const QPixmap& pic, double scale,
     return new Boss(pic, scale);
 }
 
-// ==================== 静态注册所有Boss类型 ====================
-
 // Level 1: Nightmare Boss (需要场景参数)
 REGISTER_BOSS_WITH_SCENE(1, NightmareBoss);
 

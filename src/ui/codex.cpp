@@ -11,8 +11,6 @@
 #include "../core/resourcefactory.h"
 #include "../items/itemeffectconfig.h"
 
-// ==================== CodexCard 实现 ====================
-
 CodexCard::CodexCard(const CodexEntry &entry, QWidget *parent)
         : QWidget(parent), m_entry(entry) {
     setFixedSize(120, 150);
@@ -142,8 +140,6 @@ void CodexCard::setScale(double scale) {
             "background-color: rgba(255,255,255,220); border-radius: %1px;")
                                         .arg(imgBorderRadius));
 }
-
-// ==================== CodexDetailDialog 实现 ====================
 
 CodexDetailDialog::CodexDetailDialog(const CodexEntry &entry, QWidget *parent)
         : QDialog(parent) {
@@ -327,8 +323,6 @@ CodexDetailDialog::CodexDetailDialog(const CodexEntry &entry, QWidget *parent)
     mainLayout->addWidget(closeBtn, 0, Qt::AlignCenter);
 }
 
-// ==================== Codex 主类实现 ====================
-
 Codex::Codex(QWidget *parent) : QWidget(parent) {
     setupUI();
     loadBossData();
@@ -423,7 +417,6 @@ void Codex::setupUI() {
 
     // 设置背景
     try {
-        // 图鉴页面专用背景
         QPixmap backgroundPixmap = ResourceFactory::loadBackgroundImage("background_codex", 800, 600);
         QPalette palette;
         palette.setBrush(QPalette::Window, QBrush(backgroundPixmap));
@@ -488,7 +481,6 @@ void Codex::showEntryDetail(const CodexEntry &entry) {
 void Codex::loadBossData() {
     ConfigManager &config = ConfigManager::instance();
 
-    // 梦魇Boss
     CodexEntry nightmare;
     nightmare.name = "梦魇";
     nightmare.imagePath = "assets/boss/Nightmare/Nightmare.png";
@@ -507,7 +499,6 @@ void Codex::loadBossData() {
             {"assets/boss/Nightmare/Nightmare2.png", "二阶段"}};
     m_bossEntries.append(nightmare);
 
-    // 洗衣机Boss
     CodexEntry washmachine;
     washmachine.name = "洗衣机";
     washmachine.imagePath = "assets/boss/WashMachine/WashMachineNormally.png";
@@ -528,7 +519,6 @@ void Codex::loadBossData() {
             {"assets/boss/WashMachine/WashMachineMutated.png",  "变异"}};
     m_bossEntries.append(washmachine);
 
-    // 奶牛张Boss
     CodexEntry teacher;
     teacher.name = "奶牛张";
     teacher.imagePath = "assets/boss/Teacher/cow.png";
@@ -555,7 +545,6 @@ void Codex::loadBossData() {
 void Codex::loadEnemyData() {
     ConfigManager &config = ConfigManager::instance();
 
-    // 第一关敌人
     CodexEntry clockNormal;
     clockNormal.name = "普通闹钟";
     clockNormal.imagePath = "assets/enemy/level_1/clock_normal.png";
@@ -599,7 +588,6 @@ void Codex::loadEnemyData() {
     pillow.isCharacter = false;
     m_enemyEntries.append(pillow);
 
-    // 第二关敌人
     CodexEntry sockNormal;
     sockNormal.name = "普通臭袜子";
     sockNormal.imagePath = "assets/enemy/level_2/sock_normal.png";
@@ -682,7 +670,6 @@ void Codex::loadEnemyData() {
     orbitingSock.isCharacter = false;
     m_enemyEntries.append(orbitingSock);
 
-    // 第三关敌人
     CodexEntry digitalSystem;
     digitalSystem.name = "数字系统";
     digitalSystem.imagePath = "assets/enemy/level_3/digital_system.png";
@@ -763,7 +750,6 @@ void Codex::loadEnemyData() {
     zhuhao.isCharacter = false;
     m_enemyEntries.append(zhuhao);
 
-    // 沙鹰狙神（xuke）
     CodexEntry xuke;
     xuke.name = "沙鹰狙神";
     xuke.imagePath = "assets/enemy/level_3/xuke.png";
@@ -851,7 +837,6 @@ void Codex::loadUsagiData() {
 void Codex::loadItemData() {
     ItemEffectConfig &itemConfig = ItemEffectConfig::instance();
 
-    // 红心
     ItemEffectData redHeartData = itemConfig.getItemEffect("red_heart");
     CodexEntry redHeart;
     redHeart.name = redHeartData.name;
@@ -863,7 +848,6 @@ void Codex::loadItemData() {
     redHeart.backstory = "红心是最朴实无华的道具。它不会给你超能力，不会让你变强，它只是单纯地让你多挨一下打。\n\n在这个充满危险的世界里，能多活一秒就是胜利。红心深谙此道。";
     m_itemEntries.append(redHeart);
 
-    // 黑心
     ItemEffectData blackHeartData = itemConfig.getItemEffect("black_heart");
     CodexEntry blackHeart;
     blackHeart.name = blackHeartData.name;
@@ -875,7 +859,6 @@ void Codex::loadItemData() {
     blackHeart.backstory = "黑心是乌萨奇的特别馈赠。它看起来阴森森的，但其实比红心更可靠。\n\n当你以为自己要凉了的时候，黑心会默默地燃烧自己，把你从死亡线上拉回来。这大概就是传说中的「黑暗中的守护者」吧。\n\n虽然名字叫黑心，但它的心其实很软。";
     m_itemEntries.append(blackHeart);
 
-    // 血袋
     ItemEffectData bloodBagData = itemConfig.getItemEffect("blood_bag");
     CodexEntry bloodBag;
     bloodBag.name = bloodBagData.name;
@@ -888,7 +871,6 @@ void Codex::loadItemData() {
     bloodBag.backstory = "血袋是医院偷偷流出来的违禁品。没人知道里面装的是谁的血，但它确实能让你变得更能抗揍。\n\n有人说血袋里装的其实是西瓜汁，但没人敢验证这个说法。反正喝完之后，你的血量上限就是会变高。";
     m_itemEntries.append(bloodBag);
 
-    // 伤害提升
     ItemEffectData damageBoostData = itemConfig.getItemEffect("damage_boost");
     CodexEntry damageBoost;
     damageBoost.name = damageBoostData.name;
@@ -899,7 +881,6 @@ void Codex::loadItemData() {
     damageBoost.backstory = "伤害提升是一瓶神秘的红色药水。喝下去之后，你的子弹会变得更有杀伤力。\n\n没人知道这瓶药水是怎么做出来的，但据说配方包含三份愤怒、两份不甘和一份对DDL的恐惧。";
     m_itemEntries.append(damageBoost);
 
-    // 射速提升
     ItemEffectData fireRateData = itemConfig.getItemEffect("fire_rate_boost");
     CodexEntry fireRateBoost;
     fireRateBoost.name = fireRateData.name;
@@ -912,7 +893,6 @@ void Codex::loadItemData() {
     fireRateBoost.backstory = "射速提升是一双神奇的手套。戴上它之后，你的手指会不由自主地加速抖动。\n\n副作用是你可能会在日常生活中不小心把手机打飞。但在战斗中，这绝对是个好东西。";
     m_itemEntries.append(fireRateBoost);
 
-    // 冰冻减速
     ItemEffectData frostData = itemConfig.getItemEffect("frost_slowdown");
     CodexEntry frostSlowdown;
     frostSlowdown.name = frostData.name;
@@ -928,7 +908,6 @@ void Codex::loadItemData() {
     frostSlowdown.backstory = "冰冻减速是一颗永远不会融化的冰块。把它含在嘴里，你呼出的气都会变成寒霜。\n\n这颗冰块据说来自南极最深处，是企鹅们世代守护的圣物。不知道是谁把它偷出来的，但现在它在帮你冻住敌人。";
     m_itemEntries.append(frostSlowdown);
 
-    // 移动速度
     ItemEffectData speedData = itemConfig.getItemEffect("movement_speed");
     CodexEntry movementSpeed;
     movementSpeed.name = speedData.name;
@@ -941,7 +920,6 @@ void Codex::loadItemData() {
     movementSpeed.backstory = "移动速度是一双跑鞋的灵魂。穿上它，你会感觉自己的腿不再属于自己。\n\n据说这双鞋的原主人是校运动会的冠军。他毕业后把鞋留在了学校，希望它能帮助更多的人逃离危险——或者逃离早八。";
     m_itemEntries.append(movementSpeed);
 
-    // 护盾
     ItemEffectData shieldData = itemConfig.getItemEffect("shield");
     CodexEntry shield;
     shield.name = shieldData.name;
@@ -952,7 +930,6 @@ void Codex::loadItemData() {
     shield.backstory = "护盾是一层若有若无的光芒。它会在你身边形成一个保护罩，替你挡下致命的一击。\n\n然后它就会消失，就像从来没有存在过一样。护盾从不解释自己为什么要保护你，它只是默默地做，然后默默地离开。";
     m_itemEntries.append(shield);
 
-    // 钥匙
     ItemEffectData keyData = itemConfig.getItemEffect("key");
     CodexEntry key;
     key.name = keyData.name;
@@ -967,7 +944,6 @@ void Codex::loadItemData() {
 void Codex::loadMechanicsData() {
     ConfigManager &config = ConfigManager::instance();
 
-    // 玩家基础机制
     CodexEntry playerMechanics;
     playerMechanics.name = "玩家操作";
     playerMechanics.imagePath = "assets/player/HighGracePeople.png";
@@ -990,7 +966,6 @@ void Codex::loadMechanicsData() {
     playerMechanics.backstory = "作为一名智科er，你需要在这个充满奇怪生物的世界中生存下去。你的武器是无限的子弹，你的技能是瞬移和大招。\n\n记住：活下去才是硬道理。";
     m_mechanicsEntries.append(playerMechanics);
 
-    // 血量系统
     CodexEntry healthSystem;
     healthSystem.name = "血量系统";
     healthSystem.imagePath = "assets/props/red_heart.png";
@@ -1005,7 +980,6 @@ void Codex::loadMechanicsData() {
     healthSystem.backstory = "在这个世界里，红心代表你的生命，黑心代表你的后路，护盾代表你的保险。\n\n合理利用这三种资源，是生存的关键。";
     m_mechanicsEntries.append(healthSystem);
 
-    // 状态效果
     CodexEntry statusEffects;
     statusEffects.name = "状态效果";
     statusEffects.imagePath = "assets/enemy/level_2/sock_normal.png";
@@ -1019,7 +993,6 @@ void Codex::loadMechanicsData() {
     statusEffects.backstory = "这个世界充满了各种debuff。中毒会让你慢慢流血，昏迷会让你动弹不得，惊吓会让你跑得更快但也更脆弱。\n\n了解这些状态效果，才能更好地应对各种敌人。";
     m_mechanicsEntries.append(statusEffects);
 
-    // 道具掉落
     CodexEntry itemDrop;
     itemDrop.name = "道具掉落";
     itemDrop.imagePath = "assets/chest/chest.png";
@@ -1033,7 +1006,6 @@ void Codex::loadMechanicsData() {
     itemDrop.backstory = "道具是变强的关键。击败敌人有小概率掉落，但更稳定的来源是宝箱。\n\n乌萨奇送的宝箱里总是装着最好的东西，她说这是给勇者的奖励。";
     m_mechanicsEntries.append(itemDrop);
 
-    // 关卡机制
     CodexEntry levelMechanics;
     levelMechanics.name = "关卡流程";
     levelMechanics.imagePath = "assets/background/title.png";
@@ -1047,7 +1019,6 @@ void Codex::loadMechanicsData() {
     levelMechanics.backstory = "智科er的一天从起床开始，经过洗衣房，最终在教室结束。\n\n这是每一个NJU学生都要经历的日常，只不过在这个游戏里，日常变成了冒险。";
     m_mechanicsEntries.append(levelMechanics);
 
-    // 游戏背景故事
     CodexEntry gameStory;
     gameStory.name = QString::fromUtf8("背景故事");
     gameStory.imagePath = "assets/background/main.png";
@@ -1100,7 +1071,6 @@ void Codex::loadMysteryData() {
     ConfigManager &config = ConfigManager::instance();
     bool gameCompleted = config.isGameCompleted();
 
-    // 通关车票
     CodexEntry ticket;
     if (gameCompleted) {
         ticket.name = "通关车票";

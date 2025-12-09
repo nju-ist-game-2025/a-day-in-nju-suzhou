@@ -197,7 +197,7 @@ bool ConfigManager::isConfigValidationEnabled() const {
     return devMode.value("config_validation").toBool(false);
 }
 
-// ============== 玩家配置实现 ==============
+// ============== 玩家配置 ==============
 
 int ConfigManager::getPlayerInt(const QString& key, int defaultValue) const {
     if (!loaded) {
@@ -231,7 +231,7 @@ double ConfigManager::getPlayerDouble(const QString& key, double defaultValue) c
     return defaultValue;
 }
 
-// ============== 敌人配置实现 ==============
+// ============== 敌人配置 ==============
 
 int ConfigManager::getEnemyInt(const QString& enemyType, const QString& key, int defaultValue) const {
     if (!loaded) {
@@ -287,7 +287,7 @@ QString ConfigManager::getEnemyString(const QString& enemyType, const QString& k
     return defaultValue;
 }
 
-// ============== Boss配置实现 ==============
+// ============== Boss配置 ==============
 
 int ConfigManager::getBossInt(const QString& bossType, const QString& phase, const QString& key, int defaultValue) const {
     if (!loaded) {

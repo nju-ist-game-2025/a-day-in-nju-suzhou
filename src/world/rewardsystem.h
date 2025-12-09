@@ -32,8 +32,6 @@ class RewardSystem : public QObject {
      */
     void cleanup();
 
-    // ==================== 物品掉落 ====================
-
     /**
      * @brief 在指定位置掉落随机物品
      * @param position 掉落位置
@@ -53,8 +51,6 @@ class RewardSystem : public QObject {
      * @return 是否掉落
      */
     static bool shouldEnemyDropItem();
-
-    // ==================== Boss奖励 ====================
 
     /**
      * @brief 启动Boss奖励流程
@@ -77,8 +73,6 @@ class RewardSystem : public QObject {
      * @brief 设置Boss房间已通关
      */
     void setBossRoomCleared(bool cleared) { m_bossRoomCleared = cleared; }
-
-    // ==================== G键控制 ====================
 
     /**
      * @brief 检查G键是否激活

@@ -126,7 +126,7 @@ void PantsEnemy::startSpinning() {
     m_isSpinning = true;
     m_currentFrameIndex = 0;
 
-    qDebug() << "PantsEnemy: 开始释放旋转技能！";
+    qDebug() << "PantsEnemy: 开始释放旋转技能";
 
     // 保存当前移速并大幅增加
     m_originalSpeed = speed;

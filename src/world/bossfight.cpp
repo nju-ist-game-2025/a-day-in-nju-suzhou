@@ -40,7 +40,7 @@ void BossFight::cleanup() {
     m_isAbsorbAnimationActive = false;
 }
 
-// ==================== Boss初始化 ====================
+// Boss初始化
 
 void BossFight::initNightmareBoss(NightmareBoss* boss) {
     if (!boss)
@@ -75,7 +75,7 @@ void BossFight::initTeacherBoss(TeacherBoss* boss) {
     connectTeacherBossSignals(boss);
 }
 
-// ==================== WashMachineBoss信号连接 ====================
+// WashMachineBoss信号连接
 
 void BossFight::connectWashMachineBossSignals(WashMachineBoss* boss) {
     if (!boss)
@@ -119,7 +119,7 @@ void BossFight::onWashMachineBossRequestAbsorb() {
     // 吸纳动画需要敌人列表，由Level层调用performAbsorbAnimation
 }
 
-// ==================== TeacherBoss信号连接 ====================
+// TeacherBoss信号连接
 
 void BossFight::connectTeacherBossSignals(TeacherBoss* boss) {
     if (!boss)
@@ -191,7 +191,7 @@ void BossFight::onTeacherBossRequestDialogBackgroundChange(int dialogIndex, cons
     emit dialogBackgroundChangeRequested(dialogIndex, backgroundName);
 }
 
-// ==================== 背景控制 ====================
+// 背景控制
 
 void BossFight::changeBackground(const QString& backgroundPath) {
     if (!m_scene || !m_backgroundItem)
@@ -217,7 +217,7 @@ void BossFight::fadeDialogBackgroundTo(const QString& imagePath, int duration) {
     m_pendingFadeDialogDuration = duration;
 }
 
-// ==================== 阶段转换 ====================
+// 阶段转换
 
 void BossFight::showPhaseTransitionText(const QString& text, const QColor& color) {
     // 此方法在Level中实现，这里只是接口
@@ -242,7 +242,7 @@ void BossFight::resumeAllEnemyTimers(const QVector<QPointer<Enemy>>& enemies) {
     }
 }
 
-// ==================== 吸纳动画 ====================
+// 吸纳动画
 
 void BossFight::performAbsorbAnimation(WashMachineBoss* boss, const QVector<QPointer<Enemy>>& enemies) {
     if (!boss || !m_scene || !m_player)

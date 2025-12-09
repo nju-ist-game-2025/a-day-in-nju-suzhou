@@ -71,20 +71,20 @@ GameView::~GameView() {
 void GameView::cleanupGame() {
     qDebug() << "cleanupGame: 开始彻底清理游戏状态";
 
-    // ===== 重置所有游戏状态标志 =====
+    // 重置所有游戏状态标志
     m_isPaused = false;
     m_isInStoryMode = false;
     isLevelTransition = false;
     currentLevel = 1;
 
-    // ===== 清理暂停菜单 =====
+    // 清理暂停菜单
     if (m_pauseMenu) {
         disconnect(m_pauseMenu, nullptr, this, nullptr);
         delete m_pauseMenu;
         m_pauseMenu = nullptr;
     }
 
-    // ===== 清理死亡界面按钮信号（在scene->clear之前断开！） =====
+    // 清理暂停菜单按钮信号（在scene->clear之前断开）
     if (m_retryButton) {
         disconnect(m_retryButton, nullptr, this, nullptr);
         m_retryButton->blockSignals(true);
@@ -98,7 +98,7 @@ void GameView::cleanupGame() {
         m_quitButton2->blockSignals(true);
     }
 
-    // ===== 清理胜利界面按钮信号（在scene->clear之前断开！） =====
+    // 清理胜利界面按钮信号（在scene->clear之前断开）
     if (m_victoryMenuButton) {
         disconnect(m_victoryMenuButton, nullptr, this, nullptr);
         m_victoryMenuButton->blockSignals(true);
@@ -112,7 +112,7 @@ void GameView::cleanupGame() {
         m_victoryQuitButton->blockSignals(true);
     }
 
-    // ===== 清理Level（最重要，包含所有游戏实体） =====
+    // 清理Level（最重要，包含所有游戏实体）
     if (level) {
         // 断开所有与 level 相关的信号连接
         disconnect(level, nullptr, this, nullptr);
@@ -126,13 +126,13 @@ void GameView::cleanupGame() {
         level = nullptr;
     }
 
-    // ===== 清理玩家信号连接 =====
+    // 清理玩家信号连接
     if (player) {
         disconnect(player, nullptr, this, nullptr);
         // player会被scene->clear()删除，这里只断开信号
     }
 
-    // ===== 清理HUD =====
+    // 清理HUD
     if (hud) {
         if (scene && hud->scene() == scene) {
             scene->removeItem(hud);
@@ -141,12 +141,12 @@ void GameView::cleanupGame() {
         hud = nullptr;
     }
 
-    // ===== 清理场景中的所有对象 =====
+    // 清理场景中的所有对象
     if (scene) {
         scene->clear();
     }
 
-    // ===== 重置所有指针（scene->clear()已删除这些对象） =====
+    // 重置所有指针（scene->clear()已删除这些对象）
     player = nullptr;
 
     // 死亡界面相关
@@ -164,17 +164,17 @@ void GameView::cleanupGame() {
     m_victoryAgainButton = nullptr;
     m_victoryQuitButton = nullptr;
 
-    // ===== 重置开发者模式设置 =====
+    // 重置开发者模式设置
     m_startLevel = 1;
     m_isDevMode = false;
     m_devSkipToBoss = false;
     m_devMaxHealth = 3;
     m_devBulletDamage = 1;
 
-    // ===== 停止音乐 =====
+    // 停止音乐
     AudioManager::instance().stopMusic();
 
-    // ===== 清理静态冷却数据 =====
+    // 清理静态冷却数据
     PoisonTrail::clearCooldowns();
     SockEnemy::clearAllCooldowns();
 
@@ -187,24 +187,21 @@ void GameView::setPlayerCharacter(const QString& characterPath) {
 
 void GameView::initGame() {
     try {
-        // ===== 保存开发者模式设置（在cleanupGame之前） =====
+        // 保存开发者模式设置（在cleanupGame之前）
         int savedStartLevel = m_startLevel;
         bool savedIsDevMode = m_isDevMode;
         int savedDevMaxHealth = m_devMaxHealth;
         int savedDevBulletDamage = m_devBulletDamage;
         bool savedDevSkipToBoss = m_devSkipToBoss;
 
-        // ===== 首先彻底清理旧游戏状态 =====
         cleanupGame();
 
-        // ===== 恢复开发者模式设置 =====
         m_startLevel = savedStartLevel;
         m_isDevMode = savedIsDevMode;
         m_devMaxHealth = savedDevMaxHealth;
         m_devBulletDamage = savedDevBulletDamage;
         m_devSkipToBoss = savedDevSkipToBoss;
 
-        // ===== 重新初始化游戏 =====
         // 预加载爆炸动画帧（只在首次加载）
         if (!Explosion::isFramesLoaded()) {
             Explosion::preloadFrames();
@@ -324,7 +321,6 @@ void GameView::initGame() {
     }
 }
 
-// 实现
 void GameView::onStoryFinished() {
     qDebug() << "剧情结束，显示玩家和HUD";
 
@@ -349,9 +345,6 @@ void GameView::onStoryFinished() {
 
     // 更新HUD显示
     updateHUD();
-
-    // 可以在这里添加一些入场动画效果
-    // showPlayerEntranceAnimation();
 }
 
 void GameView::onLevelCompleted() {
@@ -386,14 +379,11 @@ void GameView::showVictoryUI() {
     int W = rect.width();
     int H = rect.height();
 
-    // ====== 半透明遮罩 ======
-    m_victoryOverlay = new QGraphicsRectItem(0, 0, W, H);
     m_victoryOverlay->setBrush(QColor(0, 0, 0, 160));
     m_victoryOverlay->setPen(Qt::NoPen);
     m_victoryOverlay->setZValue(30000);
     scene->addItem(m_victoryOverlay);
 
-    // ====== 金色背景板 ======
     int bgW = 420;
     int bgH = 300;
     int bgX = (W - bgW) / 2;
@@ -403,7 +393,6 @@ void GameView::showVictoryUI() {
     bg->setBrush(QColor(60, 45, 10, 220));     // 金棕色
     bg->setPen(QPen(QColor(255, 215, 0), 4));  // 金色边框
 
-    // ====== 金色标题 ======
     QGraphicsTextItem* title = new QGraphicsTextItem("🎉 恭喜通关！🎉", m_victoryOverlay);
     QFont titleFont("Microsoft YaHei", 28, QFont::Bold);
     title->setFont(titleFont);
@@ -412,7 +401,6 @@ void GameView::showVictoryUI() {
     qreal tW = title->boundingRect().width();
     title->setPos((W - tW) / 2, bgY + 25);
 
-    // ====== 统一的金色按钮样式 ======
     QString goldButtonStyle =
         "QPushButton {"
         "   background-color: qlineargradient("
@@ -447,7 +435,6 @@ void GameView::showVictoryUI() {
     int btnY = bgY + 110;
     int spacing = 60;
 
-    // ====== 返回主菜单 ======
     m_victoryMenuButton = new QPushButton("返回主菜单");
     m_victoryMenuButton->setFixedSize(btnW, btnH);
     m_victoryMenuButton->setStyleSheet(goldButtonStyle);
@@ -456,7 +443,6 @@ void GameView::showVictoryUI() {
     menuProxy->setWidget(m_victoryMenuButton);
     menuProxy->setPos(btnX, btnY);
 
-    // ====== 继续挑战（可选） ======
     m_victoryAgainButton = new QPushButton("再次挑战");
     m_victoryAgainButton->setFixedSize(btnW, btnH);
     m_victoryAgainButton->setStyleSheet(goldButtonStyle);
@@ -465,7 +451,6 @@ void GameView::showVictoryUI() {
     againProxy->setWidget(m_victoryAgainButton);
     againProxy->setPos(btnX, btnY + spacing);
 
-    // ====== 退出游戏 ======
     m_victoryQuitButton = new QPushButton("退出游戏");
     m_victoryQuitButton->setFixedSize(btnW, btnH);
     m_victoryQuitButton->setStyleSheet(goldButtonStyle);
@@ -474,7 +459,6 @@ void GameView::showVictoryUI() {
     quitProxy->setWidget(m_victoryQuitButton);
     quitProxy->setPos(btnX, btnY + spacing * 2);
 
-    // ====== 信号连接 - 使用延迟确保按钮点击事件完全处理完毕 ======
     connect(m_victoryMenuButton, &QPushButton::clicked, this, [this]() {
         if (m_victoryOverlay) {
             m_victoryOverlay->hide();
@@ -715,7 +699,6 @@ void GameView::handlePlayerDeath() {
         int sceneW = rect.width();
         int sceneH = rect.height();
 
-        // ====== 半透明遮罩 ======
         if (!m_deathOverlay) {
             m_deathOverlay = new QGraphicsRectItem(0, 0, sceneW, sceneH);
             m_deathOverlay->setBrush(QBrush(QColor(0, 0, 0, 150)));
@@ -727,7 +710,6 @@ void GameView::handlePlayerDeath() {
             m_deathOverlay->show();
         }
 
-        // ====== 中心背景板 ======
         int bgWidth = 300;
         int bgHeight = 280;
         int bgX = (sceneW - bgWidth) / 2;
@@ -737,7 +719,6 @@ void GameView::handlePlayerDeath() {
         bg->setBrush(QBrush(QColor(50, 50, 50, 230)));
         bg->setPen(QPen(QColor(100, 100, 100), 3));
 
-        // ====== 标题 ======
         QGraphicsTextItem* title = new QGraphicsTextItem("你死了", m_deathOverlay);
         QFont titleFont("Microsoft YaHei", 24, QFont::Bold);
         title->setFont(titleFont);
@@ -746,7 +727,6 @@ void GameView::handlePlayerDeath() {
         qreal titleW = title->boundingRect().width();
         title->setPos((sceneW - titleW) / 2, bgY + 20);
 
-        // ====== 统一按钮样式（渐变 + 圆角 + 粗体） ======
         QString retryButtonStyle =
             "QPushButton {"
             "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4CAF50, stop:1 #388E3C);"
@@ -801,7 +781,6 @@ void GameView::handlePlayerDeath() {
             "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d32f2f, stop:1 #c62828);"
             "}";
 
-        // ====== 按钮布局 ======
         int buttonW = 200;
         int buttonH = 45;
         int buttonX = (sceneW - buttonW) / 2;

@@ -167,8 +167,6 @@ void Chest::dropItems(int count) {
     qDebug() << "[Chest] 从位置" << chestPos << "掉落" << count << "个物品，类型:" << static_cast<int>(m_chestType);
 }
 
-// ==================== NormalChest 普通宝箱实现 ====================
-
 NormalChest::NormalChest(Player* pl, const QPixmap& pic_chest, double scale)
     : Chest(pl, ChestType::Normal, pic_chest, scale) {
     initItems();
@@ -195,8 +193,6 @@ void NormalChest::initItems() {
     m_items.push_back(key1);
     m_items.push_back(key2);
 }
-
-// ==================== LockedChest 高级宝箱实现 ====================
 
 LockedChest::LockedChest(Player* pl, const QPixmap& pic_chest, double scale)
     : Chest(pl, ChestType::Locked, pic_chest, scale) {
@@ -245,8 +241,6 @@ void LockedChest::tryOpen() {
         }
     }
 }
-
-// ==================== BossChest Boss特供宝箱实现 ====================
 
 BossChest::BossChest(Player* pl, const QPixmap& pic_chest, double scale)
     : Chest(pl, ChestType::Boss, pic_chest, scale) {

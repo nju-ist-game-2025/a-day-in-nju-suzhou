@@ -23,16 +23,12 @@ public:
 
     // 音效控制
     void playSound(const QString &soundName);
-
     void preloadSound(const QString &soundName, const QString &filePath);
 
     // 背景音乐控制
     void playMusic(const QString &musicFile);
-
     void stopMusic();
-
     void setMusicVolume(int volume);
-
     void setSoundVolume(int volume);
 
     // 状态检查

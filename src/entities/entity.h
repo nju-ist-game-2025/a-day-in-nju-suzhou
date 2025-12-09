@@ -67,8 +67,6 @@ class Entity : public QObject, public QGraphicsPixmapItem {
 
     void cancelFlash();  // 取消当前闪烁，用于阶段切换时重置
 
-    // 注意：setCrashR 已废弃，现在使用像素级碰撞检测
-
     void setInvincible(bool i) { invincible = i; };
 
     bool isInvincible() const { return invincible; }

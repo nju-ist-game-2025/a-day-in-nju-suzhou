@@ -318,9 +318,6 @@ void Player::shoot(int key) {
         default:
             break;
     }
-
-    // 移除频繁的调试输出以避免性能问题
-    // qDebug() << "射击音效已触发";
 }
 
 void Player::move() {
@@ -637,7 +634,7 @@ void Player::takeDamage(int damage) {
     double oldHealth = redHearts;
     damage *= damageScale;
 
-    // 注意：黑心不再作为护盾使用，改为复活机制
+    // 黑心复活
     while (damage > 0 && redHearts > 0.0) {
         redHearts -= 0.5;
         damage--;
@@ -679,7 +676,7 @@ void Player::forceTakeDamage(int damage) {
     double oldHealth = redHearts;
     damage *= damageScale;
 
-    // 黑心不再作为护盾
+    // 黑心复活
     while (damage > 0 && redHearts > 0.0) {
         redHearts -= 0.5;
         damage--;
@@ -725,7 +722,7 @@ void Player::die() {
         shootTimer->stop();
     }
 
-    // 不要从场景中移除，让 GameView::initGame() 统一清理
+    // 不从场景中移除，让 GameView::initGame() 统一清理
     // 只需隐藏玩家即可
     setVisible(false);
 
@@ -774,8 +771,6 @@ void Player::focusOutEvent(QFocusEvent* event) {
     QGraphicsItem::focusOutEvent(event);
     setFocus();
 }
-
-// ============ 新道具系统方法 ============
 
 void Player::setBulletPic(const QPixmap& pic) {
     pic_bullet = pic;

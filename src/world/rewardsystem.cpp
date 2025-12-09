@@ -21,8 +21,6 @@ void RewardSystem::cleanup() {
     m_gKeyEnabled = false;
 }
 
-// ==================== 物品掉落 ====================
-
 void RewardSystem::dropRandomItem(const QPointF& position) {
     if (!m_scene || !m_player)
         return;
@@ -43,8 +41,6 @@ void RewardSystem::dropItemsFromPosition(const QPointF& position, int count, boo
 bool RewardSystem::shouldEnemyDropItem() {
     return DroppedItemFactory::shouldEnemyDropItem();
 }
-
-// ==================== Boss奖励 ====================
 
 void RewardSystem::startBossRewardSequence(int levelNumber, const QStringList& chestItems) {
     if (m_rewardSequenceActive)
@@ -101,8 +97,6 @@ void RewardSystem::onUsagiRewardCompleted() {
 
     emit rewardSequenceCompleted();
 }
-
-// ==================== G键控制 ====================
 
 void RewardSystem::enableGKey() {
     m_gKeyEnabled = true;

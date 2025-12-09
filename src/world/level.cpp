@@ -101,7 +101,6 @@ Level::Level(Player* player, QGraphicsScene* scene, QObject* parent)
     connect(m_rewardSystem, &RewardSystem::ticketPickedUp, this, &Level::ticketPickedUp);
 }
 
-// ========== 房间管理访问器实现（委托给RoomManager）==========
 int Level::currentRoomIndex() const {
     return m_roomManager->currentRoomIndex();
 }
@@ -380,8 +379,6 @@ void Level::initializeLevelAfterStory(const LevelConfig& config) {
 
     buildMinimapData();
 }
-
-// ========== 对话系统回调槽函数 ==========
 
 // 委托给DialogSystem
 void Level::showStoryDialog(const QStringList& dialogs, bool isBossDialog, const QString& customBackground) {
@@ -708,7 +705,7 @@ void Level::buildMinimapData() {
         hudNode.id = current.id;
         hudNode.x = current.x;
         hudNode.y = current.y;
-        hudNode.visited = false;        // Will be updated by HUD
+        hudNode.visited = false;
         hudNode.hasBoss = cfg.hasBoss;  // 标记boss房间
         hudNode.up = cfg.doorUp;
         hudNode.down = cfg.doorDown;
@@ -1028,7 +1025,6 @@ void Level::loadRoom(int roomIndex) {
             rr->stopChangeTimer();
     }
 
-    // Clear scene first
     clearSceneEntities();
 
     setCurrentRoomIndex(roomIndex);

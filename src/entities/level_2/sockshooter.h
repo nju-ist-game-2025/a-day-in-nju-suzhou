@@ -29,7 +29,7 @@ public:
 
     void resumeTimers() override;
 
-    // ========== 攻击参数设置接口（方便调整） ==========
+    // ========== 攻击参数设置接口 ==========
 
     // 设置子弹伤害
     void setBulletDamage(int damage) { m_bulletDamage = damage; }
@@ -72,13 +72,13 @@ private:
     QPixmap m_bulletPixmap; // 子弹图片
     bool m_facingRight;     // 面朝方向（true=右，false=左）
 
-    // ========== 可调整的攻击参数 ==========
+    // 攻击参数
     int m_bulletDamage;   // 子弹伤害（默认：2）
     int m_shootCooldown;  // 射击冷却（默认：1500ms）
     double m_bulletSpeed; // 子弹速度（默认：5.0）
     double m_bulletScale; // 子弹缩放（默认：1.0）
 
-    // ========== 默认参数常量 ==========
+    // 默认参数常量
     static constexpr int DEFAULT_BULLET_DAMAGE = 2;
     static constexpr int DEFAULT_SHOOT_COOLDOWN = 1500; // 1.5秒
     static constexpr double DEFAULT_BULLET_SPEED = 8.0;
